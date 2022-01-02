@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">서대문구 에코마일리지</string>
+    <string name="welcome">로그인</string>
+    <string name="apple_login">Apple 로그인</string>
+    <string name="google_login">Google 로그인</string>
+    <string name="naver_login">Naver 로그인</string>
+    <string name="login_with">Log in with </string>
+    <string name="facebook_login">Facebook 로그인</string>
+    <string name="weibo_login">Weibo</string>
+    <string name="log_in">Log in /</string>
+    <string name="find_id">Find ID / </string>
+    <string name="find_pass">Find Password</string>
+    <string name="log_in_">로그인</string>
+    <string name="sign_up">Sign up</string>
+    <string name="dont_have_acc">Didn\'t have an account?</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="id">ID</string>
+    <string name="password">PASS</string>
+    <string name="password_confirm">Confirm Password</string>
+</resources>
