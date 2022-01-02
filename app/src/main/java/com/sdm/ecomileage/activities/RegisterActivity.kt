@@ -1,12 +1,12 @@
-package com.ksif.ecomileage.activities
+package com.sdm.ecomileage.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayoutMediator
 import android.os.Bundle
 import android.view.View
 import com.google.android.material.tabs.TabLayout
-import com.ksif.ecomileage.adapters.PagerAdapter
-import com.ksif.ecomileage.databinding.ActivityRegisterBinding
+import com.sdm.ecomileage.adapters.PagerAdapter
+import com.sdm.ecomileage.databinding.ActivityRegisterBinding
 
 class RegisterActivity : AppCompatActivity() {
     var binding: ActivityRegisterBinding? = null

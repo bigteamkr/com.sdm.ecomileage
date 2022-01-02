@@ -1,11 +1,11 @@
-package com.ksif.ecomileage.adapters
+package com.sdm.ecomileage.adapters
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.ksif.ecomileage.fragment.RegisterFragment
-import com.ksif.ecomileage.fragment.LoginFragment
+import com.sdm.ecomileage.fragment.RegisterFragment
+import com.sdm.ecomileage.fragment.LoginFragment
 import java.util.ArrayList
 
 class PagerAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle) :

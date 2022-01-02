@@ -1,11 +1,11 @@
-package com.ksif.ecomileage.activities
+package com.sdm.ecomileage.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.fragment.app.FragmentTransaction
-import com.ksif.ecomileage.R
-import com.ksif.ecomileage.databinding.ActivityMainBinding
-import com.ksif.ecomileage.fragment.OnBoardFragment
+import com.sdm.ecomileage.R
+import com.sdm.ecomileage.databinding.ActivityMainBinding
+import com.sdm.ecomileage.fragment.OnBoardFragment
 
 class OnBoardActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding

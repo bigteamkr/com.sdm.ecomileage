@@ -1,4 +1,4 @@
-package com.ksif.ecomileage
+package com.sdm.ecomileage
 
 import org.junit.Test
 

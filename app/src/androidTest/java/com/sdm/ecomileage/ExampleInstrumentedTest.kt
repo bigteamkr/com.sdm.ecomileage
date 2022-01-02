@@ -1,4 +1,4 @@
-package com.ksif.ecomileage
+package com.sdm.ecomileage
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.ksif.arsejong", appContext.packageName)
+        assertEquals("com.sdm.arsejong", appContext.packageName)
     }
 }

@@ -1,4 +1,4 @@
-package com.ksif.ecomileage.fragment
+package com.sdm.ecomileage.fragment
 
 import android.content.Intent
 import android.graphics.Color
@@ -14,10 +14,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
-import com.ksif.ecomileage.R
-import com.ksif.ecomileage.activities.HomeActivity
-import com.ksif.ecomileage.adapters.BoardAdapter
-import com.ksif.ecomileage.databinding.FragmentOnBoardBinding
+import com.sdm.ecomileage.R
+import com.sdm.ecomileage.activities.HomeActivity
+import com.sdm.ecomileage.adapters.BoardAdapter
+import com.sdm.ecomileage.databinding.FragmentOnBoardBinding
 import java.util.*
 
 class OnBoardFragment : Fragment() {

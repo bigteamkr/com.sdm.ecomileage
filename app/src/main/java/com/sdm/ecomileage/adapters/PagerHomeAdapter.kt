@@ -1,10 +1,10 @@
-package com.ksif.ecomileage.adapters
+package com.sdm.ecomileage.adapters
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.ksif.ecomileage.fragment.HomeFragment
+import com.sdm.ecomileage.fragment.HomeFragment
 
 import java.util.ArrayList
 

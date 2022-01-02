@@ -1,4 +1,4 @@
-package com.ksif.ecomileage.activities
+package com.sdm.ecomileage.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -7,11 +7,11 @@ import android.view.MenuItem
 import androidx.fragment.app.Fragment
 import com.etebarian.meowbottomnavigation.MeowBottomNavigation
 
-import com.ksif.ecomileage.databinding.ActivityHomeBinding
+import com.sdm.ecomileage.databinding.ActivityHomeBinding
 
 
-import com.ksif.ecomileage.R
-import com.ksif.ecomileage.fragment.*
+import com.sdm.ecomileage.R
+import com.sdm.ecomileage.fragment.*
 
 
 class HomeActivity : AppCompatActivity() {

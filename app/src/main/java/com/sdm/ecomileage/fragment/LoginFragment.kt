@@ -1,4 +1,4 @@
-package com.ksif.ecomileage.fragment
+package com.sdm.ecomileage.fragment
 
 import android.content.Intent
 import android.os.Bundle
@@ -6,8 +6,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.ksif.ecomileage.activities.OnBoardActivity
-import com.ksif.ecomileage.databinding.FragmentLoginBinding
+import com.sdm.ecomileage.activities.OnBoardActivity
+import com.sdm.ecomileage.databinding.FragmentLoginBinding
 
 
 class LoginFragment : Fragment() {

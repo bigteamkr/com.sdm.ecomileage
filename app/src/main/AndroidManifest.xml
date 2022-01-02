@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.ksif.ecomileage">
+    package="com.sdm.ecomileage">
 
     <application
         android:allowBackup="true"
@@ -10,26 +10,23 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ARSeJong">
         <activity
-            android:name="com.ksif.ecomileage.activities.HomeActivity"
+            android:name="com.sdm.ecomileage.activities.HomeActivity"
             android:exported="true" />
         <activity
-            android:name="com.ksif.ecomileage.activities.RegisterActivity"
+            android:name="com.sdm.ecomileage.activities.RegisterActivity"
             android:exported="true"
             android:theme="@style/Theme.ARSeJong.NoActionBar"
             >
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity
-            android:name="com.ksif.ecomileage.activities.OnBoardActivity"
+            android:name="com.sdm.ecomileage.activities.OnBoardActivity"
             android:exported="true"
             android:theme="@style/Theme.ARSeJong.NoActionBar" />
-
     </application>
-
 </manifest>

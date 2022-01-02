@@ -1,4 +1,4 @@
-package com.ksif.ecomileage.fragment
+package com.sdm.ecomileage.fragment
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -6,8 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.ksif.ecomileage.adapters.UsersAdapter
-import com.ksif.ecomileage.databinding.FragmentAddBinding
+import com.sdm.ecomileage.adapters.UsersAdapter
+import com.sdm.ecomileage.databinding.FragmentAddBinding
 
 
 class AddFragment : Fragment() {

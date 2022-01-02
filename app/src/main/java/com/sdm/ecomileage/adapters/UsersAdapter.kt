@@ -1,10 +1,10 @@
-package com.ksif.ecomileage.adapters
+package com.sdm.ecomileage.adapters
 
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.ksif.ecomileage.databinding.ItemUserBinding
+import com.sdm.ecomileage.databinding.ItemUserBinding
 
 
 class UsersAdapter(// Getters:
