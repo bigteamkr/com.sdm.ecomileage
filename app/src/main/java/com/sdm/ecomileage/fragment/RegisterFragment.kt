@@ -31,7 +31,7 @@ class RegisterFragment : Fragment() {
 
 
         binding.cardGoogle.setOnClickListener { goToHome() }
-        binding.cardApple.setOnClickListener { goToHome() }
+//        binding.cardApple.setOnClickListener { goToHome() }
         binding.cardFacebook.setOnClickListener { goToHome() }
         binding.cardLogin.setOnClickListener { goToHome() }
         binding.cardKokaoTalk.setOnClickListener { goToHome() }

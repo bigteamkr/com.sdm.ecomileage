@@ -17,8 +17,6 @@ import com.sdm.ecomileage.fragment.*
 class HomeActivity : AppCompatActivity() {
     lateinit var binding: ActivityHomeBinding
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding=ActivityHomeBinding.inflate(layoutInflater)
@@ -51,31 +49,18 @@ class HomeActivity : AppCompatActivity() {
                 4 -> fragment = LearnFragment()
                 5 -> fragment = ProfileFragment()
             }
-
             LoadFragment(fragment)
-
-
         })
         binding.navBottom.setCount(4,"10")
         binding.navBottom.show(3,true)
-
-
-
 
         binding.navBottom.setOnClickMenuListener(MeowBottomNavigation.ClickListener { item ->
            // Toast.makeText(this@HomeActivity,item.id.toString(),Toast.LENGTH_SHORT).show()
         })
 
-
-
-
         binding.navBottom.setOnReselectListener(MeowBottomNavigation.ReselectListener { item ->
           //8  Toast.makeText(this@HomeActivity,"Reselect--  "+item.id.toString(),Toast.LENGTH_SHORT).show()
         })
-
-
-
-
     }
 
     private fun LoadFragment(fragment: Fragment?)

@@ -35,6 +35,4 @@ class RegisterActivity : AppCompatActivity() {
         //AttachMediator
         if (!mediator!!.isAttached) mediator!!.attach()
     }
-
-
 }

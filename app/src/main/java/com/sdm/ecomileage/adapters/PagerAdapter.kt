@@ -16,8 +16,9 @@ class PagerAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle) :
     private fun initData() {
         //init Fragments
         //init Fragments
-        addData(LoginFragment(), "비밀번호 찾기")
-        addData(RegisterFragment(),"아이디 찾기" )
+        addData(RegisterFragment(),"로그인" )
+        addData(LoginFragment(), "회원가입")
+
     }
 
     private fun addData(fragment: Fragment, header: String) {

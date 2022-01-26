@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.sdm.ecomileage.activities.HomeActivity
 import com.sdm.ecomileage.activities.OnBoardActivity
 import com.sdm.ecomileage.databinding.FragmentLoginBinding
 
@@ -30,12 +31,12 @@ class LoginFragment : Fragment() {
 
 
 
-        binding.cardGoogle.setOnClickListener { goToHome() }
-        binding.cardApple.setOnClickListener { goToHome() }
-        binding.cardFacebook.setOnClickListener { goToHome() }
-        binding.cardLogin.setOnClickListener { goToHome() }
-        binding.cardKokaoTalk.setOnClickListener { goToHome() }
-        binding.cardNaver.setOnClickListener { goToHome() }
+
+//        binding.cardApple.setOnClickListener { goToHome() }
+//        binding.cardFacebook.setOnClickListener { goToHome() }
+        binding.cardLogin.setOnClickListener {  }
+//        binding.cardKokaoTalk.setOnClickListener { goToHome() }
+//        binding.cardNaver.setOnClickListener { goToHome() }
 
 
 
@@ -48,8 +49,7 @@ class LoginFragment : Fragment() {
 
     private fun goToHome()
     {
-       // startActivity(Intent(context, HomeActivity::class.java ))
-        startActivity(Intent(context, OnBoardActivity::class.java ))
+        startActivity(Intent(context, HomeActivity::class.java ))
 
 
     }
