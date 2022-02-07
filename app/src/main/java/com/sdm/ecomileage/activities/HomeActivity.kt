@@ -21,7 +21,7 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding=ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        supportActionBar!!.setTitle("북가좌동")
+        supportActionBar!!.setTitle("연북중학교")
         //Initializing
 
         binding.navBottom.add( MeowBottomNavigation.Model(1,R.drawable.nav_home))

@@ -9,10 +9,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.sdm.ecomileage.adapters.PostsAdapter
 import com.sdm.ecomileage.databinding.FragmentProfileBinding
 
+class MypostFragment : Fragment(){
 
-class ProfileFragment : Fragment() {
-
-    // This for control the Fragmnt-Layout views:
     lateinit var binding: FragmentProfileBinding
     lateinit var adapter : PostsAdapter
 
@@ -21,29 +19,23 @@ class ProfileFragment : Fragment() {
 
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        // Inflate the fragment layout:
-        binding = FragmentProfileBinding.inflate(inflater, container, false)
-
+//    override fun onCreateView(
+//        inflater: LayoutInflater, container: ViewGroup?,
+//        savedInstanceState: Bundle?
+//    ): View? {
+//        // Inflate the layout for this fragment
+//        // Inflate the fragment layout:
+//        binding = FragmentProfileBinding.inflate(inflater, container, false)
+//
 //        binding.rvHome.setLayoutManager(LinearLayoutManager(context))
-
-        adapter = PostsAdapter(requireContext())
-
+//
+//        adapter = PostsAdapter(requireContext())
+//
 //        binding.rvHome.adapter = adapter;
-
-
-
-
-        return binding.root // Get the fragment layout root.
-
-
-    }
-
-
-
-
+//
+//
+//
+//
+//        return binding.root // Get the fragment layout root.
+//    }
 }
