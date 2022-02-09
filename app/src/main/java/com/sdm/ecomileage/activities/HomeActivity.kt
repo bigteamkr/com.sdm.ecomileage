@@ -2,10 +2,12 @@ package com.sdm.ecomileage.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.fragment.app.Fragment
 import com.etebarian.meowbottomnavigation.MeowBottomNavigation
+import com.kakao.sdk.common.util.Utility
 
 import com.sdm.ecomileage.databinding.ActivityHomeBinding
 
@@ -19,6 +21,10 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val keyHash = Utility.getKeyHash(this)
+        Log.d("Hash", keyHash)
+
         binding=ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar!!.setTitle("연북중학교")

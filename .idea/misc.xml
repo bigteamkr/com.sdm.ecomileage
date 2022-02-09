@@ -3,12 +3,14 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/activity_find.xml" value="0.203125" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/activity_home.xml" value="0.1793478260869565" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/activity_main.xml" value="0.1793478260869565" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/activity_register.xml" value="0.1793478260869565" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/fragment_add.xml" value="0.1793478260869565" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/fragment_challenge.xml" value="0.1171875" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/fragment_findid.xml" value="0.4" />
+        <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/fragment_findpw.xml" value="0.203125" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/fragment_home.xml" value="0.1793478260869565" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/fragment_learn.xml" value="0.1793478260869565" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/fragment_login.xml" value="0.264" />
@@ -17,6 +19,7 @@
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/fragment_profile.xml" value="0.152" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/fragment_register.xml" value="0.264" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/fragment_search.xml" value="0.264" />
+        <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/fragment_setting.xml" value="0.2046875" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/item_post.xml" value="0.1296875" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/item_user.xml" value="0.1296875" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/layout/on_board_item.xml" value="0.1296875" />

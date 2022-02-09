@@ -17,4 +17,11 @@
     <string name="id">ID</string>
     <string name="password">PASS</string>
     <string name="password_confirm">Confirm Password</string>
+
+    <string name="naver_client_id">0QW5zRNzHZgAO0B7Hv8R</string>
+    <string name="naver_client_secret">T4hb2jNv2i</string>
+    <string name="naver_client_name">서대문구 에코마일리지</string>
+    <string name="facebook_app_id">673703827143669</string>
+    <string name="fb_login_protocol_scheme">fb673703827143669</string>
+
 </resources>

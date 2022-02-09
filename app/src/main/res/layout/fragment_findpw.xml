@@ -6,7 +6,7 @@
     android:orientation="vertical">
 
     <LinearLayout
-        android:id="@+id/layout_find_id"
+        android:id="@+id/layout_find_pw"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -15,13 +15,13 @@
         app:layout_constraintTop_toBottomOf="@+id/text_password_layout">
 
         <TextView
-            android:id="@+id/id_error"
+            android:id="@+id/pw_error"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="@dimen/_40sdp"
             android:layout_marginBottom="@dimen/_40sdp"
-            android:text="조회되는 아이디가 없습니다."
+            android:text="성함과 이메일이 일치하지 않습니다."
             android:textColor="@color/red0"
             android:textSize="15sp" />
 
@@ -37,7 +37,7 @@
         <!--            android:textColor="@color/dark_gray"/>-->
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/text_name_layout"
+            android:id="@+id/text_name_layout2"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -52,7 +52,7 @@
             >
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/ed_name"
+                android:id="@+id/ed_name2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
@@ -68,14 +68,14 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/text_phone_layout"
+            android:id="@+id/text_email_layout2"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/_10sdp"
             android:layout_marginTop="@dimen/_10sdp"
             android:layout_marginEnd="@dimen/_10sdp"
-            android:hint="전화번호(숫자만 적으세요)"
+            android:hint="이메일"
 
             android:textColorHint="@color/dark_gray"
             app:counterEnabled="false"
@@ -86,7 +86,7 @@
             >
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/ed_phone"
+                android:id="@+id/ed_email2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
@@ -105,7 +105,7 @@
 
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_find_id"
+            android:id="@+id/card_find_pw"
             android:layout_width="match_parent"
             android:layout_height="@dimen/_30sdp"
             android:layout_marginStart="@dimen/_10sdp"
@@ -132,7 +132,7 @@
                 android:fontFamily="@font/articulatcf_demi_normal"
                 android:padding="@dimen/_8sdp"
                 android:paddingStart="@dimen/_10ssp"
-                android:text="아이디 조회"
+                android:text="비밀번호 발급메일 발송"
                 android:textColor="@color/white"
                 android:textSize="@dimen/_13sdp"
                 android:textStyle="bold"

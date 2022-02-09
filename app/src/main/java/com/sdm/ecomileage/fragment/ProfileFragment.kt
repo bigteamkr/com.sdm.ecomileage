@@ -34,13 +34,7 @@ class ProfileFragment : Fragment() {
         adapter = PostsAdapter(requireContext())
 
 //        binding.rvHome.adapter = adapter;
-
-
-
-
         return binding.root // Get the fragment layout root.
-
-
     }
 
 
