@@ -30,11 +30,11 @@ class HomeActivity : AppCompatActivity() {
         supportActionBar!!.setTitle("연북중학교")
         //Initializing
 
-        binding.navBottom.add( MeowBottomNavigation.Model(1,R.drawable.nav_home))
-        binding.navBottom.add( MeowBottomNavigation.Model(2,R.drawable.nav_search))
+        binding.navBottom.add( MeowBottomNavigation.Model(1,R.drawable.home_button))
+        binding.navBottom.add( MeowBottomNavigation.Model(2,R.drawable.search_button))
         binding.navBottom.add( MeowBottomNavigation.Model(3,R.drawable.ic_baseline_add_24))
-        binding.navBottom.add( MeowBottomNavigation.Model(4,R.drawable.nav_learn))
-        binding.navBottom.add( MeowBottomNavigation.Model(5,R.drawable.nav_profile))
+        binding.navBottom.add( MeowBottomNavigation.Model(4,R.drawable.event_button))
+        binding.navBottom.add( MeowBottomNavigation.Model(5,R.drawable.button_mypage))
 
       /*  binding.navBottom.setOnShowListener(new MeowBottomNavigation.ShowListener()
         {
