@@ -19,6 +19,9 @@ class RegisterFragment : Fragment() {
 
     // This for control the Fragment-Layout views:
     lateinit var binding: FragmentRegisterBinding
+    val api = APIS.create();
+    var chk = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
