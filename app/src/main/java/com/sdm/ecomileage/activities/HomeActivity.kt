@@ -1,10 +1,13 @@
 package com.sdm.ecomileage.activities
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
+import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
 import com.etebarian.meowbottomnavigation.MeowBottomNavigation
 import com.kakao.sdk.common.util.Utility
@@ -19,6 +22,12 @@ import com.sdm.ecomileage.fragment.*
 class HomeActivity : AppCompatActivity() {
     lateinit var binding: ActivityHomeBinding
 
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        val imm: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
+        return true
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -30,11 +39,11 @@ class HomeActivity : AppCompatActivity() {
         supportActionBar!!.setTitle("연북중학교")
         //Initializing
 
-        binding.navBottom.add( MeowBottomNavigation.Model(1,R.drawable.home_button))
-        binding.navBottom.add( MeowBottomNavigation.Model(2,R.drawable.search_button))
+        binding.navBottom.add( MeowBottomNavigation.Model(1,R.drawable.button_home))
+        binding.navBottom.add( MeowBottomNavigation.Model(2,R.drawable.button_education))
         binding.navBottom.add( MeowBottomNavigation.Model(3,R.drawable.ic_baseline_add_24))
-        binding.navBottom.add( MeowBottomNavigation.Model(4,R.drawable.event_button))
-        binding.navBottom.add( MeowBottomNavigation.Model(5,R.drawable.button_mypage))
+        binding.navBottom.add( MeowBottomNavigation.Model(4,R.drawable.button_event))
+        binding.navBottom.add( MeowBottomNavigation.Model(5,R.drawable.mypage_button))
 
       /*  binding.navBottom.setOnShowListener(new MeowBottomNavigation.ShowListener()
         {
@@ -58,7 +67,7 @@ class HomeActivity : AppCompatActivity() {
             LoadFragment(fragment)
         })
         binding.navBottom.setCount(4,"10")
-        binding.navBottom.show(3,true)
+        binding.navBottom.show(1,true)
 
         binding.navBottom.setOnClickMenuListener(MeowBottomNavigation.ClickListener { item ->
            // Toast.makeText(this@HomeActivity,item.id.toString(),Toast.LENGTH_SHORT).show()

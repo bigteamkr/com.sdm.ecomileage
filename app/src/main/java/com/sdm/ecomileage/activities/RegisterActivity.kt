@@ -1,9 +1,12 @@
 package com.sdm.ecomileage.activities
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayoutMediator
 import android.os.Bundle
+import android.view.MotionEvent
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import com.google.android.material.tabs.TabLayout
 import com.sdm.ecomileage.adapters.PagerAdapter
 import com.sdm.ecomileage.databinding.ActivityRegisterBinding
@@ -13,6 +16,14 @@ class RegisterActivity : AppCompatActivity() {
 
     //TabLayoutMediator
     var mediator: TabLayoutMediator? = null
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        val imm: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
+        return true
+    }
+
+
 
     //Adapter
     var adapter: PagerAdapter? = null

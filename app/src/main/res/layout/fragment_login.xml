@@ -5,6 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:clickable="true"
+    android:focusableInTouchMode="true"
+    android:focusable="true"
 
     >
 
@@ -25,7 +28,7 @@
             android:layout_gravity="center"
             android:layout_marginTop="@dimen/_10sdp"
             android:fontFamily="@font/roboto"
-            android:text="기본정보"
+            android:text=""
             android:textColor="@color/black0"
             android:textSize="25sp" />
 

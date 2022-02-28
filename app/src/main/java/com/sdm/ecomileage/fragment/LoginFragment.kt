@@ -18,7 +18,6 @@ class LoginFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
     }
 
     override fun onCreateView(
@@ -30,27 +29,14 @@ class LoginFragment : Fragment() {
         binding = FragmentLoginBinding.inflate(inflater, container, false)
 
 
-
-
-//        binding.cardApple.setOnClickListener { goToHome() }
-//        binding.cardFacebook.setOnClickListener { goToHome() }
         binding.cardLogin.setOnClickListener {  }
-//        binding.cardKokaoTalk.setOnClickListener { goToHome() }
-//        binding.cardNaver.setOnClickListener { goToHome() }
-
-
-
-
 
         return binding.root // Get the fragment layout root.
-
-
     }
 
     private fun goToHome()
     {
         startActivity(Intent(context, HomeActivity::class.java ))
-
 
     }
 
