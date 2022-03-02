@@ -1,10 +1,10 @@
 package com.example.sdm_eco_mileage.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
@@ -13,10 +13,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberImagePainter
 import com.example.sdm_eco_mileage.navigation.SdmScreens
+import com.example.sdm_eco_mileage.ui.theme.HeartColor
 
 @Composable
 fun SdmTopAppBar(
@@ -96,5 +102,74 @@ fun SecomiTopAppBar(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ReactionTwoIcons(firstIcon: ImageVector, secondIcon: ImageVector) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        //Todo: Toggle Icon
+        Icon(
+            imageVector = firstIcon,
+            contentDescription = "",
+            tint = HeartColor
+        )
+        Text(
+            text = "23",
+            modifier = Modifier.padding(
+                start = 2.dp,
+                end = 7.dp,
+                bottom = 2.dp
+            ),
+            style = MaterialTheme.typography.caption,
+            color = HeartColor
+        )
+
+        //Todo : Add Comment Icon image
+        Icon(
+            imageVector = secondIcon,
+            contentDescription = "comment",
+            tint = Color.LightGray
+        )
+    }
+}
+
+@Composable
+fun ProfileName(name: String, modifier: Modifier = Modifier, fontStyle: TextStyle) {
+    Text(
+        text = name,
+        modifier = modifier
+            .width(55.dp)
+            .padding(top = 2.dp),
+        style = fontStyle,
+        textAlign = TextAlign.Center,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+    )
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun ProfileImage(
+    image: String,
+    modifier: Modifier = Modifier,
+    borderStroke: BorderStroke = BorderStroke(
+        width = 0.dp,
+        color = Color.LightGray
+    )
+) {
+    Surface(
+        onClick = { },
+        modifier = modifier.size(55.dp),
+        shape = CircleShape,
+        border = borderStroke
+    ) {
+        Image(
+            painter = rememberImagePainter(image),
+            contentDescription = "Profile",
+            contentScale = ContentScale.Crop
+        )
     }
 }
