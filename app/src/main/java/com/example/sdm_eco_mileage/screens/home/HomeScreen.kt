@@ -129,6 +129,7 @@ private fun CardContent(
     contentText: String = "",
     navigate: (String) -> Unit
 ) {
+    // Todo : Card 에 이미지도 LazyRow
     Column {
         Card(
             modifier = Modifier

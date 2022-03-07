@@ -132,6 +132,7 @@ private fun HomeDetailBottomSearchBar(){
     val comment = remember{
         mutableStateOf("")
     }
+    // Todo : Button 에 JetTrivia Color 채우기 활용할 것
     BottomAppBar(
         backgroundColor = Color.LightGray
     ) {
