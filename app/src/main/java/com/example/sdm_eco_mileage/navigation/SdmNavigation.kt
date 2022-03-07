@@ -27,7 +27,8 @@ fun SdmNavigation() {
         }
 
         composable(SdmScreens.LoginScreen.name) {
-            LoginScreen(navController)
+//            Todo :: navController
+            LoginScreen()
         }
         composable(SdmScreens.RegisterScreen.name) {
             RegisterScreen(navController)
