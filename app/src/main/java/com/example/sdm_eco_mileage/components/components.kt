@@ -2,103 +2,131 @@ package com.example.sdm_eco_mileage.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
-import com.example.sdm_eco_mileage.navigation.SdmScreens
-import com.example.sdm_eco_mileage.ui.theme.HeartColor
+import com.example.sdm_eco_mileage.R
+import com.example.sdm_eco_mileage.navigation.SecomiScreens
+import com.example.sdm_eco_mileage.ui.theme.BottomSelectedColor
+import com.example.sdm_eco_mileage.ui.theme.BottomUnSelectedColor
+import com.example.sdm_eco_mileage.ui.theme.PointColor
 
-@Composable
-fun SdmTopAppBar(
-    title: String = "연복중중학교",
-    navigationIcon: ImageVector = Icons.Default.ArrowBack,
-    currentScreen: String = SdmScreens.HomeScreen.name,
-    backgroundColor: Color = Color(0xFF50D989),
-    actionIconsList: List<ImageVector> = listOf(
-        Icons.Default.Search,
-        Icons.Default.Search,
-        Icons.Default.Search
-    ),
-    navController: NavController
-) {
-    SecomiTopAppBar(backgroundColor, currentScreen, title, actionIconsList)
-}
-
+//Todo : TopAppBar 다시 정리하기 -> Left / Center / Right 로 Composable 함수 받기
 @Composable
 fun SecomiTopAppBar(
-    backgroundColor: Color,
+    title: String = "연복중중학교",
+    navigationIcon: Painter? = null,
     currentScreen: String,
-    title: String,
-    actionIconsList: List<ImageVector>
+    backgroundColor: List<Color>,
+    actionIconsList: List<Painter>? = null,
+    navController: NavController,
+    contentColor: Color = Color.White
 ) {
+    // navigation Icon = start(left) icon
+    // actionIconsList = end(right) icons
+
     TopAppBar(
-        modifier = Modifier.fillMaxWidth(),
-        backgroundColor = backgroundColor
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                PointColor
+            ),
+        backgroundColor = PointColor,
+        elevation = 0.dp
     ) {
+        Spacer(modifier = Modifier.height(10.dp))
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 15.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // Left - Title or Icons
             Row(modifier = Modifier.padding(start = 5.dp)) {
-                when (currentScreen) {
-                    SdmScreens.HomeScreen.name -> {
-                        Text(
-                            text = title,
-                            color = Color.White,
-                            style = MaterialTheme.typography.subtitle1,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1
-                        )
+                when (navigationIcon) {
+                    null -> {
+                        if (currentScreen == SecomiScreens.HomeScreen.name)
+                            Text(
+                                text = title,
+                                color = contentColor,
+                                style = MaterialTheme.typography.subtitle1,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
+                            )
+                        else
+                            Box {}
                     }
 
                     else -> {
-
+                        Icon(
+                            painter = navigationIcon,
+                            contentDescription = "navigation Icon (back or cancel)",
+                            tint = contentColor
+                        )
                     }
                 }
             }
 
+
             //Center title or empty
             Row {
-                if (currentScreen != SdmScreens.HomeScreen.name) {
-                    Row(modifier = Modifier) {
+                when (navigationIcon) {
+                    null -> {
+                        Box {}
+                    }
+                    else -> {
                         Text(
                             text = title,
-                            color = Color.White,
+                            color = contentColor,
                             style = MaterialTheme.typography.subtitle1,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1
                         )
                     }
-                } else
-                    Box {}
+                }
             }
+
 
             // Right - Icons or empty
             Row(modifier = Modifier.padding(end = 5.dp)) {
-                actionIconsList.forEach { icons ->
-                    Icon(
-                        imageVector = icons, contentDescription = "action icons",
-                        modifier = Modifier.size(30.dp),
-                        tint = Color.White
-                    )
+                when (actionIconsList) {
+                    null -> {
+                        Box {}
+                    }
+
+                    else -> {
+                        actionIconsList.forEach { icons ->
+                            Icon(
+                                painter = icons,
+                                contentDescription = "action icons",
+                                tint = contentColor,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .padding(5.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -106,44 +134,89 @@ fun SecomiTopAppBar(
 }
 
 @Composable
-fun ReactionTwoIcons(firstIcon: ImageVector, secondIcon: ImageVector) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
+fun SecomiMainFloatingActionButton(navController: NavController) {
+    FloatingActionButton(
+        onClick = {
+            navController.navigate(SecomiScreens.HomeDetailScreen.name)
+        },
+        shape = CircleShape,
+        backgroundColor = PointColor,
+        contentColor = Color.White
     ) {
-        //Todo: Toggle Icon
         Icon(
-            imageVector = firstIcon,
-            contentDescription = "",
-            tint = HeartColor
-        )
-        Text(
-            text = "23",
-            modifier = Modifier.padding(
-                start = 2.dp,
-                end = 7.dp,
-                bottom = 2.dp
-            ),
-            style = MaterialTheme.typography.caption,
-            color = HeartColor
-        )
-
-        //Todo : Add Comment Icon image
-        Icon(
-            imageVector = secondIcon,
-            contentDescription = "comment",
-            tint = Color.LightGray
+            imageVector = Icons.Default.Add,
+            contentDescription = "Home Content Add button"
         )
     }
 }
 
 @Composable
-fun ProfileName(name: String, modifier: Modifier = Modifier, fontStyle: TextStyle) {
+fun ReactionIconText(
+    iconResourceList: List<Int>,
+    reactionData: Int,
+    onClickReaction: (Int) -> Unit,
+    tintColor: Color
+) {
+    val isChecked = remember {
+        mutableStateOf(false)
+    }
+
+    val iconResource = remember {
+        mutableStateOf(iconResourceList[0])
+    }
+
+    val isReactionEnable = iconResourceList.size > 1
+
+    Box(
+        modifier = Modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        IconToggleButton(
+            checked = isChecked.value,
+            onCheckedChange = {
+                isChecked.value = it
+                if (isChecked.value && iconResourceList.size > 1) {
+                    iconResource.value = iconResourceList[1]
+                    reactionData
+                } else {
+                    iconResource.value = iconResourceList[0]
+                    reactionData
+                }
+            },
+            modifier = Modifier.size(22.dp),
+            enabled = isReactionEnable
+        ) {
+            Icon(
+                painter = painterResource(id = iconResource.value),
+                contentDescription = "null",
+                tint = tintColor
+            )
+        }
+
+        Text(
+            text = "${reactionData}",
+            modifier = Modifier
+                .padding(start = 45.dp),
+            style = MaterialTheme.typography.subtitle2,
+            color = tintColor
+        )
+    }
+}
+
+@Composable
+fun ProfileName(
+    name: String,
+    modifier: Modifier = Modifier,
+    fontStyle: TextStyle,
+    fontWeight: FontWeight = FontWeight.Normal
+) {
     Text(
         text = name,
         modifier = modifier
             .width(55.dp)
             .padding(top = 2.dp),
         style = fontStyle,
+        fontWeight = fontWeight,
         textAlign = TextAlign.Center,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis
@@ -171,5 +244,162 @@ fun ProfileImage(
             contentDescription = "Profile",
             contentScale = ContentScale.Crop
         )
+    }
+}
+
+@Composable
+fun SecomiBottomBar(navController: NavController, currentScreen: String) {
+    BottomAppBar(
+        backgroundColor = Color.White,
+        cutoutShape = CircleShape
+    ) {
+        val selectedIconName = remember {
+            mutableStateOf(currentScreen)
+        }
+
+        val homeIcon = remember {
+            mutableStateOf(R.drawable.ic_home_off)
+        }
+        val educationIcon = remember {
+            mutableStateOf(R.drawable.ic_edu_off)
+        }
+
+        val eventIcon = remember {
+            mutableStateOf(R.drawable.ic_event_off)
+        }
+        val myPageIcon = remember {
+            mutableStateOf(R.drawable.ic_mypage_off)
+        }
+
+
+        val iconModifier = Modifier.size(22.dp)
+        val labelModifier = Modifier.padding(start = 1.dp, top = 5.dp)
+        val labelStyle = MaterialTheme.typography.overline
+        val letterSpacing = 0.7.sp
+
+        BottomNavigation(
+            backgroundColor = Color.White,
+            elevation = 0.dp
+        ) {
+            BottomNavigationItem(
+                selected = selectedIconName.value == SecomiScreens.HomeScreen.name,
+                onClick = {
+                    selectedIconName.value = SecomiScreens.HomeScreen.name
+                    navController.navigate(SecomiScreens.HomeScreen.name) {
+                        launchSingleTop
+                    }
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = homeIcon.value),
+                        contentDescription = "Home Navigate Button",
+                        modifier = iconModifier
+                    )
+                },
+                modifier = Modifier,
+                label = {
+                    Text(
+                        text = "HOME",
+                        modifier = labelModifier,
+                        letterSpacing = letterSpacing,
+                        style = labelStyle
+                    )
+                },
+                alwaysShowLabel = true,
+                selectedContentColor = BottomSelectedColor,
+                unselectedContentColor = BottomUnSelectedColor
+            )
+
+            BottomNavigationItem(
+                selected = selectedIconName.value == SecomiScreens.EducationScreen.name,
+                onClick = {
+                    selectedIconName.value = SecomiScreens.EducationScreen.name
+                    navController.navigate(SecomiScreens.EducationScreen.name) {
+                        launchSingleTop
+                    }
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = educationIcon.value),
+                        contentDescription = "Education Navigate Button",
+                        modifier = iconModifier
+                    )
+                },
+                modifier = Modifier,
+                label = {
+                    Text(
+                        text = "EDUCATION",
+                        modifier = labelModifier,
+                        letterSpacing = 0.4.sp,
+                        style = labelStyle,
+                        maxLines = 1,
+                        overflow = TextOverflow.Visible
+                    )
+                },
+                alwaysShowLabel = true,
+                selectedContentColor = BottomSelectedColor,
+                unselectedContentColor = BottomUnSelectedColor
+            )
+
+            Spacer(modifier = Modifier.width(35.dp))
+
+            BottomNavigationItem(
+                selected = selectedIconName.value == SecomiScreens.EventScreen.name,
+                onClick = {
+                    selectedIconName.value = SecomiScreens.EventScreen.name
+                    navController.navigate(SecomiScreens.EventScreen.name) {
+                        launchSingleTop
+                    }
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = eventIcon.value),
+                        contentDescription = "Event Navigate Button",
+                        modifier = iconModifier
+                    )
+                },
+                modifier = Modifier,
+                label = {
+                    Text(
+                        text = "EVENT",
+                        modifier = labelModifier,
+                        letterSpacing = letterSpacing,
+                        style = labelStyle
+                    )
+                },
+                alwaysShowLabel = true,
+                selectedContentColor = BottomSelectedColor,
+                unselectedContentColor = BottomUnSelectedColor
+            )
+
+            BottomNavigationItem(
+                selected = selectedIconName.value == SecomiScreens.MyPageScreen.name,
+                onClick = {
+                    selectedIconName.value = SecomiScreens.MyPageScreen.name
+                    navController.navigate(SecomiScreens.MyPageScreen.name) {
+                        launchSingleTop
+                    }
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = myPageIcon.value),
+                        contentDescription = "My Page Navigate Button",
+                        modifier = iconModifier
+                    )
+                },
+                modifier = Modifier,
+                label = {
+                    Text(
+                        text = "MY PAGE",
+                        modifier = labelModifier,
+                        letterSpacing = letterSpacing,
+                        style = labelStyle
+                    )
+                },
+                alwaysShowLabel = true,
+                selectedContentColor = BottomSelectedColor,
+                unselectedContentColor = BottomUnSelectedColor
+            )
+        }
     }
 }

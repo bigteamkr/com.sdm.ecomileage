@@ -21,58 +21,57 @@ import com.example.sdm_eco_mileage.screens.splash.SplashScreen
 @Composable
 fun SdmNavigation() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = SdmScreens.HomeScreen.name) {
-        composable(SdmScreens.SplashScreen.name) {
-            SplashScreen(navController)
+    NavHost(navController = navController, startDestination = SecomiScreens.SplashScreen.name) {
+        composable(SecomiScreens.SplashScreen.name) {
+            SplashScreen(navController = navController)
         }
 
-        composable(SdmScreens.LoginScreen.name) {
-//            Todo :: navController
-            LoginScreen()
+        composable(SecomiScreens.LoginScreen.name) {
+            LoginScreen(navController)
         }
-        composable(SdmScreens.RegisterScreen.name) {
+        composable(SecomiScreens.RegisterScreen.name) {
             RegisterScreen(navController)
         }
-        composable(SdmScreens.FindingAccountScreen.name) {
+        composable(SecomiScreens.FindingAccountScreen.name) {
             FindingAccountScreen(navController)
         }
 
 
-        composable(SdmScreens.HomeScreen.name) {
+        composable(SecomiScreens.HomeScreen.name) {
             HomeScreen(navController)
         }
-        composable(SdmScreens.HomeDetailScreen.name) {
-            HomeScreen(navController)
-        }
-        composable(SdmScreens.HomeAddScreen.name) {
+        composable(SecomiScreens.HomeDetailScreen.name) {
             HomeDetailScreen(navController)
         }
+        composable(SecomiScreens.HomeAddScreen.name) {
+            HomeAddScreen(navController)
+        }
 
 
-        composable(SdmScreens.EducationScreen.name) {
+        composable(SecomiScreens.EducationScreen.name) {
             EducationScreen(navController)
         }
 
 
-        composable(SdmScreens.EventScreen.name) {
+        composable(SecomiScreens.EventScreen.name) {
             EventScreen(navController)
         }
 
 
-        composable(SdmScreens.MyPageScreen.name) {
+        composable(SecomiScreens.MyPageScreen.name) {
             MyPageScreen(navController)
         }
 
 
-        composable(SdmScreens.RankingScreen.name) {
+        composable(SecomiScreens.RankingScreen.name) {
             RankingScreen(navController)
         }
 
 
-        composable(SdmScreens.SearchScreen.name) {
+        composable(SecomiScreens.SearchScreen.name) {
             SearchScreen(navController)
         }
-        composable(SdmScreens.SettingsScreen.name) {
+        composable(SecomiScreens.SettingsScreen.name) {
             SettingsScreen(navController)
         }
 
