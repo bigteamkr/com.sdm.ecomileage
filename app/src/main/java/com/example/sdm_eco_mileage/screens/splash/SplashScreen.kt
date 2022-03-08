@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -98,6 +99,7 @@ private fun SplashImage() {
     )
 }
 
+@Preview
 @Composable
 private fun SplashAppName() {
     Column(
@@ -108,9 +110,11 @@ private fun SplashAppName() {
             text = "S E C O M I",
             modifier = Modifier,
             style = MaterialTheme.typography.h4,
+            fontWeight = FontWeight.SemiBold,
             letterSpacing = 5.2.sp,
             color = Color.White,
         )
+
         Text(
             text = "당신의 에코 라이프를 펼쳐보세요",
             modifier = Modifier.padding(1.dp),

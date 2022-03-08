@@ -13,14 +13,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -30,16 +33,18 @@ import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.BottomSelectedColor
 import com.example.sdm_eco_mileage.ui.theme.BottomUnSelectedColor
 import com.example.sdm_eco_mileage.ui.theme.PointColor
+import com.example.sdm_eco_mileage.ui.theme.TopBarColor
 
 //Todo : TopAppBar 다시 정리하기 -> Left / Center / Right 로 Composable 함수 받기
+@Preview
 @Composable
 fun SecomiTopAppBar(
     title: String = "연복중중학교",
     navigationIcon: Painter? = null,
-    currentScreen: String,
-    backgroundColor: List<Color>,
+    currentScreen: String = SecomiScreens.HomeScreen.name,
+    backgroundColor: List<Color> = TopBarColor,
     actionIconsList: List<Painter>? = null,
-    navController: NavController,
+    navController: NavController = NavController(LocalContext.current),
     contentColor: Color = Color.White
 ) {
     // navigation Icon = start(left) icon
@@ -48,10 +53,11 @@ fun SecomiTopAppBar(
     TopAppBar(
         modifier = Modifier
             .fillMaxWidth()
+            .height(40.dp)
             .background(
-                PointColor
+                Brush.verticalGradient(backgroundColor)
             ),
-        backgroundColor = PointColor,
+        backgroundColor = Color.Transparent,
         elevation = 0.dp
     ) {
         Spacer(modifier = Modifier.height(10.dp))
@@ -63,6 +69,7 @@ fun SecomiTopAppBar(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // Left - Title or Icons
+
             Row(modifier = Modifier.padding(start = 5.dp)) {
                 when (navigationIcon) {
                     null -> {
@@ -88,25 +95,39 @@ fun SecomiTopAppBar(
                 }
             }
 
-
             //Center title or empty
+
             Row {
                 when (navigationIcon) {
                     null -> {
-                        Box {}
+                        Box(
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_topbar_leaves_2),
+                                contentDescription = "top bar decoration"
+                            )
+                        }
                     }
                     else -> {
-                        Text(
-                            text = title,
-                            color = contentColor,
-                            style = MaterialTheme.typography.subtitle1,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1
-                        )
+                        Box(
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_topbar_leaves_2),
+                                contentDescription = "top bar decoration"
+                            )
+                            Text(
+                                text = title,
+                                color = contentColor,
+                                style = MaterialTheme.typography.subtitle1,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
+                            )
+                        }
                     }
                 }
             }
-
 
             // Right - Icons or empty
             Row(modifier = Modifier.padding(end = 5.dp)) {
@@ -129,6 +150,8 @@ fun SecomiTopAppBar(
                     }
                 }
             }
+
+
         }
     }
 }
@@ -198,6 +221,7 @@ fun ReactionIconText(
             modifier = Modifier
                 .padding(start = 45.dp),
             style = MaterialTheme.typography.subtitle2,
+            fontWeight = FontWeight.Normal,
             color = tintColor
         )
     }
@@ -207,6 +231,7 @@ fun ReactionIconText(
 fun ProfileName(
     name: String,
     modifier: Modifier = Modifier,
+    textAlign: TextAlign = TextAlign.Center,
     fontStyle: TextStyle,
     fontWeight: FontWeight = FontWeight.Normal
 ) {
@@ -217,7 +242,7 @@ fun ProfileName(
             .padding(top = 2.dp),
         style = fontStyle,
         fontWeight = fontWeight,
-        textAlign = TextAlign.Center,
+        textAlign = textAlign,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis
     )
@@ -301,6 +326,7 @@ fun SecomiBottomBar(navController: NavController, currentScreen: String) {
                     Text(
                         text = "HOME",
                         modifier = labelModifier,
+                        fontSize = 11.sp,
                         letterSpacing = letterSpacing,
                         style = labelStyle
                     )
@@ -330,7 +356,8 @@ fun SecomiBottomBar(navController: NavController, currentScreen: String) {
                     Text(
                         text = "EDUCATION",
                         modifier = labelModifier,
-                        letterSpacing = 0.4.sp,
+                        fontSize = 11.sp,
+                        letterSpacing = 0.2.sp,
                         style = labelStyle,
                         maxLines = 1,
                         overflow = TextOverflow.Visible
@@ -363,6 +390,7 @@ fun SecomiBottomBar(navController: NavController, currentScreen: String) {
                     Text(
                         text = "EVENT",
                         modifier = labelModifier,
+                        fontSize = 11.sp,
                         letterSpacing = letterSpacing,
                         style = labelStyle
                     )
@@ -392,6 +420,7 @@ fun SecomiBottomBar(navController: NavController, currentScreen: String) {
                     Text(
                         text = "MY PAGE",
                         modifier = labelModifier,
+                        fontSize = 11.sp,
                         letterSpacing = letterSpacing,
                         style = labelStyle
                     )
