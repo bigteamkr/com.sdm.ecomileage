@@ -11,6 +11,7 @@
 - Splash 구현 완료 (2022.03.04 / Newon)
 - Home Main_Content Card 구현 완료 - 피드백 대기 (2022.03.04 / Newon)
 - Bottom Bar, TopBar 구현 완료 - 피드백 대기 (2022.03.04 / Newon)
+- HomeDetail UI 80% 완료 (Search Bar 미세 조정 및 Top Bar 조정 남음) (2022.03.05 / Newon)
   
 <br/>
 
@@ -65,7 +66,7 @@ ProfileName(
   
 필요사항  
 1. 로그인 후 데이터 API (2022.03.02 / Newon)
-   
+
 <br/>
   
 이슈사항
