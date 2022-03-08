@@ -12,6 +12,7 @@
 - Home Main_Content Card 구현 완료 - 피드백 대기 (2022.03.04 / Newon)
 - Bottom Bar, TopBar 구현 완료 - 피드백 대기 (2022.03.04 / Newon)
 - HomeDetail UI 80% 완료 (Search Bar 미세 조정 및 Top Bar 조정 남음) (2022.03.05 / Newon)
+- Search Bar 완료, Top Bar 조정 완료, Font 적용 (2022.03.08 / Newon)
   
 <br/>
 
@@ -70,7 +71,8 @@ ProfileName(
 <br/>
   
 이슈사항
-
+- Top Bar 내부 이파리가 background color 에 뭍히는 현상
+- Status Bar 투명도 이슈
   
 다음 목표
 
