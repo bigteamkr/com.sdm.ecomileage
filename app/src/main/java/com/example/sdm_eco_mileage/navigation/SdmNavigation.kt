@@ -27,10 +27,12 @@ fun SdmNavigation() {
         }
 
         composable(SecomiScreens.LoginScreen.name) {
-            LoginScreen(navController)
+//            Todo::navController
+            LoginScreen()
         }
         composable(SecomiScreens.RegisterScreen.name) {
-            RegisterScreen(navController)
+            RegisterScreen()
+//            Todo::navController
         }
         composable(SecomiScreens.FindingAccountScreen.name) {
             FindingAccountScreen(navController)

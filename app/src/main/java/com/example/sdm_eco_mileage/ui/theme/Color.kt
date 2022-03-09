@@ -31,3 +31,6 @@ val PointColor = Color(0xFF4EDE99)
 val TagColor = Color(0xFF0096EB)
 val CommentBackgroundColor = Color(0xFFE7EEF9)
 val SendButtonColor = Color(0xFF65D67D)
+
+// Login Button Color
+val LoginButtonColor = Color(0xFF5BDD91)
