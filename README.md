@@ -80,5 +80,5 @@ ProfileName(
 1. Main UI 완성 (2022.03.02 / Newon)  
 2. 바텀바 및 네비게이션 (2022.03.02 / Newon || 2022.03.04 / Newon)  
 3. HomeDetail, HomeAdd (2022.03.04 / Newon)
-4. Card Component 화v (2022.03.04 / Newon / 2022.03.09 / Newon)
+4. Card Component 화 (2022.03.04 / Newon || 2022.03.09 / Newon)
 5. API 연결 완료 (2022.03.07 / Newon || 2022.03.09 / Newon)
