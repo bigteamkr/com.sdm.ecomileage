@@ -67,7 +67,7 @@ ProfileName(
 
   
 필요사항  
-1. 로그인 후 데이터 API (2022.03.02 / Newon)
+
 
 <br/>
   
