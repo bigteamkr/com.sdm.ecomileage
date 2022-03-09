@@ -22,21 +22,21 @@ Components List
 
 
 2. BottomBar-FloatingActionButton (2022.03.04 / Newon)
-하단 바 CutOut Shape-Floating 구현  
+하단 바 CutOut Shape-Floating 구현
 
 ```Kotlin
-        Surface(){
-            ...
-            bottomBar = {
-                SecomiBottomBar(
-                    navController = navController,
-                    currentScreen = SecomiScreens.HomeScreen.name
-                )
-            },
-            floatingActionButton = { SecomiMainFloatingActionButton(navController) },
-            isFloatingActionButtonDocked = true,
-            floatingActionButtonPosition = FabPosition.Center
-        }
+        Surface {
+    ...
+    bottomBar = {
+        SecomiBottomBar(
+            navController = navController,
+            currentScreen = SecomiScreens.HomeScreen.name
+        )
+    },
+    floatingActionButton = { SecomiMainFloatingActionButton(navController) },
+    isFloatingActionButtonDocked = true,
+    floatingActionButtonPosition = FabPosition.Center
+}
 
 ```
 <img width="351" alt="스크린샷 2022-03-04 오후 11 42 51" src="https://user-images.githubusercontent.com/80164141/156783672-e0a686bb-3a88-4b9e-ae28-667e3196cfa8.png">

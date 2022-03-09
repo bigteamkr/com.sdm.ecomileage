@@ -1,0 +1,3 @@
+package com.example.sdm_eco_mileage.utils
+
+val accessToken: String = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwibmlja25hbWUiOiJ1bmtub3duIiwiZXhwIjoxNjQ2ODE1MTE1LCJ1c2VyaWQiOiJhZG1pbkBlbWFpbC5jb20iLCJlbWFpbCI6ImFkbWluQGVtYWlsLmNvbSJ9.Itwb087sa1Qft87slYBi1hIeuv8Evup8Ht_-af_76dg"

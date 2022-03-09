@@ -47,7 +47,7 @@ fun RegisterScreen() {
 
 @Composable
 fun BasicInformText(){
-    Row() {
+    Row {
         Text(text = "＊", color = Color.Red)
         Text(text = "기본정보", color = Color.DarkGray)
     }
@@ -91,14 +91,14 @@ fun PasswordCheckTextField() {
 
 @Composable
 fun MoreInformText(){
-    Row() {
+    Row {
         Text(text = "추가정보", color = Color.DarkGray)
     }
 }
 
 @Composable
 fun RegisterButton() {
-    Column() {
+    Column {
         Button(
             modifier = Modifier.width(300.dp),
             onClick = { /*TODO*/ },

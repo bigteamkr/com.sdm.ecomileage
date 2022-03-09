@@ -36,7 +36,7 @@ fun LoginScreen() {
             .padding(top = 50.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column() {
+        Column {
             LoginTextField()
             PasswordTextField()
         }
@@ -91,7 +91,7 @@ fun PasswordTextField() {
 @Composable
 fun SaveId() {
     Column(modifier = Modifier.padding(start = 20.dp)) {
-        Row() {
+        Row {
             val checkboxState = remember {
                 mutableStateOf(true)
             }
@@ -110,7 +110,7 @@ fun SaveId() {
 @Composable
 fun AutoLogin(){
     Column(modifier = Modifier.padding(start = 20.dp)) {
-        Row() {
+        Row {
             val checkboxState = remember {
                 mutableStateOf(true)
             }
@@ -127,7 +127,7 @@ fun AutoLogin(){
 
 @Composable
 fun LoginButton() {
-    Column() {
+    Column {
         Button(
             modifier = Modifier.width(300.dp),
             onClick = { /*TODO*/ },
@@ -148,7 +148,7 @@ fun FindIdButton() {
 
 @Composable
 fun SocialLoginCard(){
-    Column() {
+    Column {
         Column(modifier = Modifier.padding(vertical = 3.dp)) {
             Card(shape = RoundedCornerShape(8.dp),
                 modifier = Modifier

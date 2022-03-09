@@ -11,9 +11,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -21,24 +23,42 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.sdm_eco_mileage.R
 import com.example.sdm_eco_mileage.components.*
-import com.example.sdm_eco_mileage.data.SampleHomeColumn
-import com.example.sdm_eco_mileage.data.SampleHomeRow
-import com.example.sdm_eco_mileage.data.HomeScrollColumnViewData
-import com.example.sdm_eco_mileage.data.HomeTopScrollRowViewData
+import com.example.sdm_eco_mileage.data.*
+import com.example.sdm_eco_mileage.model.homeInfo.response.Friend
+import com.example.sdm_eco_mileage.model.homeInfo.response.HomeInfoResponse
+import com.example.sdm_eco_mileage.model.homeInfo.response.Post
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.LikeColor
 import com.example.sdm_eco_mileage.ui.theme.TopBarColor
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
+    val homeInfo = produceState<DataOrException<HomeInfoResponse, Boolean, Exception>>(
+        initialValue = DataOrException(loading = true)
+    ) {
+        value = viewModel.postHomeInfo()
+    }.value
+
+    if (homeInfo.loading == true)
+        CircularProgressIndicator()
+    else if (homeInfo.data != null)
+        HomeScaffold(navController, homeInfo)
+}
+
+@Composable
+private fun HomeScaffold(
+    navController: NavController,
+    homeInfoResponse: DataOrException<HomeInfoResponse, Boolean, Exception>
+) {
     Scaffold(
         topBar = {
             SecomiTopAppBar(
-                title = "어쨋든 엄청 긴 이름 학교",
+                title = homeInfoResponse.data!!.result.userDept,
                 navController = navController,
                 currentScreen = SecomiScreens.HomeScreen.name,
                 backgroundColor = TopBarColor,
@@ -64,8 +84,8 @@ fun HomeScreen(navController: NavController) {
         val sampleDataForLazyColumn = HomeScrollColumnViewData
 
         Column {
-            HomeUserFeedRow(navController, sampleDataForLazyRow)
-            HomeMainContent(navController, sampleDataForLazyColumn)
+            HomeUserFeedRow(navController, homeInfoResponse.data!!.result.friendList)
+            HomeMainContent(navController, homeInfoResponse.data!!.result.postList)
         }
     }
 }
@@ -74,7 +94,7 @@ fun HomeScreen(navController: NavController) {
 @Composable
 private fun HomeMainContent(
     navController: NavController,
-    sampleDataForLazyHomeColumn: List<SampleHomeColumn>
+    postListData: List<Post>
 ) {
     var sample = remember {
         mutableStateOf(23)
@@ -83,23 +103,22 @@ private fun HomeMainContent(
     LazyColumn(
         modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 5.dp)
     ) {
-        items(sampleDataForLazyHomeColumn) { data ->
+        items(postListData) { data ->
             CardContent(
-                data,
-                contentImage = data.image,
-                profileImage = data.image,
-                profileName = data.name,
+                contentImage =  HomeScrollColumnViewData[0].image,
+                profileImage =  HomeScrollColumnViewData[1].image,
+                profileName = data.userName,
                 reactionIcon = listOf(
                     R.drawable.ic_like_off,
                     R.drawable.ic_like_on
                 ),
-                reactionData = sample.value,
+                reactionData = data.likeCount,
                 onClickReaction = { sample.value = it },
                 reactionTint = LikeColor,
                 commentIcon = painterResource(id = R.drawable.ic_comment),
                 needMoreIcon = true,
                 moreIcon = painterResource(id = R.drawable.ic_more),
-                contentText = data.content,
+                contentText = data.title,
                 navigate = {
                     navController.navigate(it) {
                         popUpTo(SecomiScreens.HomeScreen.name) { inclusive = false }
@@ -115,7 +134,6 @@ private fun HomeMainContent(
 
 @Composable
 private fun CardContent(
-    data: SampleHomeColumn = HomeScrollColumnViewData[0],
     contentImage: String = "이거 고쳐라",
     profileImage: String = "",
     profileName: String = "",
@@ -134,19 +152,19 @@ private fun CardContent(
         Card(
             modifier = Modifier
                 .padding(5.dp)
-                .padding(end = 2.dp)
+                .padding(start = 5.dp, end = 5.dp)
                 .fillMaxWidth()
                 .height(300.dp)
                 .clickable {
                     navigate(SecomiScreens.HomeDetailScreen.name)
-                },
+                }
+                .shadow(12.dp),
             shape = RoundedCornerShape(10.dp),
-            backgroundColor = Color.White,
-            elevation = 12.dp
+            backgroundColor = Color.White
         ) {
             Column {
                 Image(
-                    painter = rememberImagePainter(data = data.image),
+                    painter = rememberImagePainter(data = contentImage),
                     contentDescription = "Card Content Main Image",
                     modifier = Modifier
                         .fillMaxHeight(0.65f),
@@ -172,7 +190,7 @@ private fun CardContent(
                             name = profileName,
                             modifier = Modifier.padding(top = 2.dp, bottom = 5.dp),
                             fontStyle = MaterialTheme.typography.subtitle2,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Normal
                         )
                     }
                     Row(
@@ -190,7 +208,7 @@ private fun CardContent(
                             painter = commentIcon,
                             contentDescription = "Comment button",
                             modifier = Modifier
-                                .padding(start = 5.dp, top = 2.dp)
+                                .padding(start = 2.dp, top = 1.dp)
                                 .size(24.dp),
                             tint = Color.LightGray
                         )
@@ -225,7 +243,10 @@ private fun CardContent(
 
 
 @Composable
-private fun HomeUserFeedRow(navController: NavController, sampleDataForLazyHomeRow: List<SampleHomeRow>) {
+private fun HomeUserFeedRow(
+    navController: NavController,
+    friendListData: List<Friend>
+) {
     val borderStroke = BorderStroke(width = 2.dp, color = Color.LightGray)
 
     Surface(
@@ -240,16 +261,16 @@ private fun HomeUserFeedRow(navController: NavController, sampleDataForLazyHomeR
                 modifier = Modifier
                     .padding(start = 5.dp, top = 2.dp)
             ) {
-                items(sampleDataForLazyHomeRow) { data ->
+                items(friendListData) { data ->
                     Column(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        ProfileImage(data.image, Modifier, borderStroke = borderStroke)
+                        ProfileImage(data.photo, Modifier, borderStroke = borderStroke)
                         ProfileName(
                             name = data.name,
                             fontStyle = MaterialTheme.typography.subtitle2,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Normal
                         )
                     }
                     Spacer(modifier = Modifier.width(10.dp))

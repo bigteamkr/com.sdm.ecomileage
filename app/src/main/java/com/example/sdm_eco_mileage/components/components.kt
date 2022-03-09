@@ -3,16 +3,19 @@ package com.example.sdm_eco_mileage.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -24,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -60,100 +64,119 @@ fun SecomiTopAppBar(
         backgroundColor = Color.Transparent,
         elevation = 0.dp
     ) {
-        Spacer(modifier = Modifier.height(10.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 15.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        Box(
+            contentAlignment = Alignment.Center
         ) {
-            // Left - Title or Icons
+            Icon(
+                painter = painterResource(id = R.drawable.ic_topbar_leaves_2),
+                contentDescription = "top bar decoration",
+                modifier = Modifier.size(80.dp)
+            )
 
-            Row(modifier = Modifier.padding(start = 5.dp)) {
-                when (navigationIcon) {
-                    null -> {
-                        if (currentScreen == SecomiScreens.HomeScreen.name)
-                            Text(
-                                text = title,
-                                color = contentColor,
-                                style = MaterialTheme.typography.subtitle1,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1
-                            )
-                        else
-                            Box {}
-                    }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .padding(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
 
-                    else -> {
+                // Left - Title or Icons
+                Row(
+                    modifier = Modifier
+                        .padding(start = 12.dp)
+                        .fillMaxHeight(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (navigationIcon != null) {
                         Icon(
                             painter = navigationIcon,
                             contentDescription = "navigation Icon (back or cancel)",
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .size(20.dp)
+                                .clickable {
+                                    navController.popBackStack()
+                                },
                             tint = contentColor
+                        )
+                    }
+
+                    when (currentScreen) {
+                        SecomiScreens.HomeScreen.name -> {
+                            AppBarTitleText(title, Modifier, contentColor, 15.sp)
+                        }
+                        SecomiScreens.EducationScreen.name -> {
+                            AppBarTitleText(title, Modifier, contentColor, 15.sp)
+                        }
+                    }
+
+                }
+
+                //Center title or empty
+                Row(
+                    modifier = Modifier
+                        .fillMaxHeight(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    when (currentScreen) {
+                        SecomiScreens.HomeAddScreen.name -> {
+                            AppBarTitleText(title, Modifier.padding(end = 25.dp), contentColor, 18.sp)
+                        }
+
+                        SecomiScreens.HomeDetailScreen.name -> {
+                            AppBarTitleText(title, Modifier.padding(end = 25.dp), contentColor, 18.sp)
+                        }
+
+                        SecomiScreens.RankingScreen.name -> {
+                            AppBarTitleText(title, Modifier.padding(end = 25.dp), contentColor, 18.sp)
+                        }
+                    }
+                }
+
+                // Right - Icons or empty
+                Row(
+                    modifier = Modifier
+                        .padding(end = 5.dp)
+                        .fillMaxHeight(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    actionIconsList?.forEach { icons ->
+                        Icon(
+                            painter = icons,
+                            contentDescription = "action icons",
+                            tint = contentColor,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .padding(5.dp)
                         )
                     }
                 }
             }
 
-            //Center title or empty
-
-            Row {
-                when (navigationIcon) {
-                    null -> {
-                        Box(
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_topbar_leaves_2),
-                                contentDescription = "top bar decoration"
-                            )
-                        }
-                    }
-                    else -> {
-                        Box(
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_topbar_leaves_2),
-                                contentDescription = "top bar decoration"
-                            )
-                            Text(
-                                text = title,
-                                color = contentColor,
-                                style = MaterialTheme.typography.subtitle1,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Right - Icons or empty
-            Row(modifier = Modifier.padding(end = 5.dp)) {
-                when (actionIconsList) {
-                    null -> {
-                        Box {}
-                    }
-
-                    else -> {
-                        actionIconsList.forEach { icons ->
-                            Icon(
-                                painter = icons,
-                                contentDescription = "action icons",
-                                tint = contentColor,
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .padding(5.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-
         }
     }
+}
+
+
+@Composable
+private fun AppBarTitleText(
+    title: String,
+    modifier: Modifier = Modifier,
+    contentColor: Color,
+    fontSize: TextUnit
+) {
+    Text(
+        text = title,
+        modifier = modifier,
+        color = contentColor,
+        fontSize = fontSize,
+        style = MaterialTheme.typography.h4,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 1
+    )
 }
 
 @Composable
@@ -276,7 +299,8 @@ fun ProfileImage(
 fun SecomiBottomBar(navController: NavController, currentScreen: String) {
     BottomAppBar(
         backgroundColor = Color.White,
-        cutoutShape = CircleShape
+        cutoutShape = CircleShape,
+        elevation = 12.dp
     ) {
         val selectedIconName = remember {
             mutableStateOf(currentScreen)
@@ -297,8 +321,8 @@ fun SecomiBottomBar(navController: NavController, currentScreen: String) {
         }
 
 
-        val iconModifier = Modifier.size(22.dp)
-        val labelModifier = Modifier.padding(start = 1.dp, top = 5.dp)
+        val iconModifier = Modifier.size(25.dp)
+        val labelModifier = Modifier.padding(start = 1.dp, top = 10.dp)
         val labelStyle = MaterialTheme.typography.overline
         val letterSpacing = 0.7.sp
 
@@ -306,129 +330,102 @@ fun SecomiBottomBar(navController: NavController, currentScreen: String) {
             backgroundColor = Color.White,
             elevation = 0.dp
         ) {
-            BottomNavigationItem(
-                selected = selectedIconName.value == SecomiScreens.HomeScreen.name,
-                onClick = {
-                    selectedIconName.value = SecomiScreens.HomeScreen.name
-                    navController.navigate(SecomiScreens.HomeScreen.name) {
-                        launchSingleTop
-                    }
-                },
-                icon = {
-                    Icon(
-                        painter = painterResource(id = homeIcon.value),
-                        contentDescription = "Home Navigate Button",
-                        modifier = iconModifier
-                    )
-                },
-                modifier = Modifier,
-                label = {
-                    Text(
-                        text = "HOME",
-                        modifier = labelModifier,
-                        fontSize = 11.sp,
-                        letterSpacing = letterSpacing,
-                        style = labelStyle
-                    )
-                },
-                alwaysShowLabel = true,
-                selectedContentColor = BottomSelectedColor,
-                unselectedContentColor = BottomUnSelectedColor
+            BottomBarItem(
+                selectedIconName,
+                navController,
+                iconModifier,
+                labelModifier,
+                letterSpacing,
+                labelStyle,
+                currentScreenButton = SecomiScreens.HomeScreen.name,
+                iconResource = homeIcon,
+                label = "HOME",
+                description = "Home Navigate Button"
             )
 
-            BottomNavigationItem(
-                selected = selectedIconName.value == SecomiScreens.EducationScreen.name,
-                onClick = {
-                    selectedIconName.value = SecomiScreens.EducationScreen.name
-                    navController.navigate(SecomiScreens.EducationScreen.name) {
-                        launchSingleTop
-                    }
-                },
-                icon = {
-                    Icon(
-                        painter = painterResource(id = educationIcon.value),
-                        contentDescription = "Education Navigate Button",
-                        modifier = iconModifier
-                    )
-                },
-                modifier = Modifier,
-                label = {
-                    Text(
-                        text = "EDUCATION",
-                        modifier = labelModifier,
-                        fontSize = 11.sp,
-                        letterSpacing = 0.2.sp,
-                        style = labelStyle,
-                        maxLines = 1,
-                        overflow = TextOverflow.Visible
-                    )
-                },
-                alwaysShowLabel = true,
-                selectedContentColor = BottomSelectedColor,
-                unselectedContentColor = BottomUnSelectedColor
+            BottomBarItem(
+                selectedIconName,
+                navController,
+                iconModifier,
+                labelModifier,
+                letterSpacing,
+                labelStyle,
+                currentScreenButton = SecomiScreens.EducationScreen.name,
+                iconResource = educationIcon,
+                label = "EDUCATION",
+                description = "Education Navigate Button"
             )
-
             Spacer(modifier = Modifier.width(35.dp))
 
-            BottomNavigationItem(
-                selected = selectedIconName.value == SecomiScreens.EventScreen.name,
-                onClick = {
-                    selectedIconName.value = SecomiScreens.EventScreen.name
-                    navController.navigate(SecomiScreens.EventScreen.name) {
-                        launchSingleTop
-                    }
-                },
-                icon = {
-                    Icon(
-                        painter = painterResource(id = eventIcon.value),
-                        contentDescription = "Event Navigate Button",
-                        modifier = iconModifier
-                    )
-                },
-                modifier = Modifier,
-                label = {
-                    Text(
-                        text = "EVENT",
-                        modifier = labelModifier,
-                        fontSize = 11.sp,
-                        letterSpacing = letterSpacing,
-                        style = labelStyle
-                    )
-                },
-                alwaysShowLabel = true,
-                selectedContentColor = BottomSelectedColor,
-                unselectedContentColor = BottomUnSelectedColor
+            BottomBarItem(
+                selectedIconName,
+                navController,
+                iconModifier,
+                labelModifier,
+                letterSpacing,
+                labelStyle,
+                currentScreenButton = SecomiScreens.EventScreen.name,
+                iconResource = eventIcon,
+                label = "EVENT",
+                description = "Event Navigate Button"
             )
 
-            BottomNavigationItem(
-                selected = selectedIconName.value == SecomiScreens.MyPageScreen.name,
-                onClick = {
-                    selectedIconName.value = SecomiScreens.MyPageScreen.name
-                    navController.navigate(SecomiScreens.MyPageScreen.name) {
-                        launchSingleTop
-                    }
-                },
-                icon = {
-                    Icon(
-                        painter = painterResource(id = myPageIcon.value),
-                        contentDescription = "My Page Navigate Button",
-                        modifier = iconModifier
-                    )
-                },
-                modifier = Modifier,
-                label = {
-                    Text(
-                        text = "MY PAGE",
-                        modifier = labelModifier,
-                        fontSize = 11.sp,
-                        letterSpacing = letterSpacing,
-                        style = labelStyle
-                    )
-                },
-                alwaysShowLabel = true,
-                selectedContentColor = BottomSelectedColor,
-                unselectedContentColor = BottomUnSelectedColor
+            BottomBarItem(
+                selectedIconName,
+                navController,
+                iconModifier,
+                labelModifier,
+                letterSpacing,
+                labelStyle,
+                currentScreenButton = SecomiScreens.MyPageScreen.name,
+                iconResource = myPageIcon,
+                label = "MY PAGE",
+                description = "My Page Navigate Button"
             )
         }
     }
+}
+
+@Composable
+private fun RowScope.BottomBarItem(
+    selectedIconName: MutableState<String>,
+    navController: NavController,
+    iconModifier: Modifier,
+    labelModifier: Modifier,
+    letterSpacing: TextUnit,
+    labelStyle: TextStyle,
+    currentScreenButton: String,
+    iconResource: MutableState<Int>,
+    label: String,
+    description: String
+) {
+    BottomNavigationItem(
+        selected = selectedIconName.value == currentScreenButton,
+        onClick = {
+            selectedIconName.value = currentScreenButton
+            navController.navigate(currentScreenButton) {
+                launchSingleTop
+            }
+        },
+        icon = {
+            Icon(
+                painter = painterResource(id = iconResource.value),
+                contentDescription = description,
+                modifier = iconModifier
+            )
+        },
+        modifier = Modifier,
+        label = {
+            Text(
+                text = label,
+                modifier = labelModifier,
+                fontSize = 9.5.sp,
+                letterSpacing = letterSpacing,
+                style = labelStyle
+            )
+        },
+        alwaysShowLabel = true,
+        selectedContentColor = BottomSelectedColor,
+        unselectedContentColor = BottomUnSelectedColor
+    )
 }

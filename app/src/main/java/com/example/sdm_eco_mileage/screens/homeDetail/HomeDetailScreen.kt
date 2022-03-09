@@ -19,9 +19,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.sdm_eco_mileage.R
 import com.example.sdm_eco_mileage.components.ProfileImage
 import com.example.sdm_eco_mileage.components.ProfileName
 import com.example.sdm_eco_mileage.components.SecomiTopAppBar
@@ -53,9 +54,10 @@ fun HomeDetailScreen(navController: NavController) {
             Surface(
                 elevation = 1.dp
             ) {
-                Column() {
+                Column {
                     SecomiTopAppBar(
                         title = "댓글",
+                        navigationIcon = painterResource(id = R.drawable.ic_back_arrow),
                         navController = navController,
                         currentScreen = SecomiScreens.HomeDetailScreen.name,
                         backgroundColor = TopBarColor
@@ -80,7 +82,7 @@ fun HomeDetailScreen(navController: NavController) {
 
         },
         bottomBar = {
-            HomeDetailBottomSearchBar()
+            HomeDetailBottomCommentBar()
         }
     ) {
         LazyColumn(
@@ -90,7 +92,7 @@ fun HomeDetailScreen(navController: NavController) {
                 // Todo : index 1 개 건너띄는거 Sample 볼라카는거니 조심하쇼
                 if (index == 0)
                     Box {}
-                else Row() {
+                else Row {
                     HomeDetailContent(image = data.image, name = data.name, text = data.text)
                 }
             }
@@ -158,7 +160,7 @@ private fun HomeDetailFormat(
 @OptIn(ExperimentalComposeUiApi::class)
 @Preview
 @Composable
-private fun HomeDetailBottomSearchBar() {
+private fun HomeDetailBottomCommentBar() {
     //Todo : viewModel 로 데이터 핸들링할 것
     val comment = rememberSaveable {
         mutableStateOf("")
@@ -170,7 +172,8 @@ private fun HomeDetailBottomSearchBar() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                .padding(start = 5.dp, end = 5.dp),
             contentAlignment = Alignment.CenterEnd
         ) {
             InputField(
@@ -219,7 +222,6 @@ fun InputField(
 ) {
     Surface(
         modifier = Modifier
-            .padding(start = 5.dp, end = 5.dp)
             .height(37.dp),
         shape = RoundedCornerShape(
             topStartPercent = 50,

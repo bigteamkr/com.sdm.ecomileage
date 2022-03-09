@@ -1,9 +1,28 @@
 package com.example.sdm_eco_mileage.di
 
+import com.example.sdm_eco_mileage.network.HomeInfoAPI
+import com.example.sdm_eco_mileage.utils.Constants
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule
+object AppModule{
+
+    
+
+    @Provides
+    @Singleton
+    fun provideHomeInfoApi(): HomeInfoAPI =
+        Retrofit
+            .Builder()
+            .baseUrl(Constants.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(HomeInfoAPI::class.java)
+}
