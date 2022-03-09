@@ -13,12 +13,13 @@
 - Bottom Bar, TopBar 구현 완료 - 피드백 대기 (2022.03.04 / Newon)
 - HomeDetail UI 80% 완료 (Search Bar 미세 조정 및 Top Bar 조정 남음) (2022.03.05 / Newon)
 - Search Bar 완료, Top Bar 조정 완료, Font 적용 (2022.03.08 / Newon)
+- Home API 연결 완료 (API 골격 완성), 상단 바 조정 (2022.03.09 / Newon)
   
 <br/>
 
 Components List
 1. TopBar, TopAppBar (2022.03.02 / Newon)  
-상단 바 구조와 내용, currentScreen 값을 기준으로 TopAppBar 내용이 바뀐다. (수정 중)
+상단 바 구조와 내용, currentScreen 값을 기준으로 TopAppBar 내용이 바뀐다.
 
 
 2. BottomBar-FloatingActionButton (2022.03.04 / Newon)
@@ -79,5 +80,5 @@ ProfileName(
 1. Main UI 완성 (2022.03.02 / Newon)  
 2. 바텀바 및 네비게이션 (2022.03.02 / Newon || 2022.03.04 / Newon)  
 3. HomeDetail, HomeAdd (2022.03.04 / Newon)
-4. Card Component 화
-5. API 연결
+4. Card Component 화v (2022.03.04 / Newon / 2022.03.09 / Newon)
+5. API 연결 완료 (2022.03.07 / Newon || 2022.03.09 / Newon)
