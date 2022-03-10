@@ -3,12 +3,14 @@ package com.example.sdm_eco_mileage.screens.home
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -20,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -28,7 +31,9 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.sdm_eco_mileage.R
 import com.example.sdm_eco_mileage.components.*
-import com.example.sdm_eco_mileage.data.*
+import com.example.sdm_eco_mileage.data.DataOrException
+import com.example.sdm_eco_mileage.data.HomeScrollColumnViewData
+import com.example.sdm_eco_mileage.data.HomeTopScrollRowViewData
 import com.example.sdm_eco_mileage.model.homeInfo.response.Friend
 import com.example.sdm_eco_mileage.model.homeInfo.response.HomeInfoResponse
 import com.example.sdm_eco_mileage.model.homeInfo.response.Post
@@ -105,8 +110,8 @@ private fun HomeMainContent(
     ) {
         items(postListData) { data ->
             CardContent(
-                contentImage =  HomeScrollColumnViewData[0].image,
-                profileImage =  HomeScrollColumnViewData[1].image,
+                contentImage = HomeScrollColumnViewData[0].image,
+                profileImage = HomeScrollColumnViewData[1].image,
                 profileName = data.userName,
                 reactionIcon = listOf(
                     R.drawable.ic_like_off,
@@ -119,128 +124,13 @@ private fun HomeMainContent(
                 needMoreIcon = true,
                 moreIcon = painterResource(id = R.drawable.ic_more),
                 contentText = data.title,
-                navigate = {
-                    navController.navigate(it) {
-                        popUpTo(SecomiScreens.HomeScreen.name) { inclusive = false }
-                    }
-                }
+                navController = navController,
+                navigateScreen = SecomiScreens.HomeDetailScreen.name
             )
         }
     }
     Spacer(modifier = Modifier.height(56.dp))
 }
-
-//Todo : Card Content 완벽하게 컴포넌트화 하기
-
-@Composable
-private fun CardContent(
-    contentImage: String = "이거 고쳐라",
-    profileImage: String = "",
-    profileName: String = "",
-    reactionIcon: List<Int>,
-    reactionData: Int,
-    onClickReaction: (Int) -> Unit,
-    reactionTint: Color,
-    commentIcon: Painter,
-    needMoreIcon: Boolean,
-    moreIcon: Painter?,
-    contentText: String = "",
-    navigate: (String) -> Unit
-) {
-    // Todo : Card 에 이미지도 LazyRow
-    Column {
-        Card(
-            modifier = Modifier
-                .padding(5.dp)
-                .padding(start = 5.dp, end = 5.dp)
-                .fillMaxWidth()
-                .height(300.dp)
-                .clickable {
-                    navigate(SecomiScreens.HomeDetailScreen.name)
-                }
-                .shadow(12.dp),
-            shape = RoundedCornerShape(10.dp),
-            backgroundColor = Color.White
-        ) {
-            Column {
-                Image(
-                    painter = rememberImagePainter(data = contentImage),
-                    contentDescription = "Card Content Main Image",
-                    modifier = Modifier
-                        .fillMaxHeight(0.65f),
-                    contentScale = ContentScale.Crop
-                )
-
-                Row(
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .padding(top = 5.dp)
-                        .fillMaxWidth()
-                        .height(30.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row {
-                        Spacer(modifier = Modifier.width(5.dp))
-                        ProfileImage(
-                            image = profileImage,
-                            modifier = Modifier
-                                .size(30.dp)
-                        )
-                        ProfileName(
-                            name = profileName,
-                            modifier = Modifier.padding(top = 2.dp, bottom = 5.dp),
-                            fontStyle = MaterialTheme.typography.subtitle2,
-                            fontWeight = FontWeight.Normal
-                        )
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 1.dp)
-                    ) {
-                        ReactionIconText(
-                            iconResourceList = reactionIcon,
-                            reactionData = reactionData,
-                            onClickReaction = { onClickReaction(reactionData + 1) },
-                            tintColor = reactionTint
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Icon(
-                            painter = commentIcon,
-                            contentDescription = "Comment button",
-                            modifier = Modifier
-                                .padding(start = 2.dp, top = 1.dp)
-                                .size(24.dp),
-                            tint = Color.LightGray
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        if (needMoreIcon)
-                            Icon(
-                                painter = moreIcon!!,
-                                contentDescription = "More button",
-                                modifier = Modifier
-                                    .padding(top = 1.dp)
-                                    .size(22.dp),
-                                tint = Color.LightGray
-                            )
-                    }
-
-                }
-                Text(
-                    text = contentText,
-                    modifier = Modifier.padding(
-                        start = 12.dp,
-                        end = 10.dp,
-                        top = 7.dp
-                    ),
-                    style = MaterialTheme.typography.body2,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
 
 @Composable
 private fun HomeUserFeedRow(

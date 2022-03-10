@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -16,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -67,11 +69,12 @@ fun SecomiTopAppBar(
         Box(
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_topbar_leaves_2),
-                contentDescription = "top bar decoration",
-                modifier = Modifier.size(80.dp)
-            )
+            if (backgroundColor == TopBarColor)
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_topbar_leaves_2),
+                    contentDescription = "top bar decoration",
+                    modifier = Modifier.size(80.dp)
+                )
 
             Row(
                 modifier = Modifier
@@ -123,15 +126,30 @@ fun SecomiTopAppBar(
                 ) {
                     when (currentScreen) {
                         SecomiScreens.HomeAddScreen.name -> {
-                            AppBarTitleText(title, Modifier.padding(end = 25.dp), contentColor, 18.sp)
+                            AppBarTitleText(
+                                title,
+                                Modifier.padding(end = 25.dp),
+                                contentColor,
+                                18.sp
+                            )
                         }
 
                         SecomiScreens.HomeDetailScreen.name -> {
-                            AppBarTitleText(title, Modifier.padding(end = 25.dp), contentColor, 18.sp)
+                            AppBarTitleText(
+                                title,
+                                Modifier.padding(end = 25.dp),
+                                contentColor,
+                                18.sp
+                            )
                         }
 
                         SecomiScreens.RankingScreen.name -> {
-                            AppBarTitleText(title, Modifier.padding(end = 25.dp), contentColor, 18.sp)
+                            AppBarTitleText(
+                                title,
+                                Modifier.padding(end = 25.dp),
+                                contentColor,
+                                18.sp
+                            )
                         }
                     }
                 }
@@ -143,19 +161,21 @@ fun SecomiTopAppBar(
                         .fillMaxHeight(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    actionIconsList?.forEach { icons ->
-                        Icon(
-                            painter = icons,
-                            contentDescription = "action icons",
-                            tint = contentColor,
-                            modifier = Modifier
-                                .size(40.dp)
-                                .padding(5.dp)
-                        )
+                    actionIconsList?.forEachIndexed { index, icons ->
+                        if (index == actionIconsList.lastIndex)
+                            Image(painter = icons, contentDescription = "action icons")
+                        else
+                            Icon(
+                                painter = icons,
+                                contentDescription = "action icons",
+                                tint = contentColor,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .padding(5.dp)
+                            )
                     }
                 }
             }
-
         }
     }
 }
@@ -183,7 +203,7 @@ private fun AppBarTitleText(
 fun SecomiMainFloatingActionButton(navController: NavController) {
     FloatingActionButton(
         onClick = {
-            navController.navigate(SecomiScreens.HomeDetailScreen.name)
+            navController.navigate(SecomiScreens.HomeAddScreen.name)
         },
         shape = CircleShape,
         backgroundColor = PointColor,
@@ -292,6 +312,121 @@ fun ProfileImage(
             contentDescription = "Profile",
             contentScale = ContentScale.Crop
         )
+    }
+}
+
+@Composable
+fun CardContent(
+    contentImage: String = "",
+    profileImage: String = "",
+    profileName: String = "세코미",
+    reactionIcon: List<Int>,
+    reactionData: Int,
+    onClickReaction: (Int) -> Unit,
+    reactionTint: Color,
+    commentIcon: Painter,
+    needMoreIcon: Boolean,
+    moreIcon: Painter?,
+    contentText: String = " ",
+    navController: NavController,
+    navigateScreen: String
+) {
+    // Todo : Card 에 이미지도 LazyRow
+    Card(
+        modifier = Modifier
+            .padding(5.dp)
+            .padding(start = 5.dp, end = 5.dp)
+            .fillMaxWidth()
+            .height(300.dp)
+            .shadow(12.dp),
+        shape = RoundedCornerShape(10.dp),
+        backgroundColor = Color.White
+    ) {
+        Column {
+            Image(
+                painter = rememberImagePainter(data = contentImage),
+                contentDescription = "Card Content Main Image",
+                modifier = Modifier
+                    .fillMaxHeight(0.65f),
+                contentScale = ContentScale.Crop
+            )
+
+            Row(
+                modifier = Modifier
+                    .padding(5.dp)
+                    .padding(top = 5.dp)
+                    .fillMaxWidth()
+                    .height(30.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row {
+                    Spacer(modifier = Modifier.width(5.dp))
+                    ProfileImage(
+                        image = profileImage,
+                        modifier = Modifier
+                            .size(30.dp)
+                    )
+                    ProfileName(
+                        name = profileName,
+                        modifier = Modifier.padding(top = 2.dp, bottom = 5.dp),
+                        fontStyle = MaterialTheme.typography.subtitle2,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 1.dp)
+                ) {
+                    ReactionIconText(
+                        iconResourceList = reactionIcon,
+                        reactionData = reactionData,
+                        onClickReaction = { onClickReaction(reactionData + 1) },
+                        tintColor = reactionTint
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Surface(
+                        shape = RoundedCornerShape(percent = 30)
+                    ) {
+                        Icon(
+                            painter = commentIcon,
+                            contentDescription = "Comment button",
+                            modifier = Modifier
+                                .padding(start = 2.dp, top = 1.dp)
+                                .size(24.dp)
+                                .clickable {
+                                    //Todo : Ripple 좀 없애주세요 ㅜ
+                                    navController.navigate(navigateScreen) {
+                                        launchSingleTop
+                                    }
+                                },
+                            tint = Color.LightGray
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    if (needMoreIcon)
+                        Icon(
+                            painter = moreIcon!!,
+                            contentDescription = "More button",
+                            modifier = Modifier
+                                .padding(top = 1.dp)
+                                .size(22.dp),
+                            tint = Color.LightGray
+                        )
+                }
+
+            }
+            Text(
+                text = contentText,
+                modifier = Modifier.padding(
+                    start = 12.dp,
+                    end = 10.dp,
+                    top = 7.dp
+                ),
+                style = MaterialTheme.typography.body2,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 

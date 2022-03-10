@@ -14,6 +14,15 @@
         <entry key="../../../../../layout/compose-model-1646794783069.xml" value="0.1" />
         <entry key="../../../../../layout/compose-model-1646799901244.xml" value="0.21666666666666667" />
         <entry key="../../../../../layout/compose-model-1646820177508.xml" value="0.375" />
+        <entry key="../../../../../layout/compose-model-1646873514633.xml" value="0.25" />
+        <entry key="../../../../../layout/compose-model-1646873698177.xml" value="0.25026737967914436" />
+        <entry key="../../../../../layout/compose-model-1646873858394.xml" value="0.21666666666666667" />
+        <entry key="../../../../../layout/compose-model-1646879686229.xml" value="0.5" />
+        <entry key="../../../../../layout/compose-model-1646884824877.xml" value="0.25" />
+        <entry key="../../../../../layout/compose-model-1646886774933.xml" value="0.21666666666666667" />
+        <entry key="../../../../../layout/compose-model-1646891165525.xml" value="0.335" />
+        <entry key="../../../../../layout/compose-model-1646894727166.xml" value="0.30925925925925923" />
+        <entry key="../../../../../layout/compose-model-1646914975476.xml" value="0.21666666666666667" />
         <entry key="..\:/Users/82109/AndroidStudioProjects/ecomileage_android/app/src/main/res/layout/activity_main.xml" value="0.13903985507246377" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/drawable/ic_facebook.xml" value="0.154" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/drawable/ic_google.xml" value="0.154" />
@@ -45,6 +54,7 @@
         <entry key="..\:/android_workspace/sdmecomileage/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.17916666666666667" />
         <entry key="app/src/main/res/drawable/ic_event_on.xml" value="0.117" />
         <entry key="app/src/main/res/drawable/ic_facebook.xml" value="0.117" />
+        <entry key="app/src/main/res/drawable/ic_mileage.xml" value="0.117" />
         <entry key="app/src/main/res/drawable/ic_topbar_leaves.xml" value="0.117" />
       </map>
     </option>

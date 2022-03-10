@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.sdm_eco_mileage.R
+import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.LoginButtonColor
 import com.example.sdm_eco_mileage.ui.theme.TagColor
 import com.example.sdm_eco_mileage.ui.theme.TopBarColor
@@ -29,7 +30,7 @@ import com.example.sdm_eco_mileage.ui.theme.TopBarColor
 
 @Preview
 @Composable
-fun LoginScreen() {
+fun LoginScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .background(Color.White)
@@ -47,7 +48,7 @@ fun LoginScreen() {
             AutoLogin()
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally){
-            LoginButton()
+            LoginButton(navController = navController)
             FindIdButton()
         }
         Column(modifier = Modifier.padding(top = 50.dp)){
@@ -126,11 +127,11 @@ fun AutoLogin(){
 }
 
 @Composable
-fun LoginButton() {
+fun LoginButton(navController: NavController) {
     Column {
         Button(
             modifier = Modifier.width(300.dp),
-            onClick = { /*TODO*/ },
+            onClick = { navController.navigate(SecomiScreens.HomeScreen.name) },
             colors = ButtonDefaults.textButtonColors(
                 backgroundColor = LoginButtonColor)
         ) {

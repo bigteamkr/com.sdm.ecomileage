@@ -169,12 +169,13 @@ private fun HomeDetailBottomCommentBar() {
     BottomAppBar(
         backgroundColor = CommentBackgroundColor
     ) {
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .padding(start = 5.dp, end = 5.dp),
-            contentAlignment = Alignment.CenterEnd
+                .padding(start = 5.dp, end = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
         ) {
             InputField(
                 valueState = comment,
@@ -222,12 +223,13 @@ fun InputField(
 ) {
     Surface(
         modifier = Modifier
-            .height(37.dp),
+            .height(37.dp)
+            .fillMaxWidth(0.78f),
         shape = RoundedCornerShape(
             topStartPercent = 50,
             bottomStartPercent = 50,
-            topEndPercent = 50,
-            bottomEndPercent = 50
+            topEndPercent = 0,
+            bottomEndPercent = 0
         ),
         color = Color.White,
         elevation = 0.dp,
@@ -237,7 +239,7 @@ fun InputField(
             onValueChange = {
                 valueState.value = it
             },
-            modifier = Modifier.padding(start = 15.dp, top = 5.dp, bottom = 8.dp),
+            modifier = Modifier.padding(start = 15.dp, top = 5.dp, bottom = 8.dp, end = 15.dp),
             singleLine = isSingleLine,
             cursorBrush = SolidColor(Color.Black),
             textStyle = TextStyle(

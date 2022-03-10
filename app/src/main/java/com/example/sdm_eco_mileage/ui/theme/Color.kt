@@ -32,5 +32,8 @@ val TagColor = Color(0xFF0096EB)
 val CommentBackgroundColor = Color(0xFFE7EEF9)
 val SendButtonColor = Color(0xFF65D67D)
 
+// Home Add Color
+val navGreyColor = Color(0xFF6B6B6B)
+
 // Login Button Color
 val LoginButtonColor = Color(0xFF5BDD91)
