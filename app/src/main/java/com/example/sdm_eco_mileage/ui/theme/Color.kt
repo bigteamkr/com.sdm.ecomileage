@@ -19,6 +19,7 @@ val TopBarColor = listOf(
     Color(0xFF51C872),
     Color(0xFF57DE96),
 )
+val StatusBarGreenColor = Color(0xFF51C872)
 val BottomSelectedColor = Color(0xFF2DDA93)
 val BottomUnSelectedColor = Color(0xFFC4C4C4)
 
@@ -33,7 +34,10 @@ val CommentBackgroundColor = Color(0xFFE7EEF9)
 val SendButtonColor = Color(0xFF65D67D)
 
 // Home Add Color
-val navGreyColor = Color(0xFF6B6B6B)
+val NavGreyColor = Color(0xFF6B6B6B)
 
 // Login Button Color
 val LoginButtonColor = Color(0xFF5BDD91)
+
+// Education Color
+val MileageColor = Color(0xFF329336)

@@ -1,17 +1,27 @@
 buildscript {
     ext {
         compose_version = '1.1.1'
+        jwPlayerVersion = '4.4.0'
+        exoplayerVersion = '2.17.1'
     }
+
     repositories {
         google()  // Google's Maven repository
         mavenCentral() // accompanist
+        gradlePluginPortal()
+        maven {
+            url 'https://mvn.jwplayer.com/content/repositories/releases/'
+        }
     }
+
+
     dependencies {
         classpath 'com.google.gms:google-services:4.3.10'
         classpath 'com.google.dagger:hilt-android-gradle-plugin:2.41'
         classpath 'com.android.tools.build:gradle:7.1.2'
     }
 }// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
 plugins {
     id 'com.android.application' version '7.1.2' apply false
     id 'com.android.library' version '7.1.2' apply false

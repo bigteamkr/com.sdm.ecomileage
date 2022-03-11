@@ -53,7 +53,7 @@ fun SplashScreen(navController: NavController = NavController(LocalContext.curre
         visible.value = true
         delay(3000)
         navController.navigate(SecomiScreens.HomeScreen.name) {
-            popUpTo(SecomiScreens.SplashScreen.name) { inclusive = true }
+            popUpTo(SecomiScreens.EducationScreen.name) { inclusive = true }
         }
     }
 

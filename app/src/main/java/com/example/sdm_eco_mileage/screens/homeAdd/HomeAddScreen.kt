@@ -33,7 +33,7 @@ import com.example.sdm_eco_mileage.components.SecomiTopAppBar
 import com.example.sdm_eco_mileage.data.HomeAddSampleData
 import com.example.sdm_eco_mileage.data.SampleHomeAdd
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
-import com.example.sdm_eco_mileage.ui.theme.navGreyColor
+import com.example.sdm_eco_mileage.ui.theme.NavGreyColor
 
 
 @Composable
@@ -55,11 +55,11 @@ private fun HomeAddScaffold(
                 currentScreen = SecomiScreens.HomeAddScreen.name,
                 backgroundColor = listOf(Color.White, Color.White),
                 navController = navController,
-                contentColor = navGreyColor
+                contentColor = NavGreyColor
             )
         }
     ) {
-        Column() {
+        Column {
             HomeAddedImagedRow(sample)
             HomeAddImage()
         }
@@ -82,7 +82,7 @@ fun HomeAddImage() {
         imageUri.value = uri
     }
 
-    Column() {
+    Column {
         Button(onClick = {
             launcher.launch("image/*")
         }) {
@@ -114,7 +114,7 @@ fun HomeAddImage() {
 @Preview
 @Composable
 private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
-    Column() {
+    Column {
         LazyRow(
             modifier = Modifier.padding(15.dp)
         ) {

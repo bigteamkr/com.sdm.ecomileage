@@ -17,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -243,10 +242,8 @@ fun ReactionIconText(
                 isChecked.value = it
                 if (isChecked.value && iconResourceList.size > 1) {
                     iconResource.value = iconResourceList[1]
-                    reactionData
                 } else {
                     iconResource.value = iconResourceList[0]
-                    reactionData
                 }
             },
             modifier = Modifier.size(22.dp),
@@ -317,6 +314,7 @@ fun ProfileImage(
 
 @Composable
 fun CardContent(
+    currentScreen: String,
     contentImage: String = "",
     profileImage: String = "",
     profileName: String = "세코미",
@@ -332,13 +330,18 @@ fun CardContent(
     navigateScreen: String
 ) {
     // Todo : Card 에 이미지도 LazyRow
+    // Todo : CardContent fix 방향 : 1. 각 아이콘의 Reaction 을 람다식으로 받는다. 2. ReactionIcon 받는 방법을 수정한다.
     Card(
         modifier = Modifier
             .padding(5.dp)
             .padding(start = 5.dp, end = 5.dp)
             .fillMaxWidth()
             .height(300.dp)
-            .shadow(12.dp),
+            .clickable {
+                if (currentScreen == SecomiScreens.EducationScreen.name) {
+                    run { onClickReaction }
+                }
+            },
         shape = RoundedCornerShape(10.dp),
         backgroundColor = Color.White
     ) {
@@ -394,10 +397,10 @@ fun CardContent(
                                 .padding(start = 2.dp, top = 1.dp)
                                 .size(24.dp)
                                 .clickable {
-                                    //Todo : Ripple 좀 없애주세요 ㅜ
-                                    navController.navigate(navigateScreen) {
-                                        launchSingleTop
-                                    }
+                                    if (currentScreen == SecomiScreens.HomeScreen.name)
+                                        navController.navigate(navigateScreen) {
+                                            launchSingleTop
+                                        }
                                 },
                             tint = Color.LightGray
                         )
