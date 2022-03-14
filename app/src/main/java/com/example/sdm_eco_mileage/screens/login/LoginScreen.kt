@@ -28,8 +28,6 @@ import com.example.sdm_eco_mileage.ui.theme.TagColor
 import com.example.sdm_eco_mileage.ui.theme.TopBarColor
 import com.google.accompanist.systemuicontroller.SystemUiController
 
-
-@Preview
 @Composable
 fun LoginScreen(navController: NavController, systemUiController: SystemUiController) {
     Column(
@@ -38,19 +36,18 @@ fun LoginScreen(navController: NavController, systemUiController: SystemUiContro
             .padding(top = 50.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column {
+        Column() {
             LoginTextField()
             PasswordTextField()
         }
         Column(modifier = Modifier
-            .padding(start = 20.dp, end = 20.dp)
             .fillMaxWidth(1f)) {
             SaveId()
             AutoLogin()
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally){
             LoginButton(navController = navController)
-            FindIdButton()
+            FindIdButton(navController = navController)
         }
         Column(modifier = Modifier.padding(top = 50.dp)){
             SocialLoginCard()
@@ -70,7 +67,8 @@ private fun LoginTextField() {
         label = { Text("이메일")},
         colors = TextFieldDefaults.textFieldColors(
             backgroundColor = MaterialTheme.colors.surface.copy(alpha = 0.3f)
-        )
+        ),
+        modifier = Modifier.width(350.dp)
     )
 }
 
@@ -86,16 +84,17 @@ fun PasswordTextField() {
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         colors = TextFieldDefaults.textFieldColors(
             backgroundColor = MaterialTheme.colors.surface.copy(alpha = 0.3f)
-        )
+        ),
+        modifier = Modifier.width(350.dp)
     )
 }
 
 @Composable
 fun SaveId() {
     Column(modifier = Modifier.padding(start = 20.dp)) {
-        Row {
+        Row() {
             val checkboxState = remember {
-                mutableStateOf(true)
+                mutableStateOf(false)
             }
             Checkbox(
                 checked = checkboxState.value,
@@ -112,9 +111,9 @@ fun SaveId() {
 @Composable
 fun AutoLogin(){
     Column(modifier = Modifier.padding(start = 20.dp)) {
-        Row {
+        Row() {
             val checkboxState = remember {
-                mutableStateOf(true)
+                mutableStateOf(false)
             }
             Checkbox(
                 checked = checkboxState.value,
@@ -129,10 +128,10 @@ fun AutoLogin(){
 
 @Composable
 fun LoginButton(navController: NavController) {
-    Column {
+    Column() {
         Button(
-            modifier = Modifier.width(300.dp),
-            onClick = { navController.navigate(SecomiScreens.HomeScreen.name) },
+            modifier = Modifier.width(350.dp),
+            onClick = { navController.navigate(SecomiScreens.HomeScreen.name)},
             colors = ButtonDefaults.textButtonColors(
                 backgroundColor = LoginButtonColor)
         ) {
@@ -142,19 +141,19 @@ fun LoginButton(navController: NavController) {
 }
 
 @Composable
-fun FindIdButton() {
-    TextButton(onClick = { /*TODO*/ }) {
+fun FindIdButton(navController: NavController) {
+    TextButton(onClick = { navController.navigate(SecomiScreens.FindingAccountScreen.name) }) {
         Text("아이디 | 비밀번호 찾기", color = Color.DarkGray)
     }
 }
 
 @Composable
 fun SocialLoginCard(){
-    Column {
+    Column() {
         Column(modifier = Modifier.padding(vertical = 3.dp)) {
             Card(shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
-                    .width(300.dp)
+                    .width(350.dp)
                     .height(50.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.padding(start = 10.dp)) {
@@ -170,7 +169,7 @@ fun SocialLoginCard(){
         Column(modifier = Modifier.padding(vertical = 3.dp)) {
             Card(shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
-                    .width(300.dp)
+                    .width(350.dp)
                     .height(50.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.padding(start = 10.dp)) {
@@ -186,7 +185,7 @@ fun SocialLoginCard(){
         Column(modifier = Modifier.padding(vertical = 3.dp)) {
             Card(shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
-                    .width(300.dp)
+                    .width(350.dp)
                     .height(50.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.padding(start = 10.dp)) {
@@ -202,7 +201,7 @@ fun SocialLoginCard(){
         Column(modifier = Modifier.padding(vertical = 3.dp)) {
             Card(shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
-                    .width(300.dp)
+                    .width(350.dp)
                     .height(50.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.padding(start = 10.dp)) {

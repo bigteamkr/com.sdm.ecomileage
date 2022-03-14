@@ -24,7 +24,7 @@ fun SdmNavigation() {
     val systemUiController = rememberSystemUiController()
 
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = SecomiScreens.SplashScreen.name) {
+    NavHost(navController = navController, startDestination = SecomiScreens.LoginScreen.name) {
         composable(SecomiScreens.SplashScreen.name) {
             SplashScreen(navController, systemUiController)
         }
@@ -33,10 +33,12 @@ fun SdmNavigation() {
             LoginScreen(navController, systemUiController)
         }
         composable(SecomiScreens.RegisterScreen.name) {
-            RegisterScreen(navController, systemUiController)
+//            RegisterScreen(navController, systemUiController)
+            RegisterScreen()
         }
         composable(SecomiScreens.FindingAccountScreen.name) {
-            FindingAccountScreen(navController, systemUiController)
+//            FindingAccountScreen(navController, systemUiController)
+            FindingAccountScreen()
         }
 
 
@@ -67,7 +69,8 @@ fun SdmNavigation() {
 
 
         composable(SecomiScreens.RankingScreen.name) {
-            RankingScreen(navController, systemUiController)
+//            RankingScreen(navController, systemUiController)
+            RankingScreen()
         }
 
 

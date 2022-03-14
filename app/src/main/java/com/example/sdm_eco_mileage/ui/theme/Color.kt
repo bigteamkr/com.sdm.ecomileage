@@ -38,6 +38,14 @@ val NavGreyColor = Color(0xFF6B6B6B)
 
 // Login Button Color
 val LoginButtonColor = Color(0xFF5BDD91)
+val CertificationButtonColor = Color(0xFFBCBCBC)
+
+// Finding Account Color
+val FindingAccountErrorColor = Color(0xFFE56857)
 
 // Education Color
 val MileageColor = Color(0xFF329336)
+
+// Ranking Color
+val RankingTitleColor = Color(0xFF6B6B6B)
+val RankingPeriodColor = Color(0xFF999999)
