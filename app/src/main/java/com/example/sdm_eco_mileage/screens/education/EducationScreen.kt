@@ -34,13 +34,14 @@ import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.MileageColor
 import com.example.sdm_eco_mileage.ui.theme.TopBarColor
 import com.example.sdm_eco_mileage.utils.Constants.jwplayerLicenseKey
+import com.google.accompanist.systemuicontroller.SystemUiController
 import com.jwplayer.pub.api.configuration.PlayerConfig
 import com.jwplayer.pub.api.license.LicenseUtil
 import com.jwplayer.pub.api.media.playlists.PlaylistItem
 import com.jwplayer.pub.view.JWPlayerView
 
 @Composable
-fun EducationScreen(navController: NavController) {
+fun EducationScreen(navController: NavController, systemUiController: SystemUiController) {
     val sample = EducationSampleData
     val popUpState = remember {
         mutableStateOf(false)

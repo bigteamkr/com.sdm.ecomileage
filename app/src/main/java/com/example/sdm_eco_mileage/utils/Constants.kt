@@ -4,6 +4,4 @@ package com.example.sdm_eco_mileage.utils
 object Constants {
     const val BASE_URL = "http://api.ecosdm.com/app/"
     const val jwplayerLicenseKey = "TUy89Rdk"
-    var accessToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwibmlja25hbWUiOiJ1bmtub3duIiwiZXhwIjoxNjQ2OTk3NDIxLCJ1c2VyaWQiOiJhZG1pbkBlbWFpbC5jb20iLCJlbWFpbCI6ImFkbWluQGVtYWlsLmNvbSJ9.YyKhi1f_EozcE9y22ny5mWX6U8wnJ2TUnqHnZojx0R4"
-    var userid = "admin@email.com"
 }

@@ -42,10 +42,11 @@ import com.example.sdm_eco_mileage.ui.theme.CommentBackgroundColor
 import com.example.sdm_eco_mileage.ui.theme.SendButtonColor
 import com.example.sdm_eco_mileage.ui.theme.TagColor
 import com.example.sdm_eco_mileage.ui.theme.TopBarColor
+import com.google.accompanist.systemuicontroller.SystemUiController
 
 //Todo : Home Detail Screen 시작하기
 @Composable
-fun HomeDetailScreen(navController: NavController) {
+fun HomeDetailScreen(navController: NavController, systemUiController: SystemUiController) {
     val homeDetailCommentData = HomeDetailCommentData
     val focusRequester = remember { FocusRequester() }
 

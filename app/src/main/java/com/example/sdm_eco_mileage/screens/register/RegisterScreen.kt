@@ -17,13 +17,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.example.sdm_eco_mileage.screens.login.PasswordTextField
 import com.example.sdm_eco_mileage.ui.theme.LoginButtonColor
+import com.google.accompanist.systemuicontroller.SystemUiController
 
 
 @Preview
 @Composable
-fun RegisterScreen() {
+fun RegisterScreen(navController: NavController, systemUiController: SystemUiController) {
     Column(modifier = Modifier
         .background(Color.White)
         .padding(top = 30.dp, start = 20.dp, end = 20.dp),

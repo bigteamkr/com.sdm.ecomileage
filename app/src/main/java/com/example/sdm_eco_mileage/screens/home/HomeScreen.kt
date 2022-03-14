@@ -25,20 +25,28 @@ import com.example.sdm_eco_mileage.model.homeInfo.response.HomeInfoResponse
 import com.example.sdm_eco_mileage.model.homeInfo.response.Post
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.LikeColor
-import com.example.sdm_eco_mileage.ui.theme.PointColor
 import com.example.sdm_eco_mileage.ui.theme.StatusBarGreenColor
 import com.example.sdm_eco_mileage.ui.theme.TopBarColor
+import com.google.accompanist.systemuicontroller.SystemUiController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import dagger.hilt.android.scopes.ViewModelScoped
-import javax.net.ssl.SSLEngineResult
 
 @Composable
-fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(
+    navController: NavController,
+    systemUiController: SystemUiController,
+    viewModel: HomeViewModel = hiltViewModel()
+) {
     val homeInfo = produceState<DataOrException<HomeInfoResponse, Boolean, Exception>>(
         initialValue = DataOrException(loading = true)
     ) {
         value = viewModel.postHomeInfo()
     }.value
+
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = StatusBarGreenColor
+        )
+    }
 
     if (homeInfo.loading == true)
         CircularProgressIndicator()
@@ -51,13 +59,6 @@ private fun HomeScaffold(
     navController: NavController,
     homeInfoResponse: DataOrException<HomeInfoResponse, Boolean, Exception>
 ) {
-    val systemUiController = rememberSystemUiController()
-    SideEffect {
-        systemUiController.setStatusBarColor(
-            color = StatusBarGreenColor
-        )
-    }
-
     Scaffold(
         topBar = {
             SecomiTopAppBar(

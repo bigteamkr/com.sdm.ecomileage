@@ -23,4 +23,6 @@ class HomeRepository @Inject constructor(private val api: HomeInfoAPI) {
 
         return DataOrException(data = response)
     }
+
+
 }

@@ -30,11 +30,15 @@ import androidx.navigation.NavController
 import com.example.sdm_eco_mileage.R
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.SplashColor
+import com.google.accompanist.systemuicontroller.SystemUiController
 import kotlinx.coroutines.delay
 
 @Preview
 @Composable
-fun SplashScreen(navController: NavController = NavController(LocalContext.current)) {
+fun SplashScreen(
+    navController: NavController = NavController(LocalContext.current),
+    systemUiController: SystemUiController
+) {
     //Todo : Image 바깥 쪽 패딩 정리
 
     val gradient = Brush.linearGradient(

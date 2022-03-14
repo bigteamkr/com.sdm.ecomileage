@@ -7,25 +7,26 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.sdm_eco_mileage.R
@@ -34,18 +35,34 @@ import com.example.sdm_eco_mileage.data.HomeAddSampleData
 import com.example.sdm_eco_mileage.data.SampleHomeAdd
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.NavGreyColor
+import com.google.accompanist.systemuicontroller.SystemUiController
+import dagger.hilt.android.scopes.ViewModelScoped
 
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
-fun HomeAddScreen(navController: NavController) {
+fun HomeAddScreen(
+    navController: NavController,
+    systemUiController: SystemUiController,
+    viewModel: HomeAddViewModel = hiltViewModel()
+) {
     val sample = HomeAddSampleData
-    HomeAddScaffold(navController, sample)
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = Color.White
+        )
+    }
+
+    val thumbnail = viewModel.thumbnail
+
+    HomeAddScaffold(navController, sample, thumbnail)
 }
 
 @Composable
 private fun HomeAddScaffold(
     navController: NavController,
-    sample: SampleHomeAdd
+    sample: SampleHomeAdd,
+    thumbnail: Bitmap
 ) {
     Scaffold(
         topBar = {
@@ -60,7 +77,9 @@ private fun HomeAddScaffold(
         }
     ) {
         Column {
-            HomeAddedImagedRow(sample)
+            Image(bitmap = thumbnail.asImageBitmap(), contentDescription = "")
+            Divider()
+            HomeAddedImagedRow(sample,)
             HomeAddImage()
         }
     }
@@ -136,6 +155,5 @@ private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
                 }
             }
         }
-
     }
 }

@@ -26,11 +26,12 @@ import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.LoginButtonColor
 import com.example.sdm_eco_mileage.ui.theme.TagColor
 import com.example.sdm_eco_mileage.ui.theme.TopBarColor
+import com.google.accompanist.systemuicontroller.SystemUiController
 
 
 @Preview
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController, systemUiController: SystemUiController) {
     Column(
         modifier = Modifier
             .background(Color.White)
