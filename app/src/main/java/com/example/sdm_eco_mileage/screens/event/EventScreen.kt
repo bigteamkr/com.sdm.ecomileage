@@ -6,6 +6,8 @@ import androidx.compose.material.Button
 import androidx.compose.material.FabPosition
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import com.example.sdm_eco_mileage.components.SecomiBottomBar
@@ -19,6 +21,10 @@ fun EventScreen(navController: NavController, systemUiController: SystemUiContro
     systemUiController.setStatusBarColor(
         Color.White
     )
+
+    val isEventCurrent = remember {
+        mutableStateOf(true)
+    }
 
     Scaffold(
         bottomBar = {
@@ -38,7 +44,11 @@ fun EventScreen(navController: NavController, systemUiController: SystemUiContro
             Button(onClick = { /*TODO*/ }) {
 
             }
-            if ()
+            if (isEventCurrent.value){
+
+            } else {
+
+            }
         }
 
     }
