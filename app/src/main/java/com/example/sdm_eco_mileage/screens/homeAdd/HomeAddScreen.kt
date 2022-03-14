@@ -9,14 +9,18 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -34,6 +38,13 @@ import com.example.sdm_eco_mileage.data.SampleHomeAdd
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.AddIconBackgroundColor
 import com.example.sdm_eco_mileage.ui.theme.NavGreyColor
+import com.example.sdm_eco_mileage.ui.theme.indicatorSelectedColor
+import com.example.sdm_eco_mileage.ui.theme.indicatorUnSelectedColor
+import com.example.sdm_eco_mileage.utils.bitmapToString
+import com.example.sdm_eco_mileage.utils.stringToBitmap
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.systemuicontroller.SystemUiController
 
 
@@ -52,7 +63,6 @@ fun HomeAddScreen(
     }
 
     HomeAddScaffold(navController, sample)
-
 }
 
 @Composable
@@ -75,9 +85,7 @@ private fun HomeAddScaffold(
         Column {
             HomeAddedImagedRow()
         }
-
-
-        HomeAddImage()
+//        HomeAddImage()
     }
 }
 
@@ -115,10 +123,7 @@ fun HomeAddImage() {
                 val source = ImageDecoder.createSource(context.contentResolver, it!!)
                 bitmap.value = ImageDecoder.decodeBitmap(source)
             }
-
         }
-
-
 
     bitmap.value?.let { btm ->
         Image(
@@ -128,6 +133,7 @@ fun HomeAddImage() {
     }
 }
 
+@OptIn(ExperimentalPagerApi::class)
 @Preview
 @Composable
 private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
@@ -136,31 +142,99 @@ private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
         mutableStateListOf<String>()
     }
 
+    val pagerState = rememberPagerState()
 
+    val modifier = Modifier.size(150.dp)
 
-    Column() {
-
-        Row(
-
-        ) {
-            if (imageList.isEmpty())
-                AddImageIcon()
-
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(15.dp)
-            ) {
-                itemsIndexed(imageList) { index, url ->
-                    when (index) {
-                        imageList.lastIndex -> AddImageIcon()
-                        else -> uploadedImageCard(url)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (imageList.isEmpty())
+            AddImageIcon { imageList.add(bitmapToString(it)) }
+        else
+            HorizontalPager(
+                count = imageList.size,
+                state = pagerState,
+                itemSpacing = 5.dp
+            ) { page ->
+                if (page == imageList.size)
+                    AddImageIcon {
+                        imageList.add(bitmapToString(it))
                     }
-                }
+                else
+                    UploadedImages(modifier, imageList, page)
+            }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        DotsIndicator(
+            totalDots = imageList.size + 1,
+            selectedIndex = pagerState.currentPage,
+            selectedColor = indicatorSelectedColor,
+            unSelectedColor = indicatorUnSelectedColor
+        )
+    }
+}
+
+
+@Composable
+private fun UploadedImages(
+    modifier: Modifier,
+    imageList: SnapshotStateList<String>,
+    page: Int
+) {
+    Box(
+        contentAlignment = Alignment.TopCenter,
+        modifier = modifier
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_cancel_upload),
+            contentDescription = "Cancel Uploading image"
+        )
+        Image(
+            bitmap = stringToBitmap(imageList[page]).asImageBitmap(),
+            contentDescription = "",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+    }
+}
+
+@Composable
+private fun DotsIndicator(
+    totalDots: Int,
+    selectedIndex: Int,
+    selectedColor: Color,
+    unSelectedColor: Color
+) {
+    LazyRow(
+        modifier = Modifier
+            .wrapContentWidth()
+            .wrapContentHeight()
+    ) {
+        items(totalDots) { index ->
+            if (index == selectedIndex) {
+                Box(
+                    modifier = Modifier
+                        .size(5.dp)
+                        .clip(CircleShape)
+                        .background(selectedColor)
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(5.dp)
+                        .clip(CircleShape)
+                        .background(unSelectedColor)
+                )
+            }
+
+            if (index != totalDots - 1) {
+                Spacer(modifier = Modifier.width(2.dp))
             }
         }
-
-
     }
 }
 
@@ -190,9 +264,43 @@ private fun uploadedImageCard(url: String) {
 }
 
 @Composable
-fun AddImageIcon() {
+fun AddImageIcon(
+    addEvent: (Bitmap) -> Unit
+) {
+    lateinit var imageUri:SnapshotStateList<Uri?>
+
+    val context = LocalContext.current
+
+    val bitmap = remember {
+        mutableStateOf<Bitmap?>(null)
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) {
+        imageUri = it
+    }
+
+
+    if (imageUri != null)
+        imageUri.value.let {
+            if (Build.VERSION.SDK_INT < 28) {
+                bitmap.value = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+            } else {
+                val source = ImageDecoder.createSource(context.contentResolver, it!!)
+                bitmap.value = ImageDecoder.decodeBitmap(source)
+            }
+        }
+
     Surface(
-        modifier = Modifier.size(150.dp),
+        modifier = Modifier
+            .size(150.dp)
+            .clickable {
+                launcher.launch("image/*")
+                bitmap.value?.let { btm ->
+                    addEvent(btm)
+                }
+            },
         shape = RoundedCornerShape(10),
         color = AddIconBackgroundColor,
         contentColor = Color.White
@@ -205,7 +313,8 @@ fun AddImageIcon() {
             Icon(
                 painter = painterResource(id = R.drawable.ic_image_add),
                 contentDescription = "HomeAdd Button",
-                modifier = Modifier.size(75.dp)
+                modifier = Modifier
+                    .size(75.dp)
             )
         }
     }

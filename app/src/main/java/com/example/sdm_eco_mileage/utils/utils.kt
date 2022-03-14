@@ -1,6 +1,27 @@
 package com.example.sdm_eco_mileage.utils
 
-import com.jwplayer.pub.api.license.LicenseUtil
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
+import java.io.ByteArrayOutputStream
 
-var accessToken: String = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwibmlja25hbWUiOiLstZzqsr3tm4giLCJleHAiOjE2NDcyNTQzOTksInVzZXJpZCI6ImlhbkBiaWd0ZWFtLmNvLmtyIiwiZW1haWwiOiJpYW5AYmlndGVhbS5jby5rciJ9.2vjgxMUDjR8PRlfR3CWTu7BG_sozH1hQS5PTM442Dxc"
+var accessToken: String =
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwibmlja25hbWUiOiLstZzqsr3tm4giLCJleHAiOjE2NDcyNjY0NjcsInVzZXJpZCI6ImlhbkBiaWd0ZWFtLmNvLmtyIiwiZW1haWwiOiJpYW5AYmlndGVhbS5jby5rciJ9.mL9Epv2qXv8Zry35hpXvIdLKU5OtETGpdtyX6xD3QS8"
 var userid: String = ""
+
+
+fun bitmapToString(bitmap: Bitmap): String {
+
+    val byteArrayOutputStream = ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+    val byteArray = byteArrayOutputStream.toByteArray()
+
+    return Base64.encodeToString(byteArray, Base64.DEFAULT)
+}
+
+fun stringToBitmap(encodedString: String): Bitmap {
+
+    val encodeByte = Base64.decode(encodedString, Base64.DEFAULT)
+
+    return BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.size)
+}
