@@ -273,7 +273,7 @@ fun ProfileName(
     modifier: Modifier = Modifier,
     textAlign: TextAlign = TextAlign.Center,
     fontStyle: TextStyle,
-    fontWeight: FontWeight = FontWeight.Normal
+    fontWeight: FontWeight = FontWeight.Normal,
 ) {
     Text(
         text = name,
@@ -373,7 +373,7 @@ fun CardContent(
                         name = profileName,
                         modifier = Modifier.padding(top = 2.dp, bottom = 5.dp),
                         fontStyle = MaterialTheme.typography.subtitle2,
-                        fontWeight = FontWeight.Normal
+                        fontWeight = FontWeight.Normal,
                     )
                 }
                 Row(

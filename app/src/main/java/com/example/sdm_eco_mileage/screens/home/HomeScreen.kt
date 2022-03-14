@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sdm_eco_mileage.R
@@ -28,7 +29,6 @@ import com.example.sdm_eco_mileage.ui.theme.LikeColor
 import com.example.sdm_eco_mileage.ui.theme.StatusBarGreenColor
 import com.example.sdm_eco_mileage.ui.theme.TopBarColor
 import com.google.accompanist.systemuicontroller.SystemUiController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun HomeScreen(
@@ -160,7 +160,7 @@ private fun HomeUserFeedRow(
                         ProfileName(
                             name = data.name,
                             fontStyle = MaterialTheme.typography.subtitle2,
-                            fontWeight = FontWeight.Normal
+                            fontWeight = FontWeight.Normal,
                         )
                     }
                     Spacer(modifier = Modifier.width(10.dp))

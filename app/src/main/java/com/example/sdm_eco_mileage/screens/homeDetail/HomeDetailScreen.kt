@@ -141,7 +141,7 @@ private fun HomeDetailFormat(
             modifier = Modifier.padding(start = 5.dp),
             textAlign = TextAlign.Start,
             fontStyle = MaterialTheme.typography.subtitle1,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
         Text(
             text = text,

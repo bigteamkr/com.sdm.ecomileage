@@ -35,6 +35,7 @@ val SendButtonColor = Color(0xFF65D67D)
 
 // Home Add Color
 val NavGreyColor = Color(0xFF6B6B6B)
+val AddIconBackgroundColor = Color(0xFFA6CE98)
 
 // Login Button Color
 val LoginButtonColor = Color(0xFF5BDD91)

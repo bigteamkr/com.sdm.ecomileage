@@ -23,6 +23,8 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 fun SdmNavigation() {
     val systemUiController = rememberSystemUiController()
 
+    // Todo: systemUiController 모든 Screen 에 넣어주세요.
+
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = SecomiScreens.LoginScreen.name) {
         composable(SecomiScreens.SplashScreen.name) {

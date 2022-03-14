@@ -11,15 +11,13 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -34,9 +32,9 @@ import com.example.sdm_eco_mileage.components.SecomiTopAppBar
 import com.example.sdm_eco_mileage.data.HomeAddSampleData
 import com.example.sdm_eco_mileage.data.SampleHomeAdd
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
+import com.example.sdm_eco_mileage.ui.theme.AddIconBackgroundColor
 import com.example.sdm_eco_mileage.ui.theme.NavGreyColor
 import com.google.accompanist.systemuicontroller.SystemUiController
-import dagger.hilt.android.scopes.ViewModelScoped
 
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -53,16 +51,14 @@ fun HomeAddScreen(
         )
     }
 
-    val thumbnail = viewModel.thumbnail
+    HomeAddScaffold(navController, sample)
 
-    HomeAddScaffold(navController, sample, thumbnail)
 }
 
 @Composable
 private fun HomeAddScaffold(
     navController: NavController,
-    sample: SampleHomeAdd,
-    thumbnail: Bitmap
+    sample: SampleHomeAdd
 ) {
     Scaffold(
         topBar = {
@@ -77,11 +73,11 @@ private fun HomeAddScaffold(
         }
     ) {
         Column {
-            Image(bitmap = thumbnail.asImageBitmap(), contentDescription = "")
-            Divider()
-            HomeAddedImagedRow(sample,)
-            HomeAddImage()
+            HomeAddedImagedRow()
         }
+
+
+        HomeAddImage()
     }
 }
 
@@ -125,35 +121,92 @@ fun HomeAddImage() {
 
 
     bitmap.value?.let { btm ->
-        Image(bitmap = btm.asImageBitmap(), contentDescription = "",
-        modifier = Modifier.size(300.dp))
+        Image(
+            bitmap = btm.asImageBitmap(), contentDescription = "",
+            modifier = Modifier.size(300.dp)
+        )
     }
 }
 
 @Preview
 @Composable
 private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
-    Column {
-        LazyRow(
-            modifier = Modifier.padding(15.dp)
+
+    val imageList = remember {
+        mutableStateListOf<String>()
+    }
+
+
+
+    Column() {
+
+        Row(
+
         ) {
-            items(sample.imageList) { url ->
-                Card(
-                    modifier = Modifier
-                        .width(350.dp)
-                        .height(350.dp)
-                        .padding(end = 5.dp),
-                    elevation = 12.dp
-                ) {
-                    Image(
-                        painter = rememberImagePainter(data = url), contentDescription = "Image",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(),
-                        contentScale = ContentScale.Crop
-                    )
+            if (imageList.isEmpty())
+                AddImageIcon()
+
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(15.dp)
+            ) {
+                itemsIndexed(imageList) { index, url ->
+                    when (index) {
+                        imageList.lastIndex -> AddImageIcon()
+                        else -> uploadedImageCard(url)
+                    }
                 }
             }
+        }
+
+
+    }
+}
+
+@Composable
+private fun uploadedImageCard(url: String) {
+    Box(
+        modifier = Modifier.size(150.dp),
+        contentAlignment = Alignment.Center
+    ) {
+
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            shape = RoundedCornerShape(10),
+            color = AddIconBackgroundColor,
+            contentColor = Color.White
+        ) {
+            Image(
+                painter = rememberImagePainter(data = url),
+                contentDescription = "Image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
+}
+
+@Composable
+fun AddImageIcon() {
+    Surface(
+        modifier = Modifier.size(150.dp),
+        shape = RoundedCornerShape(10),
+        color = AddIconBackgroundColor,
+        contentColor = Color.White
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_image_add),
+                contentDescription = "HomeAdd Button",
+                modifier = Modifier.size(75.dp)
+            )
         }
     }
 }

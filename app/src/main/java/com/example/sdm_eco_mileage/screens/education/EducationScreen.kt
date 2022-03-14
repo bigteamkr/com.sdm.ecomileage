@@ -33,7 +33,7 @@ import com.example.sdm_eco_mileage.data.EducationSampleData
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.MileageColor
 import com.example.sdm_eco_mileage.ui.theme.TopBarColor
-import com.example.sdm_eco_mileage.utils.Constants.jwplayerLicenseKey
+import com.example.sdm_eco_mileage.utils.Constants.jwPlayerLicenseKey
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.jwplayer.pub.api.configuration.PlayerConfig
 import com.jwplayer.pub.api.license.LicenseUtil
@@ -46,7 +46,7 @@ fun EducationScreen(navController: NavController, systemUiController: SystemUiCo
     val popUpState = remember {
         mutableStateOf(false)
     }
-    val jwPlayerLicenseUtil = LicenseUtil().setLicenseKey(LocalContext.current, jwplayerLicenseKey)
+    val jwPlayerLicenseUtil = LicenseUtil().setLicenseKey(LocalContext.current, jwPlayerLicenseKey)
 
     Scaffold(
         topBar = {
@@ -127,10 +127,11 @@ fun JWPlayerAndroidView(jwPlayerLicenseUtil: Unit, popUpState: MutableState<Bool
                     modifier = Modifier.fillMaxSize(),
                     update = { layout ->
                         layout.forEach { view ->
+
                             val mPlayer = (view as JWPlayerView).player
 
                             val playListItem = PlaylistItem.Builder()
-                                .file("https://cdn.jwplayer.com/manifests/da0Q0zFE.m3u8")
+                                .file("https://cdn.jwplayer.com/videos/da0Q0zFE-PaXzRVFf.mp4")
                                 .build()
 
                             val playlist = ArrayList<PlaylistItem>()

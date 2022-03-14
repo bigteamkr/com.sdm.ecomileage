@@ -18,28 +18,28 @@ import javax.inject.Inject
 @RequiresApi(Build.VERSION_CODES.Q)
 @HiltViewModel
 class HomeAddViewModel @Inject constructor(private val repository: HomeRepository) : ViewModel() {
-    lateinit var thumbnail: Bitmap
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private val _thumbnail: Bitmap = SdmEcoMileageApplication.ApplicationContext().contentResolver.loadThumbnail(
-        MediaStore.Images.Media.INTERNAL_CONTENT_URI,
-        android.util.Size(250, 250),
-        null
-    )
-
-
-
-    init {
-        viewModelScope.launch {
-            callThumbnail()
-        }
-    }
-
-
-    suspend fun callThumbnail(){
-        withContext(Dispatchers.IO){
-            thumbnail = _thumbnail
-        }
-    }
+//    lateinit var thumbnail: Bitmap
+//
+//    @RequiresApi(Build.VERSION_CODES.Q)
+//    private val _thumbnail: Bitmap = SdmEcoMileageApplication.ApplicationContext().contentResolver.loadThumbnail(
+//        MediaStore.Images.Media.INTERNAL_CONTENT_URI,
+//        android.util.Size(250, 250),
+//        null
+//    )
+//
+//
+//
+//    init {
+//        viewModelScope.launch {
+//            callThumbnail()
+//        }
+//    }
+//
+//
+//    suspend fun callThumbnail(){
+//        withContext(Dispatchers.IO){
+//            thumbnail = _thumbnail
+//        }
+//    }
 
 }
