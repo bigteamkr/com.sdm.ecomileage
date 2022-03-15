@@ -258,7 +258,7 @@ fun InputField(
                     modifier = Modifier.weight(1f),
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    if (valueState.value.isNullOrEmpty())
+                    if (valueState.value.isEmpty())
                         Text(
                             text = placeholderText, style = LocalTextStyle.current.copy(
                                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),

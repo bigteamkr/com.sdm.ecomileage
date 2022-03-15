@@ -5,6 +5,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -13,21 +14,37 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
@@ -36,12 +53,7 @@ import com.example.sdm_eco_mileage.components.SecomiTopAppBar
 import com.example.sdm_eco_mileage.data.HomeAddSampleData
 import com.example.sdm_eco_mileage.data.SampleHomeAdd
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
-import com.example.sdm_eco_mileage.ui.theme.AddIconBackgroundColor
-import com.example.sdm_eco_mileage.ui.theme.NavGreyColor
-import com.example.sdm_eco_mileage.ui.theme.indicatorSelectedColor
-import com.example.sdm_eco_mileage.ui.theme.indicatorUnSelectedColor
-import com.example.sdm_eco_mileage.utils.bitmapToString
-import com.example.sdm_eco_mileage.utils.stringToBitmap
+import com.example.sdm_eco_mileage.ui.theme.*
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
@@ -61,15 +73,54 @@ fun HomeAddScreen(
             color = Color.White
         )
     }
-
     HomeAddScaffold(navController, sample)
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun HomeAddScaffold(
     navController: NavController,
     sample: SampleHomeAdd
 ) {
+    // Todo : selectedCategory should be in ViewModel
+    val selectedCategory = remember {
+        mutableStateOf("카테고리 선택")
+    }
+    val showCategoryDialog = remember {
+        mutableStateOf(false)
+    }
+    if (showCategoryDialog.value)
+        CategoryDialog(
+            selectedCategory,
+            showCategoryDialog = showCategoryDialog.value
+        ) { category, show ->
+            if (category != null) selectedCategory.value = category
+            showCategoryDialog.value = show
+        }
+
+    // Todo : inputComment should be in ViewModel
+    val inputComment = remember {
+        mutableStateOf("")
+    }
+
+    val contentPlaceholderText = "내용을 입력해주세요."
+    val tagPlaceholderText = "#태그"
+
+    val keyboardAction = {}
+
+    // Todo: TagList should be in ViewModel
+    val tagList = remember {
+        mutableStateListOf<String>()
+    }
+
+    // Todo: TagInputElement should be in ViewModel
+    val tagInputElement = remember {
+        mutableStateOf("")
+    }
+
+    val focusRequester = remember { FocusRequester() }
+
+
     Scaffold(
         topBar = {
             SecomiTopAppBar(
@@ -82,12 +133,303 @@ private fun HomeAddScaffold(
             )
         }
     ) {
-        Column {
-            HomeAddedImagedRow()
+        Column(
+            modifier = Modifier
+                .padding(top = 15.dp)
+                .fillMaxHeight(),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Column(
+                modifier = Modifier.padding(start = 15.dp, end = 15.dp)
+            ) {
+                HomeAddedImagedRow()
+                Spacer(modifier = Modifier.height(40.dp))
+                CategoryField(
+                    selectedCategory,
+                    showCategoryDialog.value
+                ) { showCategoryDialog.value = it }
+                Spacer(modifier = Modifier.height(20.dp))
+                ContentInputField(inputComment, keyboardAction, contentPlaceholderText)
+                Spacer(modifier = Modifier.height(20.dp))
+                TagInputField(tagInputElement, focusRequester, tagList, tagPlaceholderText)
+            }
+
+            Button(
+                onClick = { /*TODO*/ },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(70.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = ButtonColor,
+                    contentColor = Color.White
+                )
+            ) {
+                Text(text = "업로드하기", fontSize = 17.sp)
+            }
         }
 //        HomeAddImage()
     }
 }
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun TagInputField(
+    tagInputElement: MutableState<String>,
+    focusRequester: FocusRequester,
+    tagList: SnapshotStateList<String>,
+    tagPlaceholderText: String
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(45.dp),
+        shape = RoundedCornerShape(10),
+        color = Color.White,
+        elevation = 4.dp
+    ) {
+        BasicTextField(
+            value = tagInputElement.value,
+            onValueChange = { tagInputElement.value = it },
+            modifier = Modifier
+                .fillMaxSize()
+                .onKeyEvent {
+                    if (it.key.keyCode == Key.Backspace.keyCode && tagInputElement.value.isEmpty())
+                        tagList.removeLastOrNull()
+                    false
+                }
+                .focusRequester(focusRequester = focusRequester),
+            textStyle = TextStyle(
+                fontSize = 15.sp,
+                letterSpacing = 0.1.sp,
+                textAlign = TextAlign.Start
+            ),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions {
+                tagList.add("#${tagInputElement.value}")
+                tagInputElement.value = ""
+                focusRequester.requestFocus()
+            }
+        ) { innerTextField ->
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                AddedTagListRow(tagList)
+                Box(
+                    modifier = Modifier.padding(top = 5.dp),
+                ) {
+                    if (tagInputElement.value.isEmpty() && tagList.isEmpty())
+                        Text(
+                            text = tagPlaceholderText, style = LocalTextStyle.current.copy(
+                                color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
+                                fontSize = 15.sp
+                            )
+                        )
+                    innerTextField()
+                }
+            }
+        }
+
+
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun AddedTagListRow(
+    tagList: SnapshotStateList<String>
+) {
+
+    LazyRow(
+        modifier = Modifier
+            .background(Color.Transparent)
+            .padding(start = 5.dp, end = 5.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        items(tagList) { item ->
+            Surface(
+                shape = RoundedCornerShape(10),
+                color = AddIconBackgroundColor,
+                modifier = Modifier
+                    .height(30.dp)
+                    .padding(top = 2.dp),
+                elevation = 4.dp
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = item,
+                        modifier = Modifier
+                            .padding(start = 5.dp, end = 5.dp)
+//                            .onKeyEvent {
+//                                if (it.key.keyCode == Key.Backspace.keyCode)
+//                                    tagList.remove(item)
+//                                false
+//                            },
+                        ,
+                        style = TextStyle(
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center
+                        )
+                    )
+                }
+            }
+            if (item != tagList.last())
+                Spacer(modifier = Modifier.width(5.dp))
+        }
+    }
+}
+
+@Composable
+private fun ContentInputField(
+    inputComment: MutableState<String>,
+    keyboardAction: () -> Unit,
+    placeholderText: String
+) {
+    Surface(
+        shape = RoundedCornerShape(5),
+        color = Color.White,
+        border = null,
+        elevation = 4.dp
+    ) {
+        BasicTextField(
+            value = inputComment.value,
+            onValueChange = { inputComment.value = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+                .padding(10.dp),
+            textStyle = MaterialTheme.typography.body1,
+            keyboardOptions = KeyboardOptions.Default,
+            keyboardActions = KeyboardActions(onDone = { keyboardAction() }),
+            maxLines = 6,
+        ) { innerTextField ->
+            if (inputComment.value.isEmpty())
+                Text(
+                    text = placeholderText, style = LocalTextStyle.current.copy(
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
+                        fontSize = 15.sp
+                    )
+                )
+            innerTextField()
+        }
+
+    }
+}
+
+@Composable
+private fun CategoryField(
+    selectedCategory: MutableState<String>,
+    showCategoryDialog: Boolean,
+    callCategoryDialog: (Boolean) -> Unit
+) {
+    val expanded = remember {
+        mutableStateOf(showCategoryDialog)
+    }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(45.dp)
+            .clickable {
+                expanded.value = !expanded.value
+                callCategoryDialog(expanded.value)
+            },
+        shape = RoundedCornerShape(10),
+        color = Color.White,
+        border = null,
+        elevation = 4.dp
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 10.dp, end = 10.dp)
+        ) {
+            Text(
+                text = selectedCategory.value,
+                color = if (selectedCategory.value == "카테고리 선택") PlaceholderColor else Color.Black,
+                fontSize = 16.sp,
+                letterSpacing = 0.15.sp,
+                textAlign = TextAlign.Start
+            )
+            Icon(
+                painter = painterResource(id = R.drawable.ic_dropdown),
+                contentDescription = "open category list",
+                modifier = Modifier
+                    .size(17.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun CategoryDialog(
+    selectedCategory: MutableState<String>,
+    showCategoryDialog: Boolean,
+    onClick: (String?, Boolean) -> Unit
+) {
+    val expanded = remember {
+        mutableStateOf(showCategoryDialog)
+    }
+
+    val items = listOf(
+        "일상생활",
+        "빈그릇 챌린지",
+        "대중교통 챌린지",
+        "개인텀블러 챌린지",
+        "라벨지 떼기 챌린지",
+        "장바구니 챌린지",
+        "다회용 용기 챌린지",
+        "재활용 챌린지",
+        "뚜벅이 챌린지"
+    )
+
+    DropdownMenu(
+        modifier = Modifier
+            .wrapContentSize()
+            .clickable {
+                expanded.value = !expanded.value
+                onClick(null, expanded.value)
+            },
+        expanded = expanded.value,
+        onDismissRequest = {
+            expanded.value = !expanded.value
+            onClick(null, expanded.value)
+        }
+    ) {
+        items.forEachIndexed { index, item ->
+            DropdownMenuItem(
+                onClick = {
+                    Log.d("TAG", "CategoryDialog: ")
+                    selectedCategory.value = item
+                    expanded.value = !expanded.value
+                    onClick(item, expanded.value)
+                },
+                enabled = true
+            ) {
+                Text(
+                    text = "${index + 1}. $item",
+                    style = MaterialTheme.typography.body1
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 fun HomeAddImage() {
@@ -139,7 +481,11 @@ fun HomeAddImage() {
 private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
 
     val imageList = remember {
-        mutableStateListOf<String>()
+        mutableStateListOf<Bitmap?>()
+    }
+
+    val dotIndicatorSize = remember {
+        mutableStateOf(1)
     }
 
     val pagerState = rememberPagerState()
@@ -151,26 +497,32 @@ private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (imageList.isEmpty())
-            AddImageIcon { imageList.add(bitmapToString(it)) }
-        else
+        if (imageList.isEmpty()) {
+            AddImageIcon { bitmaps ->
+                imageList.clear()
+                imageList.add(bitmaps)
+            }
+            dotIndicatorSize.value = imageList.size
+        } else
             HorizontalPager(
                 count = imageList.size,
                 state = pagerState,
                 itemSpacing = 5.dp
             ) { page ->
-                if (page == imageList.size)
-                    AddImageIcon {
-                        imageList.add(bitmapToString(it))
+                if (page == imageList.size) {
+                    AddImageIcon { bitmaps ->
+                        imageList.clear()
+                        imageList.add(bitmaps)
                     }
-                else
+                    dotIndicatorSize.value = imageList.size
+                } else
                     UploadedImages(modifier, imageList, page)
             }
 
         Spacer(modifier = Modifier.height(10.dp))
 
         DotsIndicator(
-            totalDots = imageList.size + 1,
+            totalDots = dotIndicatorSize.value,
             selectedIndex = pagerState.currentPage,
             selectedColor = indicatorSelectedColor,
             unSelectedColor = indicatorUnSelectedColor
@@ -182,7 +534,7 @@ private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
 @Composable
 private fun UploadedImages(
     modifier: Modifier,
-    imageList: SnapshotStateList<String>,
+    imageList: SnapshotStateList<Bitmap?>,
     page: Int
 ) {
     Box(
@@ -190,14 +542,16 @@ private fun UploadedImages(
         modifier = modifier
     ) {
         Image(
+            rememberImagePainter(imageList[page]),
+            contentDescription = "",
+            modifier = Modifier
+                .fillMaxSize(0.8f),
+            contentScale = ContentScale.Crop
+        )
+
+        Image(
             painter = painterResource(id = R.drawable.ic_cancel_upload),
             contentDescription = "Cancel Uploading image"
-        )
-        Image(
-            bitmap = stringToBitmap(imageList[page]).asImageBitmap(),
-            contentDescription = "",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
         )
     }
 }
@@ -265,40 +619,45 @@ private fun uploadedImageCard(url: String) {
 
 @Composable
 fun AddImageIcon(
-    addEvent: (Bitmap) -> Unit
+    addEvent: (Bitmap?) -> Unit
 ) {
-    lateinit var imageUri:SnapshotStateList<Uri?>
-
+    var imageUris = emptyList<Uri?>()
     val context = LocalContext.current
-
-    val bitmap = remember {
-        mutableStateOf<Bitmap?>(null)
+    val bitmapList = remember {
+        mutableStateListOf<Bitmap?>(null)
     }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) {
-        imageUri = it
+        imageUris = it
     }
 
-
-    if (imageUri != null)
-        imageUri.value.let {
-            if (Build.VERSION.SDK_INT < 28) {
-                bitmap.value = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
-            } else {
-                val source = ImageDecoder.createSource(context.contentResolver, it!!)
-                bitmap.value = ImageDecoder.decodeBitmap(source)
-            }
-        }
+    val sources = mutableListOf<ImageDecoder.Source>()
 
     Surface(
         modifier = Modifier
-            .size(150.dp)
+            .size(110.dp)
             .clickable {
                 launcher.launch("image/*")
-                bitmap.value?.let { btm ->
-                    addEvent(btm)
+                imageUris.forEach() { uri ->
+                    if (Build.VERSION.SDK_INT < 28) {
+                        bitmapList.add(
+                            MediaStore.Images.Media.getBitmap(
+                                context.contentResolver,
+                                uri
+                            )
+                        )
+                    } else {
+                        sources.add(ImageDecoder.createSource(context.contentResolver, uri!!))
+                        sources.forEach { source ->
+                            bitmapList.add(ImageDecoder.decodeBitmap(source))
+                        }
+                    }
+                }
+
+                bitmapList.forEach {
+                    addEvent(it)
                 }
             },
         shape = RoundedCornerShape(10),

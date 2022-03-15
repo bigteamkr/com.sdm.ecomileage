@@ -35,10 +35,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.sdm_eco_mileage.R
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
-import com.example.sdm_eco_mileage.ui.theme.BottomSelectedColor
-import com.example.sdm_eco_mileage.ui.theme.BottomUnSelectedColor
-import com.example.sdm_eco_mileage.ui.theme.PointColor
-import com.example.sdm_eco_mileage.ui.theme.TopBarColor
+import com.example.sdm_eco_mileage.ui.theme.*
 
 //Todo : TopAppBar 다시 정리하기 -> Left / Center / Right 로 Composable 함수 받기
 @Preview
@@ -72,7 +69,8 @@ fun SecomiTopAppBar(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_topbar_leaves_2),
                     contentDescription = "top bar decoration",
-                    modifier = Modifier.size(80.dp)
+                    modifier = Modifier.size(80.dp),
+                    tint = LeavesColor
                 )
 
             Row(
