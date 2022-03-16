@@ -145,11 +145,11 @@ private fun HomeAddScaffold(
             ) {
                 HomeAddedImagedRow()
                 Spacer(modifier = Modifier.height(40.dp))
-                CategoryField(
-                    selectedCategory,
-                    showCategoryDialog.value
-                ) { showCategoryDialog.value = it }
-                Spacer(modifier = Modifier.height(20.dp))
+//                CategoryField(
+//                    selectedCategory,
+//                    showCategoryDialog.value
+//                ) { showCategoryDialog.value = it }
+//                Spacer(modifier = Modifier.height(20.dp))
                 ContentInputField(inputComment, keyboardAction, contentPlaceholderText)
                 Spacer(modifier = Modifier.height(20.dp))
                 TagInputField(tagInputElement, focusRequester, tagList, tagPlaceholderText)

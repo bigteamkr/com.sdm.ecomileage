@@ -4,21 +4,21 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
@@ -43,10 +43,26 @@ import com.example.sdm_eco_mileage.ui.theme.SendButtonColor
 import com.example.sdm_eco_mileage.ui.theme.TagColor
 import com.example.sdm_eco_mileage.ui.theme.TopBarColor
 import com.google.accompanist.systemuicontroller.SystemUiController
+import kotlinx.coroutines.launch
 
 //Todo : Home Detail Screen 시작하기
 @Composable
-fun HomeDetailScreen(navController: NavController, systemUiController: SystemUiController) {
+fun HomeDetailScreen(
+    navController: NavController,
+    systemUiController: SystemUiController,
+    feedNo: Int?
+) {
+    if (feedNo == null) {
+
+    } else
+        HomeDetailScaffold(navController, feedNo)
+}
+
+@Composable
+private fun HomeDetailScaffold(
+    navController: NavController,
+    feedNo: Int
+) {
     val homeDetailCommentData = HomeDetailCommentData
     val focusRequester = remember { FocusRequester() }
 
@@ -78,9 +94,7 @@ fun HomeDetailScreen(navController: NavController, systemUiController: SystemUiC
                         )
                     }
                 }
-
             }
-
         },
         bottomBar = {
             HomeDetailBottomCommentBar()
@@ -96,9 +110,10 @@ fun HomeDetailScreen(navController: NavController, systemUiController: SystemUiC
                 else Row {
                     HomeDetailContent(image = data.image, name = data.name, text = data.text)
                 }
+                if (index == homeDetailCommentData.lastIndex)
+                    Spacer(modifier = Modifier.height(50.dp))
             }
         }
-
     }
 }
 
@@ -158,7 +173,10 @@ private fun HomeDetailFormat(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(
+    ExperimentalComposeUiApi::class,
+    androidx.compose.foundation.ExperimentalFoundationApi::class
+)
 @Preview
 @Composable
 private fun HomeDetailBottomCommentBar() {
@@ -167,14 +185,25 @@ private fun HomeDetailBottomCommentBar() {
         mutableStateOf("")
     }
 
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
+
     BottomAppBar(
-        backgroundColor = CommentBackgroundColor
+        backgroundColor = CommentBackgroundColor,
+        modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .padding(start = 5.dp, end = 2.dp),
+                .padding(start = 5.dp, end = 2.dp)
+                .onFocusEvent { focusState ->
+                    if (focusState.isFocused) {
+                        coroutineScope.launch {
+                            bringIntoViewRequester.bringIntoView()
+                        }
+                    }
+                },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {

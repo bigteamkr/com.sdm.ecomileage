@@ -72,7 +72,7 @@ fun EducationScreen(navController: NavController, systemUiController: SystemUiCo
     ) {
         Box(
             contentAlignment = Alignment.Center
-        ){
+        ) {
 //            if (popUpState.value)
             JWPlayerAndroidView(jwPlayerLicenseUtil, popUpState)
 
@@ -90,7 +90,9 @@ fun EducationScreen(navController: NavController, systemUiController: SystemUiCo
                         needMoreIcon = false,
                         moreIcon = null,
                         navController = navController,
-                        navigateScreen = SecomiScreens.HomeDetailScreen.name
+                        destinationScreen = SecomiScreens.HomeDetailScreen.name,
+                        feedNo = 1,
+                        hashtagList = listOf("")
                     )
                 }
             }
