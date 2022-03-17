@@ -49,6 +49,7 @@ val CertificationButtonColor = Color(0xFFBCBCBC)
 
 // Finding Account Color
 val FindingAccountErrorColor = Color(0xFFE56857)
+val SendingEmailMessageColor = Color(0xFF0BC207)
 
 // Education Color
 val MileageColor = Color(0xFF329336)
