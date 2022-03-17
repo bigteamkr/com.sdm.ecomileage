@@ -25,7 +25,6 @@ import com.example.sdm_eco_mileage.model.homeInfo.response.Friend
 import com.example.sdm_eco_mileage.model.homeInfo.response.HomeInfoResponse
 import com.example.sdm_eco_mileage.model.homeInfo.response.Post
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
-import com.example.sdm_eco_mileage.screens.GetViewModel
 import com.example.sdm_eco_mileage.ui.theme.LikeColor
 import com.example.sdm_eco_mileage.ui.theme.StatusBarGreenColor
 import com.example.sdm_eco_mileage.ui.theme.TopBarColor
@@ -37,7 +36,6 @@ fun HomeScreen(
     navController: NavController,
     systemUiController: SystemUiController,
     homeViewModel: HomeViewModel = hiltViewModel(),
-    getViewModel: GetViewModel = hiltViewModel()
 ) {
     val homeInfo = produceState<DataOrException<HomeInfoResponse, Boolean, Exception>>(
         initialValue = DataOrException(loading = true)

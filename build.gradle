@@ -12,6 +12,7 @@ buildscript {
         maven {
             url 'https://mvn.jwplayer.com/content/repositories/releases/'
         }
+        maven { url 'https://jitpack.io' }
     }
 
 

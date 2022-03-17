@@ -26,15 +26,15 @@ object AppModule{
 
 
     //Todo : ? 이거 이상한 거 같아 다시 확인!!
-    @Provides
-    @Singleton
-    fun provideGetProfileApi(): String =
-        Retrofit
-            .Builder()
-            .baseUrl(Constants.BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(String::class.java)
-
+//    @Provides
+//    @Singleton
+//    fun provideGetProfileApi(): String =
+//        Retrofit
+//            .Builder()
+//            .baseUrl(Constants.BASE_URL)
+//            .addConverterFactory(GsonConverterFactory.create())
+//            .build()
+//            .create(String::class.java)
+//
 
 }

@@ -58,6 +58,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.systemuicontroller.SystemUiController
+import kotlinx.coroutines.launch
 
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -119,7 +120,6 @@ private fun HomeAddScaffold(
     }
 
     val focusRequester = remember { FocusRequester() }
-
 
     Scaffold(
         topBar = {
@@ -236,8 +236,6 @@ private fun TagInputField(
                 }
             }
         }
-
-
     }
 }
 
@@ -246,7 +244,6 @@ private fun TagInputField(
 private fun AddedTagListRow(
     tagList: SnapshotStateList<String>
 ) {
-
     LazyRow(
         modifier = Modifier
             .background(Color.Transparent)
@@ -492,6 +489,9 @@ private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
 
     val modifier = Modifier.size(150.dp)
 
+    val scope = rememberCoroutineScope()
+
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
@@ -499,8 +499,9 @@ private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
     ) {
         if (imageList.isEmpty()) {
             AddImageIcon { bitmaps ->
-                imageList.clear()
-                imageList.add(bitmaps)
+                scope.launch {
+                    imageList.add(bitmaps)
+                }
             }
             dotIndicatorSize.value = imageList.size
         } else
@@ -509,14 +510,15 @@ private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
                 state = pagerState,
                 itemSpacing = 5.dp
             ) { page ->
-                if (page == imageList.size) {
-                    AddImageIcon { bitmaps ->
-                        imageList.clear()
-                        imageList.add(bitmaps)
-                    }
-                    dotIndicatorSize.value = imageList.size
-                } else
-                    UploadedImages(modifier, imageList, page)
+//                LaunchedEffect(key1 = imageList) {
+//                    if (page == imageList.size) {
+//                        AddImageIcon { bitmaps ->
+//                            imageList.add(bitmaps)
+//                        }
+//                        dotIndicatorSize.value = imageList.size
+//                    } else
+//                        UploadedImages(modifier, imageList, page)
+//                }
             }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -545,8 +547,9 @@ private fun UploadedImages(
             rememberImagePainter(imageList[page]),
             contentDescription = "",
             modifier = Modifier
-                .fillMaxSize(0.8f),
-            contentScale = ContentScale.Crop
+                .size(50.dp)
+                .background(Color.Black),
+            contentScale = ContentScale.Inside
         )
 
         Image(
