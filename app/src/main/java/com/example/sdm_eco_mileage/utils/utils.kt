@@ -6,7 +6,7 @@ import android.util.Base64
 import java.io.ByteArrayOutputStream
 
 var accessToken: String =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwibmlja25hbWUiOiLstZzqsr3tm4giLCJleHAiOjE2NDc1MTk0OTgsInVzZXJpZCI6ImlhbkBiaWd0ZWFtLmNvLmtyIiwiZW1haWwiOiJpYW5AYmlndGVhbS5jby5rciJ9.IFBJB23r8Fbch7xbNhnpzYyAGXR-Q9kTpBkff0zPBSM"
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwibmlja25hbWUiOiLstZzqsr3tm4giLCJleHAiOjE2NDc1MjczNjAsInVzZXJpZCI6ImlhbkBiaWd0ZWFtLmNvLmtyIiwiZW1haWwiOiJpYW5AYmlndGVhbS5jby5rciJ9.Vjonigl2UvvtCkZen3w_hwcm7AZaIW0hp3HdiXRLFSw"
 var userid: String = ""
 
 

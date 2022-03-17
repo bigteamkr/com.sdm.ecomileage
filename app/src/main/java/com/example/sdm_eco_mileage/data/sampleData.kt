@@ -185,3 +185,9 @@ val EducationSampleData = listOf(
         "직접 컵홀더 만들어서 들고 다니니까 너무 예쁘고 편한 것 같다 헤헤"
     )
 )
+
+val EventCurrentSampleData = listOf(
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/640px-Image_created_with_a_mobile_phone.png",
+    "https://www.akamai.com/site/im-demo/perceptual-standard.jpg?imbypass=true",
+    "https://store-images.s-microsoft.com/image/apps.28329.14043593014419749.3ca83f61-e27c-4fb1-97e9-33d1993a1957.8b28aae6-be63-4f6b-8e9d-a398cdaee029?mode=scale&q=90&h=1080&w=1920"
+)

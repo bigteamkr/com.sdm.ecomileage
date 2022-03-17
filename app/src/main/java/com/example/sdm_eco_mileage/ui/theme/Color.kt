@@ -59,3 +59,7 @@ val RankingPeriodColor = Color(0xFF999999)
 
 // Search Color
 val SearchIconColor = Color(0xFF2DDA93)
+
+// Event Color
+val SelectedTabColor = Color(0xFF00A127)
+val UnSelectedTabColor = Color(0xFF616161)

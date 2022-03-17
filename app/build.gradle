@@ -133,6 +133,7 @@ dependencies {
 
     // viewPager
     implementation "com.google.accompanist:accompanist-pager:0.24.3-alpha"
+    implementation "com.google.accompanist:accompanist-pager-indicators:0.24.3-alpha"
 
     // image-cropper
     implementation("com.github.CanHub:Android-Image-Cropper:4.0.0")

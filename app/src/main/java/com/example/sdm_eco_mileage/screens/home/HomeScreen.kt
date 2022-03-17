@@ -49,9 +49,6 @@ fun HomeScreen(
         )
     }
 
-    OutlinedTextField(value = "", onValueChange = {})
-
-
     if (homeInfo.loading == true)
         CircularProgressIndicator()
     else if (homeInfo.data?.result != null)
