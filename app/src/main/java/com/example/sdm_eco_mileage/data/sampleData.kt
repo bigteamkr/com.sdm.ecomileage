@@ -126,7 +126,7 @@ val HomeDetailCommentData = listOf(
     ),
     SampleHomeDetailComment(
         image = "http://blog.jinbo.net/attach/615/200937431.jpg",
-        name = "하온님",
+        name = "하은님",
         "항상 좋은 녹색생활 보고있어요! 텀블러도 써보시는건 어때요? 엄청 편해요! 😀😀"
     ),
     SampleHomeDetailComment(
@@ -136,7 +136,32 @@ val HomeDetailCommentData = listOf(
     ),
     SampleHomeDetailComment(
         image = "https://www.urbanbrush.net/web/wp-content/uploads/edd/2020/08/urbanbrush-20200821001006257893.jpg",
-        name = "Jhon",
+        name = "John",
+        "WA! GREEN GREEN 😀😀"
+    ),
+    SampleHomeDetailComment(
+        image = "https://t1.daumcdn.net/cfile/tistory/24283C3858F778CA2E",
+        name = "김채영",
+        "직접 컵홀더 만들어서 들고 다니니까 너무 예쁘고 편한 것 같다 헤헤"
+    ),
+    SampleHomeDetailComment(
+        image = "https://www.codingfactory.net/wp-content/uploads/abc.jpg",
+        name = "미정님",
+        "오랜만에 올리셨네요! 너무 예뻐요 😀😀"
+    ),
+    SampleHomeDetailComment(
+        image = "http://blog.jinbo.net/attach/615/200937431.jpg",
+        name = "하은님",
+        "항상 좋은 녹색생활 보고있어요! 텀블러도 써보시는건 어때요? 엄청 편해요! 😀😀"
+    ),
+    SampleHomeDetailComment(
+        image = "https://t1.daumcdn.net/cfile/blog/2455914A56ADB1E315",
+        name = "유현님",
+        "와 어떻게 만드는 거예요??? 방법도 올려주세요!! 😀😀"
+    ),
+    SampleHomeDetailComment(
+        image = "https://www.urbanbrush.net/web/wp-content/uploads/edd/2020/08/urbanbrush-20200821001006257893.jpg",
+        name = "John",
         "WA! GREEN GREEN 😀😀"
     )
 )
@@ -159,4 +184,10 @@ val EducationSampleData = listOf(
         1,
         "직접 컵홀더 만들어서 들고 다니니까 너무 예쁘고 편한 것 같다 헤헤"
     )
+)
+
+val EventCurrentSampleData = listOf(
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/640px-Image_created_with_a_mobile_phone.png",
+    "https://www.akamai.com/site/im-demo/perceptual-standard.jpg?imbypass=true",
+    "https://store-images.s-microsoft.com/image/apps.28329.14043593014419749.3ca83f61-e27c-4fb1-97e9-33d1993a1957.8b28aae6-be63-4f6b-8e9d-a398cdaee029?mode=scale&q=90&h=1080&w=1920"
 )

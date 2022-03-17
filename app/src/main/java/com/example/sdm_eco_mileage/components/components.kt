@@ -27,7 +27,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,8 +36,6 @@ import com.example.sdm_eco_mileage.R
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.*
 
-//Todo : TopAppBar 다시 정리하기 -> Left / Center / Right 로 Composable 함수 받기
-@Preview
 @Composable
 fun SecomiTopAppBar(
     title: String = "연복중중학교",
@@ -49,6 +46,7 @@ fun SecomiTopAppBar(
     navController: NavController = NavController(LocalContext.current),
     contentColor: Color = Color.White
 ) {
+    // Todo : 다시 수정 .. Icon 을 key-value 로 받아서 key 에 따른 행동 추가하기
     // navigation Icon = start(left) icon
     // actionIconsList = end(right) icons
 
@@ -111,7 +109,6 @@ fun SecomiTopAppBar(
                             AppBarTitleText(title, Modifier, contentColor, 15.sp)
                         }
                     }
-
                 }
 
                 //Center title or empty
@@ -218,7 +215,7 @@ fun ReactionIconText(
     iconResourceList: List<Int>,
     reactionData: Int,
     onClickReaction: (Int) -> Unit,
-    tintColor: Color
+    tintColor: Color,
 ) {
     val isChecked = remember {
         mutableStateOf(false)
@@ -240,6 +237,7 @@ fun ReactionIconText(
                 isChecked.value = it
                 if (isChecked.value && iconResourceList.size > 1) {
                     iconResource.value = iconResourceList[1]
+                    //Todo : 좋아요 좋아요취소 API
                 } else {
                     iconResource.value = iconResourceList[0]
                 }
@@ -324,8 +322,10 @@ fun CardContent(
     needMoreIcon: Boolean,
     moreIcon: Painter?,
     contentText: String = " ",
+    hashtagList: List<String>?,
     navController: NavController,
-    navigateScreen: String
+    destinationScreen: String,
+    feedNo: Int
 ) {
     // Todo : Card 에 이미지도 LazyRow
     // Todo : CardContent fix 방향 : 1. 각 아이콘의 Reaction 을 람다식으로 받는다. 2. ReactionIcon 받는 방법을 수정한다.
@@ -348,8 +348,9 @@ fun CardContent(
                 painter = rememberImagePainter(data = contentImage),
                 contentDescription = "Card Content Main Image",
                 modifier = Modifier
-                    .fillMaxHeight(0.65f),
-                contentScale = ContentScale.Crop
+                    .fillMaxHeight(0.65f)
+                    .fillMaxWidth(),
+                contentScale = ContentScale.Inside
             )
 
             Row(
@@ -360,6 +361,7 @@ fun CardContent(
                     .height(30.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+
                 Row {
                     Spacer(modifier = Modifier.width(5.dp))
                     ProfileImage(
@@ -374,6 +376,7 @@ fun CardContent(
                         fontWeight = FontWeight.Normal,
                     )
                 }
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(top = 1.dp)
@@ -384,8 +387,17 @@ fun CardContent(
                         onClickReaction = { onClickReaction(reactionData + 1) },
                         tintColor = reactionTint
                     )
+
                     Spacer(modifier = Modifier.width(10.dp))
+
                     Surface(
+                        modifier = Modifier
+                            .clickable {
+                                if (currentScreen == SecomiScreens.HomeScreen.name)
+                                    navController.navigate("$destinationScreen/$feedNo") {
+                                        launchSingleTop
+                                    }
+                            },
                         shape = RoundedCornerShape(percent = 30)
                     ) {
                         Icon(
@@ -393,17 +405,13 @@ fun CardContent(
                             contentDescription = "Comment button",
                             modifier = Modifier
                                 .padding(start = 2.dp, top = 1.dp)
-                                .size(24.dp)
-                                .clickable {
-                                    if (currentScreen == SecomiScreens.HomeScreen.name)
-                                        navController.navigate(navigateScreen) {
-                                            launchSingleTop
-                                        }
-                                },
+                                .size(24.dp),
                             tint = Color.LightGray
                         )
                     }
+
                     Spacer(modifier = Modifier.width(10.dp))
+
                     if (needMoreIcon)
                         Icon(
                             painter = moreIcon!!,
@@ -427,6 +435,21 @@ fun CardContent(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
+            if (!hashtagList.isNullOrEmpty())
+                Row(Modifier.padding(start = 12.dp, end = 10.dp, top = 7.dp)) {
+                    hashtagList.forEachIndexed { index, tag ->
+                        Text(
+                            text = tag,
+                            style = TextStyle(
+                                fontSize = 12.sp,
+                                color = TagColor,
+                                textAlign = TextAlign.Justify
+                            )
+                        )
+                        if (index != hashtagList.lastIndex)
+                            Spacer(modifier = Modifier.width(5.dp))
+                    }
+                }
         }
     }
 }

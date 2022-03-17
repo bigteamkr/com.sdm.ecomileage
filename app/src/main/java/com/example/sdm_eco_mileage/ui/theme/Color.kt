@@ -28,9 +28,9 @@ val LeavesColor = Color(0xFFADFF9D)
 // Home Color
 val LikeColor = Color(0xFFF97884)
 val PointColor = Color(0xFF4EDE99)
+val TagColor = Color(0xFF0096EB)
 
 // Home Detail Color
-val TagColor = Color(0xFF0096EB)
 val CommentBackgroundColor = Color(0xFFE7EEF9)
 val SendButtonColor = Color(0xFF65D67D)
 
@@ -57,3 +57,10 @@ val MileageColor = Color(0xFF329336)
 // Ranking Color
 val RankingTitleColor = Color(0xFF6B6B6B)
 val RankingPeriodColor = Color(0xFF999999)
+
+// Search Color
+val SearchIconColor = Color(0xFF2DDA93)
+
+// Event Color
+val SelectedTabColor = Color(0xFF00A127)
+val UnSelectedTabColor = Color(0xFF616161)

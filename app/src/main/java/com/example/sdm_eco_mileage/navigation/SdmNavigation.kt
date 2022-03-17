@@ -1,9 +1,13 @@
 package com.example.sdm_eco_mileage.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.sdm_eco_mileage.screens.education.EducationScreen
 import com.example.sdm_eco_mileage.screens.event.EventScreen
 import com.example.sdm_eco_mileage.screens.findingAccount.FindingAccountScreen
@@ -19,14 +23,15 @@ import com.example.sdm_eco_mileage.screens.settings.SettingsScreen
 import com.example.sdm_eco_mileage.screens.splash.SplashScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun SdmNavigation() {
     val systemUiController = rememberSystemUiController()
-
     // Todo: systemUiController 모든 Screen 에 넣어주세요.
 
+
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = SecomiScreens.LoginScreen.name) {
+    NavHost(navController = navController, startDestination = SecomiScreens.SplashScreen.name) {
         composable(SecomiScreens.SplashScreen.name) {
             SplashScreen(navController, systemUiController)
         }
@@ -47,8 +52,14 @@ fun SdmNavigation() {
         composable(SecomiScreens.HomeScreen.name) {
             HomeScreen(navController, systemUiController)
         }
-        composable(SecomiScreens.HomeDetailScreen.name) {
-            HomeDetailScreen(navController, systemUiController)
+        composable("${SecomiScreens.HomeDetailScreen.name}/{feedNo}", arguments = listOf(
+            navArgument(name = "feedNo") {
+                type = NavType.IntType
+            }
+        )) { navBackStackEntry ->
+            navBackStackEntry.arguments?.getInt("feedNo").let { feedNo ->
+                HomeDetailScreen(navController, systemUiController, feedNo = feedNo)
+            }
         }
         composable(SecomiScreens.HomeAddScreen.name) {
             HomeAddScreen(navController, systemUiController)
@@ -85,7 +96,6 @@ fun SdmNavigation() {
 
 
     }
-
 }
 
 
