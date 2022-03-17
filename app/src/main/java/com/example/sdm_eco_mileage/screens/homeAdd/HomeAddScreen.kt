@@ -48,6 +48,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import com.example.sdm_eco_mileage.R
 import com.example.sdm_eco_mileage.components.SecomiTopAppBar
 import com.example.sdm_eco_mileage.data.HomeAddSampleData
@@ -58,7 +61,6 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.systemuicontroller.SystemUiController
-import kotlinx.coroutines.launch
 
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -472,57 +474,123 @@ fun HomeAddImage() {
     }
 }
 
+
 @OptIn(ExperimentalPagerApi::class)
 @Preview
 @Composable
 private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
-
     val imageList = remember {
-        mutableStateListOf<Bitmap?>()
+        mutableStateListOf<Bitmap?>(null)
     }
 
+
+    val imageUri = remember {
+        mutableStateOf<Uri?>(null)
+    }
+    val context = LocalContext.current
+    val bitmap = remember {
+        mutableStateOf<Bitmap?>(null)
+    }
+    val imageCropLauncher =
+        rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
+            if (result.isSuccessful) {
+                imageUri.value = result.uriContent
+            } else {
+                val exception = result.error
+            }
+        }
+
+    val imagePickerLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+            val cropOptions = CropImageContractOptions(uri, CropImageOptions())
+            imageCropLauncher.launch(cropOptions)
+        }
+
+
     val dotIndicatorSize = remember {
-        mutableStateOf(1)
+        mutableStateOf(imageList.size)
     }
 
     val pagerState = rememberPagerState()
+    var source: ImageDecoder.Source
 
-    val modifier = Modifier.size(150.dp)
-
-    val scope = rememberCoroutineScope()
-
+    LaunchedEffect(key1 = imageUri.value) {
+        if (imageUri.value != null) {
+            if (Build.VERSION.SDK_INT < 28) {
+                bitmap.value =
+                    MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri.value)
+                if (imageList.lastIndex == 0)
+                    imageList.add(0, bitmap.value)
+                else
+                    imageList.add(imageList.lastIndex, bitmap.value)
+                dotIndicatorSize.value = imageList.size
+            } else {
+                source = ImageDecoder.createSource(context.contentResolver, imageUri.value!!)
+                bitmap.value = ImageDecoder.decodeBitmap(source)
+                if (imageList.lastIndex == 0)
+                    imageList.add(0, bitmap.value)
+                else
+                    imageList.add(imageList.lastIndex, bitmap.value)
+                dotIndicatorSize.value = imageList.size
+            }
+        }
+    }
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (imageList.isEmpty()) {
-            AddImageIcon { bitmaps ->
-                scope.launch {
-                    imageList.add(bitmaps)
-                }
-            }
-            dotIndicatorSize.value = imageList.size
-        } else
+        Row() {
             HorizontalPager(
                 count = imageList.size,
                 state = pagerState,
-                itemSpacing = 5.dp
+                itemSpacing = 0.dp
             ) { page ->
-//                LaunchedEffect(key1 = imageList) {
-//                    if (page == imageList.size) {
-//                        AddImageIcon { bitmaps ->
-//                            imageList.add(bitmaps)
-//                        }
-//                        dotIndicatorSize.value = imageList.size
-//                    } else
-//                        UploadedImages(modifier, imageList, page)
-//                }
+                if (imageList[page] == null)
+                    Surface(
+                        modifier = Modifier
+                            .size(200.dp)
+                            .clickable {
+                                imagePickerLauncher.launch("image/*")
+                            },
+                        shape = RoundedCornerShape(10),
+                        color = AddIconBackgroundColor,
+                        contentColor = Color.White
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_image_add),
+                            contentDescription = "HomeAdd Button"
+                        )
+                    }
+                else
+                    Surface(
+                        modifier = Modifier
+                            .size(200.dp),
+                        shape = RoundedCornerShape(10),
+                        color = AddIconBackgroundColor,
+                        contentColor = Color.White
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.TopCenter
+                        ) {
+                            Image(
+                                painter = rememberImagePainter(imageList[page]),
+                                modifier = Modifier
+                                    .padding(top = 10.dp)
+                                    .fillMaxSize(),
+                                contentDescription = "bitmap",
+                                contentScale = ContentScale.FillBounds
+                            )
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_cancel_upload),
+                                contentDescription = "Cancel Uploading image"
+                            )
+                        }
+                    }
+
             }
-
+        }
         Spacer(modifier = Modifier.height(10.dp))
-
         DotsIndicator(
             totalDots = dotIndicatorSize.value,
             selectedIndex = pagerState.currentPage,
@@ -530,34 +598,12 @@ private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
             unSelectedColor = indicatorUnSelectedColor
         )
     }
+
+
+    val modifier = Modifier.size(150.dp)
+    val scope = rememberCoroutineScope()
 }
 
-
-@Composable
-private fun UploadedImages(
-    modifier: Modifier,
-    imageList: SnapshotStateList<Bitmap?>,
-    page: Int
-) {
-    Box(
-        contentAlignment = Alignment.TopCenter,
-        modifier = modifier
-    ) {
-        Image(
-            rememberImagePainter(imageList[page]),
-            contentDescription = "",
-            modifier = Modifier
-                .size(50.dp)
-                .background(Color.Black),
-            contentScale = ContentScale.Inside
-        )
-
-        Image(
-            painter = painterResource(id = R.drawable.ic_cancel_upload),
-            contentDescription = "Cancel Uploading image"
-        )
-    }
-}
 
 @Composable
 private fun DotsIndicator(
@@ -680,4 +726,5 @@ fun AddImageIcon(
             )
         }
     }
+
 }

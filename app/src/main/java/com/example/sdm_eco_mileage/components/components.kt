@@ -350,7 +350,7 @@ fun CardContent(
                 modifier = Modifier
                     .fillMaxHeight(0.65f)
                     .fillMaxWidth(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Inside
             )
 
             Row(
