@@ -16,10 +16,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.screens.findingAccount.PhoneNumberTextField
 import com.example.sdm_eco_mileage.screens.login.PasswordTextField
 import com.example.sdm_eco_mileage.ui.theme.CertificationButtonColor
 import com.example.sdm_eco_mileage.ui.theme.LoginButtonColor
+import com.example.sdm_eco_mileage.ui.theme.SendingEmailMessageColor
 
 
 @Preview
@@ -37,6 +39,7 @@ fun RegisterScreen() {
             Column(modifier = Modifier.padding(top = 30.dp)) {
                 NameTextField()
                 EmailTextField()
+                SendEmailCodeMessage()
                 PhoneNumberTextField()
                 PasswordTextField()
                 PasswordCheckTextField()
@@ -53,6 +56,9 @@ fun RegisterScreen() {
         }
         Column(modifier = Modifier.padding(top = 10.dp)) {
             SchoolSearchTextField()
+        }
+        Column() {
+            NoSchoolInformCheck()
         }
         Column(modifier = Modifier.padding(top = 10.dp)) {
             AddressInformText()
@@ -111,7 +117,7 @@ fun EmailTextField() {
                     backgroundColor = MaterialTheme.colors.surface.copy(alpha = 0.3f)
                 )
             )
-            Column(modifier = Modifier.padding(top = 16.dp, start = 5.dp)) {
+            Column(modifier = Modifier.padding(top = 10.dp, start = 5.dp)) {
                 Surface(
                     modifier = Modifier
                         .width(70.dp)
@@ -174,6 +180,22 @@ fun RegisterButton() {
 fun SchoolInformText() {
     Row() {
         Text(text = "학교(기관)", color = Color.DarkGray)
+    }
+}
+
+@Composable
+fun NoSchoolInformCheck(){
+    Row() {
+        val checkboxState = remember {
+            mutableStateOf(false)
+        }
+        Checkbox(
+            checked = checkboxState.value,
+            onCheckedChange = { checkboxState.value = it}
+        )
+        Column(modifier = Modifier.padding(top = 14.dp)) {
+            Text("없음", color = Color.DarkGray)
+        }
     }
 }
 
@@ -246,6 +268,174 @@ fun AddressSearchTextField() {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun SendEmailCodeMessage(){
+    var text by remember {
+        mutableStateOf("")
+    }
+    Column() {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = "인증메일을 발송하였습니다.", color = SendingEmailMessageColor)
+            OutlinedTextField(
+                value = text,
+                label = { Text("인증코드") },
+                onValueChange = { text = it },
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = MaterialTheme.colors.surface.copy(alpha = 0.3f)
+                ),
+                modifier = Modifier
+                    .height(40.dp)
+                    .width(120.dp)
+            )
+            Column(modifier = Modifier.padding(start = 5.dp)) {
+                Surface(
+                    modifier = Modifier
+                        .width(70.dp)
+                        .height(40.dp),
+                    shape = RectangleShape,
+                    color = CertificationButtonColor
+                ) {
+                    Column(verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("인증하기", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AgreementMessage(){
+    Column() {
+        Text(text = "약관동의", color = Color.DarkGray)
+    }
+}
+
+@Composable
+fun AgreementContents1(){
+    var text by remember {
+        mutableStateOf("")
+    }
+    Column() {
+        OutlinedTextField(
+            value = text,
+            onValueChange = { text = it },
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = MaterialTheme.colors.surface.copy(alpha = 0.3f)
+            ),
+            modifier = Modifier
+                .height(138.dp)
+                .width(350.dp)
+        )
+        Row() {
+            val checkboxState = remember {
+                mutableStateOf(false)
+            }
+            Checkbox(
+                checked = checkboxState.value,
+                onCheckedChange = { checkboxState.value = it}
+            )
+            Column(modifier = Modifier.padding(top = 14.dp)) {
+                Text("동의합니다.", color = Color.DarkGray)
+            }
+        }
+    }
+}
+
+@Composable
+fun AgreementContents2(){
+    var text by remember {
+        mutableStateOf("")
+    }
+    Column() {
+        OutlinedTextField(
+            value = text,
+            onValueChange = { text = it },
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = MaterialTheme.colors.surface.copy(alpha = 0.3f)
+            ),
+            modifier = Modifier
+                .height(138.dp)
+                .width(350.dp)
+        )
+        Row() {
+            val checkboxState = remember {
+                mutableStateOf(false)
+            }
+            Checkbox(
+                checked = checkboxState.value,
+                onCheckedChange = { checkboxState.value = it}
+            )
+            Column(modifier = Modifier.padding(top = 14.dp)) {
+                Text("동의합니다.", color = Color.DarkGray)
+            }
+        }
+    }
+}
+
+@Composable
+fun AgreementContents3(){
+    var text by remember {
+        mutableStateOf("")
+    }
+    Column() {
+        OutlinedTextField(
+            value = text,
+            enabled = false,
+            onValueChange = {  },
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = MaterialTheme.colors.surface.copy(alpha = 0.3f)
+            ),
+            modifier = Modifier
+                .height(138.dp)
+                .width(350.dp)
+        )
+        Row() {
+            val checkboxState = remember {
+                mutableStateOf(false)
+            }
+            Checkbox(
+                checked = checkboxState.value,
+                onCheckedChange = { checkboxState.value = it}
+            )
+            Column(modifier = Modifier.padding(top = 14.dp)) {
+                Text("동의합니다.", color = Color.DarkGray)
+            }
+        }
+    }
+}
+
+@Composable
+fun AllAgreementCheckBox(){
+    Row() {
+        val checkboxState = remember {
+            mutableStateOf(false)
+        }
+        Checkbox(
+            checked = checkboxState.value,
+            onCheckedChange = { checkboxState.value = it}
+        )
+        Column(modifier = Modifier.padding(top = 14.dp)) {
+            Text("전체동의", color = Color.DarkGray)
+        }
+    }
+}
+
+@Composable
+fun AgreementNextButton() {
+    Column() {
+        Button(
+            modifier = Modifier.width(350.dp),
+            onClick = { },
+            colors = ButtonDefaults.textButtonColors(
+                backgroundColor = LoginButtonColor)
+        ) {
+            Text("다음", color = Color.White)
         }
     }
 }

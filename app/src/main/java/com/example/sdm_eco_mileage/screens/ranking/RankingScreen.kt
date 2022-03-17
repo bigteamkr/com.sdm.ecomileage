@@ -1,9 +1,13 @@
 package com.example.sdm_eco_mileage.screens.ranking
 
+import android.media.Image
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Text
@@ -129,21 +133,70 @@ fun RankingCard(){
             modifier = Modifier
                 .width(350.dp)
                 .height(420.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween){
-                Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.padding(top = 20.dp)) {
-                    Column(modifier = Modifier.padding(start = 10.dp)) {
-                        Image(painter = painterResource(id = R.drawable.ic_kakaotalk), contentDescription = null)
+            Column() {
+                Column() {
+                    Row(modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween){
+                        Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(modifier = Modifier.padding(start = 10.dp)) {
+                                Image(painter = painterResource(id = R.drawable.ic_silver_medal), contentDescription = null)
+                            }
+                            Column(verticalArrangement = Arrangement.Center) {
+                                Text(text = "연가중학교", color = Color.Black)
+                            }
+                        }
+                        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.padding(top = 20.dp, end = 10.dp)) {
+                            Text(text = "3,456,776 EP")
+                        }
                     }
-                    Text(text = "응암초등학교", color = Color.Black)
                 }
-                Row(horizontalArrangement = Arrangement.End, modifier = Modifier.padding(top = 20.dp, end = 10.dp)) {
-                    Text(text = "2,345,678 EP")
+
+                Column() {
+                    Row(modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween){
+                        Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(modifier = Modifier.padding(start = 10.dp)) {
+                                Image(painter = painterResource(id = R.drawable.ic_bronze_medal), contentDescription = null)
+                            }
+                            Column(verticalArrangement = Arrangement.Center) {
+                                Text(text = "연가중학교", color = Color.Black)
+                            }
+                        }
+                        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.padding(top = 20.dp, end = 10.dp)) {
+                            Text(text = "3,456,776 EP")
+                        }
+                    }
+                }
+
+                data class SampleRanking(val SchoolName: String, val SchoolPoint: Int, val SchoolImage: Image, val SchoolRanking: Int)
+
+                val Sample = mutableListOf<SampleRanking>()
+                LazyColumn{
+                    itemsIndexed(Sample){ index, item ->
+                        if(index > 2){
+                            Row(modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween){
+                                Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.padding(top = 20.dp)) {
+                                    Column(modifier = Modifier.padding(start = 10.dp)) {
+                                        Text(text = "4")
+                                    }
+                                    Column(modifier = Modifier.padding(start = 10.dp)) {
+                                        Image(painter = painterResource(id = R.drawable.ic_kakaotalk), contentDescription = null)
+                                    }
+                                    Text(text = "응암초등학교", color = Color.Black)
+                                }
+                                Row(horizontalArrangement = Arrangement.End, modifier = Modifier.padding(top = 20.dp, end = 10.dp)) {
+                                    Text(text = "2,345,678 EP")
+                                }
+                            }
+
+                        }
+                    }
                 }
             }
-
-
         }
     }
 }
