@@ -1,6 +1,8 @@
 package com.example.sdm_eco_mileage.di
 
+import com.example.sdm_eco_mileage.network.CommentAPI
 import com.example.sdm_eco_mileage.network.HomeInfoAPI
+import com.example.sdm_eco_mileage.network.LoginRegisterFindAPI
 import com.example.sdm_eco_mileage.utils.Constants
 import dagger.Module
 import dagger.Provides
@@ -12,7 +14,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule{
+object AppModule {
 
     @Provides
     @Singleton
@@ -37,4 +39,24 @@ object AppModule{
 //            .create(String::class.java)
 //
 
+    @Provides
+    @Singleton
+    fun provideCommentAPI(): CommentAPI =
+        Retrofit
+            .Builder()
+            .baseUrl(Constants.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(CommentAPI::class.java)
+
+
+    @Provides
+    @Singleton
+    fun provideLoginRegisterFindAPI(): LoginRegisterFindAPI =
+        Retrofit
+            .Builder()
+            .baseUrl(Constants.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(LoginRegisterFindAPI::class.java)
 }

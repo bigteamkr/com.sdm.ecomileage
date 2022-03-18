@@ -1,6 +1,7 @@
 package com.example.sdm_eco_mileage.model.homeInfo.response
 
 data class Post(
+    val profileimg: String,
     val commentCount: Int,
     val hashtags: List<String>,
     val likeCount: Int,

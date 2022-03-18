@@ -111,7 +111,7 @@ private fun HomeMainContent(
             CardContent(
                 currentScreen = SecomiScreens.HomeScreen.name,
                 contentImage = "${Constants.BASE_IMAGE_URL}${data.photo}",
-                profileImage = HomeScrollColumnViewData[1].image,
+                profileImage = "${Constants.BASE_IMAGE_URL}${data.profileimg}",
                 profileName = data.userName,
                 reactionIcon = listOf(
                     R.drawable.ic_like_off,
@@ -127,7 +127,7 @@ private fun HomeMainContent(
                 hashtagList = data.hashtags,
                 navController = navController,
                 destinationScreen = SecomiScreens.HomeDetailScreen.name,
-                feedNo = 1
+                feedNo = data.id
             )
             if (index == postListData.lastIndex)
                 Spacer(modifier = Modifier.height(40.dp))

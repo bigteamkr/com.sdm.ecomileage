@@ -56,8 +56,8 @@ fun SplashScreen(
         delay(500)
         visible.value = true
         delay(3000)
-        navController.navigate(SecomiScreens.HomeScreen.name) {
-            popUpTo(SecomiScreens.EducationScreen.name) { inclusive = true }
+        navController.navigate(SecomiScreens.LoginScreen.name) {
+            popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
         }
     }
 

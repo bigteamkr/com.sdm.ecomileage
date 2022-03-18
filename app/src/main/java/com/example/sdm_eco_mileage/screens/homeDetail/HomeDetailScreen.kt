@@ -1,8 +1,11 @@
 package com.example.sdm_eco_mileage.screens.homeDetail
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
@@ -27,44 +30,86 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sdm_eco_mileage.R
 import com.example.sdm_eco_mileage.components.ProfileImage
 import com.example.sdm_eco_mileage.components.ProfileName
 import com.example.sdm_eco_mileage.components.SecomiTopAppBar
+import com.example.sdm_eco_mileage.data.DataOrException
 import com.example.sdm_eco_mileage.data.HomeDetailCommentData
+import com.example.sdm_eco_mileage.model.comment.commentInfo.response.CommentInfoResponse
+import com.example.sdm_eco_mileage.model.comment.commentInfo.response.MainComment
+import com.example.sdm_eco_mileage.model.comment.mainFeed.response.MainFeedResponse
+import com.example.sdm_eco_mileage.model.comment.mainFeed.response.PostInfo
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
-import com.example.sdm_eco_mileage.ui.theme.CommentBackgroundColor
-import com.example.sdm_eco_mileage.ui.theme.SendButtonColor
-import com.example.sdm_eco_mileage.ui.theme.TagColor
-import com.example.sdm_eco_mileage.ui.theme.TopBarColor
+import com.example.sdm_eco_mileage.ui.theme.*
+import com.example.sdm_eco_mileage.utils.uuidSample
 import com.google.accompanist.systemuicontroller.SystemUiController
 import kotlinx.coroutines.launch
 
-//Todo : Home Detail Screen 시작하기
 @Composable
 fun HomeDetailScreen(
     navController: NavController,
     systemUiController: SystemUiController,
-    feedNo: Int?
+    feedNo: Int?,
+    commentViewModel: HomeDetailViewModel = hiltViewModel()
 ) {
-    if (feedNo == null) {
+    systemUiController.setStatusBarColor(
+        color = StatusBarGreenColor
+    )
 
-    } else
-        HomeDetailScaffold(navController, feedNo)
+    val mainFeedData = produceState<DataOrException<MainFeedResponse, Boolean, Exception>>(
+        initialValue = DataOrException(loading = true)
+    ) {
+        if (feedNo != null) value = commentViewModel.getMainFeed(feedNo = feedNo)
+    }.value
+
+    val commentInfoData = produceState<DataOrException<CommentInfoResponse, Boolean, Exception>>(
+        initialValue = DataOrException(loading = true)
+    ) {
+        if (feedNo != null)
+            value = commentViewModel.getCommentInfo(
+                userid = "admin@email.com",
+                feedNo = feedNo
+            )
+    }.value
+
+
+    Log.d("FEEDNO", "HomeDetailScreen: $feedNo")
+
+
+    when {
+        feedNo == null -> {
+            Text(text = "잘못된 접근입니다.")
+        }
+        mainFeedData.loading == true || commentInfoData.loading == true -> CircularProgressIndicator()
+        mainFeedData.data?.result?.postInfo != null &&
+                commentInfoData.data?.result?.mainComment != null
+        -> HomeDetailScaffold(
+            navController,
+            feedNo,
+            commentViewModel,
+            mainFeedData.data!!.result.postInfo,
+            commentInfoData.data!!.result.mainComment
+        )
+    }
 }
 
 @Composable
 private fun HomeDetailScaffold(
     navController: NavController,
-    feedNo: Int
+    feedNo: Int,
+    commentViewModel: HomeDetailViewModel,
+    postInfo: PostInfo,
+    mainComment: List<MainComment>
 ) {
     val homeDetailCommentData = HomeDetailCommentData
     val focusRequester = remember { FocusRequester() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -87,28 +132,37 @@ private fun HomeDetailScaffold(
                     ) {
                         HomeDetailContent(
                             Modifier,
-                            homeDetailCommentData[0].image,
-                            homeDetailCommentData[0].name,
-                            homeDetailCommentData[0].text,
-                            "#컵홀더 #diy #예쁘다 #녹색생활"
+                            postInfo.profileimg,
+                            postInfo.userName,
+                            postInfo.feedcontent,
+                            postInfo.hashtags
                         )
                     }
                 }
             }
         },
         bottomBar = {
-            HomeDetailBottomCommentBar()
+            HomeDetailBottomCommentBar { comment ->
+                scope.launch {
+                    commentViewModel.postNewComment(
+                        uuid = uuidSample,
+                        feedNo = feedNo,
+                        commentcontent = comment
+                    )
+                }
+            }
         }
     ) {
         LazyColumn(
             modifier = Modifier.padding(10.dp)
         ) {
-            itemsIndexed(homeDetailCommentData) { index, data ->
-                // Todo : index 1 개 건너띄는거 Sample 볼라카는거니 조심하쇼
-                if (index == 0)
-                    Box {}
-                else Row {
-                    HomeDetailContent(image = data.image, name = data.name, text = data.text)
+            itemsIndexed(mainComment) { index, data ->
+                Row {
+                    HomeDetailContent(
+                        image = data.profileimg,
+                        name = data.userName,
+                        text = data.title
+                    )
                 }
                 if (index == homeDetailCommentData.lastIndex)
                     Spacer(modifier = Modifier.height(50.dp))
@@ -123,7 +177,7 @@ private fun HomeDetailContent(
     image: String,
     name: String,
     text: String,
-    tag: String? = null,
+    tag: List<String>? = null,
 ) {
     Row(
         modifier = Modifier
@@ -137,7 +191,7 @@ private fun HomeDetailContent(
             borderStroke = BorderStroke(0.dp, Color.Transparent)
         )
         Spacer(modifier = Modifier.width(5.dp))
-        HomeDetailFormat(name = name, text = text, tag = tag)
+        HomeDetailFormat(name = name, text = text, tagList = tag)
     }
 }
 
@@ -145,7 +199,7 @@ private fun HomeDetailContent(
 private fun HomeDetailFormat(
     name: String,
     text: String,
-    tag: String?,
+    tagList: List<String>?,
 ) {
     Column(
         horizontalAlignment = Alignment.Start,
@@ -163,13 +217,18 @@ private fun HomeDetailFormat(
             modifier = Modifier.padding(start = 5.5.dp, top = 3.dp),
             style = MaterialTheme.typography.body2
         )
-        if (tag != null)
-            Text(
-                text = tag,
-                modifier = Modifier.padding(start = 5.5.dp, top = 4.dp),
-                style = MaterialTheme.typography.body2,
-                color = TagColor
-            )
+
+        LazyRow {
+            if (tagList != null)
+                items(tagList) { tag ->
+                    Text(
+                        text = tag,
+                        modifier = Modifier.padding(start = 5.5.dp, top = 4.dp),
+                        style = MaterialTheme.typography.body2,
+                        color = TagColor
+                    )
+                }
+        }
     }
 }
 
@@ -177,9 +236,11 @@ private fun HomeDetailFormat(
     ExperimentalComposeUiApi::class,
     androidx.compose.foundation.ExperimentalFoundationApi::class
 )
-@Preview
+
 @Composable
-private fun HomeDetailBottomCommentBar() {
+private fun HomeDetailBottomCommentBar(
+    submitComment: (String) -> Unit
+) {
     //Todo : viewModel 로 데이터 핸들링할 것
     val comment = rememberSaveable {
         mutableStateOf("")
@@ -219,7 +280,8 @@ private fun HomeDetailBottomCommentBar() {
             )
             Button(
                 onClick = {
-
+                    if (comment.value != "") submitComment(comment.value)
+                    comment.value = ""
                 },
                 modifier = Modifier
                     .padding(bottom = 1.dp)

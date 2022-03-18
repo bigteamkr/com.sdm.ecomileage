@@ -41,7 +41,7 @@ fun RegisterScreen() {
                 EmailTextField()
                 SendEmailCodeMessage()
                 PhoneNumberTextField()
-                PasswordTextField()
+                PasswordTextField(){}
                 PasswordCheckTextField()
             }
             Column(
