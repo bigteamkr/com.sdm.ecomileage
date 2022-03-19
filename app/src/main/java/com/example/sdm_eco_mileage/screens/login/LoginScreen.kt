@@ -21,6 +21,7 @@ import androidx.navigation.NavController
 import com.example.sdm_eco_mileage.R
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.LoginButtonColor
+import com.example.sdm_eco_mileage.utils.accessToken
 import com.example.sdm_eco_mileage.utils.uuidSample
 import com.google.accompanist.systemuicontroller.SystemUiController
 import kotlinx.coroutines.launch
@@ -66,9 +67,8 @@ fun LoginScreen(
                 scope.launch() {
                     if (loginViewModel.getLogin(userId.value, userPassword.value).data?.code == 200){
 
-                        uuidSample = loginViewModel.getLogin(userId.value, userPassword.value).data!!.data.uuid
-
                         Log.d("TAG", "LoginScreen: $uuidSample")
+                        accessToken = loginViewModel.getLogin(userId.value, userPassword.value).data!!.data.accessToken
 
                         navController.navigate(SecomiScreens.HomeScreen.name) {
                             popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }

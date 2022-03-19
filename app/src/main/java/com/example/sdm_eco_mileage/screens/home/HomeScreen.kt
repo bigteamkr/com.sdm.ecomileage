@@ -48,11 +48,12 @@ fun HomeScreen(
             color = StatusBarGreenColor
         )
     }
-
+    
     if (homeInfo.loading == true)
         CircularProgressIndicator()
-    else if (homeInfo.data?.result != null)
+    else if (homeInfo.data?.result != null){
         HomeScaffold(navController, homeInfo)
+    }
 }
 
 @Composable
