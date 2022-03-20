@@ -5,27 +5,39 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sdm_eco_mileage.R
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.LoginButtonColor
+import com.example.sdm_eco_mileage.ui.theme.LoginGreyTextColor
+import com.example.sdm_eco_mileage.ui.theme.LoginLabelColor
+import com.example.sdm_eco_mileage.ui.theme.LoginTextFieldFocusedColor
 import com.example.sdm_eco_mileage.utils.accessToken
 import com.example.sdm_eco_mileage.utils.uuidSample
 import com.google.accompanist.systemuicontroller.SystemUiController
 import kotlinx.coroutines.launch
-import java.util.concurrent.BlockingDeque
 
 @Composable
 fun LoginScreen(
@@ -51,13 +63,16 @@ fun LoginScreen(
             LoginTextField {
                 userId.value = it
             }
+            Spacer(modifier = Modifier.height(10.dp))
             PasswordTextField {
                 userPassword.value = it
             }
         }
-        Column(
+        Spacer(modifier = Modifier.height(10.dp))
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            contentAlignment = Alignment.TopStart
         ) {
             SaveId()
             AutoLogin()
@@ -65,10 +80,17 @@ fun LoginScreen(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             LoginButton {
                 scope.launch() {
-                    if (loginViewModel.getLogin(userId.value, userPassword.value).data?.code == 200){
+                    if (loginViewModel.getLogin(
+                            userId.value,
+                            userPassword.value
+                        ).data?.code == 200
+                    ) {
 
                         Log.d("TAG", "LoginScreen: $uuidSample")
-                        accessToken = loginViewModel.getLogin(userId.value, userPassword.value).data!!.data.accessToken
+                        accessToken = loginViewModel.getLogin(
+                            userId.value,
+                            userPassword.value
+                        ).data!!.data.accessToken
 
                         navController.navigate(SecomiScreens.HomeScreen.name) {
                             popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
@@ -91,21 +113,48 @@ private fun LoginTextField(
     var text by remember {
         mutableStateOf("")
     }
+    val focusRequester = remember { FocusRequester() }
+    var isFocus by remember {
+        mutableStateOf(false)
+    }
 
-    TextField(
+    BasicTextField(
         value = text,
         onValueChange = {
             text = it
             inputEvent(it)
         },
-        label = { Text("이메일") },
-        colors = TextFieldDefaults.textFieldColors(
-            backgroundColor = MaterialTheme.colors.surface.copy(alpha = 0.3f)
-        ),
         modifier = Modifier
-            .padding(start = 10.dp, end = 10.dp)
-            .fillMaxWidth()
-    )
+            .padding(start = 25.dp, end = 25.dp)
+            .fillMaxWidth(),
+        textStyle = TextStyle(
+            LoginButtonColor
+        ),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text,
+            imeAction = ImeAction.Default
+        ),
+        keyboardActions = KeyboardActions(onDone = { inputEvent(text) })
+    ) { innerTextField ->
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    isFocus = focusState.isFocused
+                }
+                .focusRequester(focusRequester)
+        ) {
+            Text(text = "이메일", style = MaterialTheme.typography.caption, color = LoginLabelColor)
+            innerTextField()
+            Divider(
+                modifier = Modifier
+                    .padding(top = 5.dp)
+                    .fillMaxWidth(),
+                color = if (isFocus) LoginButtonColor else Color.Black
+            )
+        }
+    }
 }
 
 @Composable
@@ -120,51 +169,84 @@ fun PasswordTextField(
             password = it
             inputEvent(it)
         },
-        label = { Text("비밀번호") },
+        label = { Text("비밀번호", fontSize = 13.sp) },
         visualTransformation = PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         colors = TextFieldDefaults.textFieldColors(
-            backgroundColor = MaterialTheme.colors.surface.copy(alpha = 0.3f)
+            backgroundColor = MaterialTheme.colors.surface.copy(alpha = 0.3f),
+            focusedIndicatorColor = LoginTextFieldFocusedColor,
+            unfocusedIndicatorColor = Color.Black,
+            focusedLabelColor = LoginLabelColor,
+            unfocusedLabelColor = LoginLabelColor
         ),
-        modifier = Modifier.width(350.dp)
+        modifier = Modifier
+            .padding(start = 25.dp, end = 25.dp)
+            .fillMaxWidth(),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions { inputEvent(password) }
     )
 }
 
 @Composable
 fun SaveId() {
-    Column(modifier = Modifier.padding(start = 20.dp)) {
-        Row() {
-            val checkboxState = remember {
-                mutableStateOf(false)
-            }
-            Checkbox(
-                checked = checkboxState.value,
-                onCheckedChange = { checkboxState.value = it }
-            )
-            Column(modifier = Modifier.padding(top = 14.dp)) {
-                Text("아이디 저장", color = Color.DarkGray)
-            }
-        }
+    val checkboxState = remember {
+        mutableStateOf(false)
     }
+
+    Row(
+        Modifier.padding(start = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(
+            checked = checkboxState.value,
+            onCheckedChange = { checkboxState.value = it },
+            colors = CheckboxDefaults.colors(
+                checkedColor = LoginButtonColor,
+                uncheckedColor = LoginLabelColor
+            )
+        )
+        Text(
+            "아이디 저장",
+            modifier = Modifier.padding(bottom = 1.dp),
+            color = LoginGreyTextColor,
+            fontSize = 14.sp,
+            textAlign = TextAlign.Start
+        )
+    }
+
 }
 
 
 @Composable
 fun AutoLogin() {
-    Column(modifier = Modifier.padding(start = 20.dp)) {
-        Row() {
-            val checkboxState = remember {
-                mutableStateOf(false)
-            }
-            Checkbox(
-                checked = checkboxState.value,
-                onCheckedChange = { checkboxState.value = it }
-            )
-            Column(modifier = Modifier.padding(top = 14.dp)) {
-                Text("자동 로그인", color = Color.DarkGray)
-            }
-        }
+    val checkboxState = remember {
+        mutableStateOf(false)
     }
+
+    Row(
+        Modifier.padding(start = 10.dp, top = 35.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(
+            checked = checkboxState.value,
+            onCheckedChange = { checkboxState.value = it },
+            colors = CheckboxDefaults.colors(
+                checkedColor = LoginButtonColor,
+                uncheckedColor = LoginLabelColor
+            )
+        )
+        Text(
+            "자동 로그인",
+            modifier = Modifier.padding(bottom = 1.dp),
+            color = LoginGreyTextColor,
+            fontSize = 14.sp,
+            textAlign = TextAlign.Start
+        )
+    }
+
 }
 
 @Composable

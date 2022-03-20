@@ -44,8 +44,10 @@ val ButtonColor = Color(0xFF3FDB74)
 
 
 // Login Button Color
-val LoginButtonColor = Color(0xFF5BDD91)
-val CertificationButtonColor = Color(0xFFBCBCBC)
+val LoginButtonColor = Color(0xFF67DF84)
+val LoginLabelColor = Color(0xFFBCBCBC)
+val LoginGreyTextColor = Color(0xFF9E9E9E)
+val LoginTextFieldFocusedColor = Color(0xFF00D749)
 
 // Finding Account Color
 val FindingAccountErrorColor = Color(0xFFE56857)

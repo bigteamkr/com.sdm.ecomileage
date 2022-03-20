@@ -14,12 +14,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.screens.findingAccount.PhoneNumberTextField
 import com.example.sdm_eco_mileage.screens.login.PasswordTextField
-import com.example.sdm_eco_mileage.ui.theme.CertificationButtonColor
+import com.example.sdm_eco_mileage.ui.theme.LoginLabelColor
 import com.example.sdm_eco_mileage.ui.theme.LoginButtonColor
 import com.example.sdm_eco_mileage.ui.theme.SendingEmailMessageColor
 
@@ -123,7 +120,7 @@ fun EmailTextField() {
                         .width(70.dp)
                         .height(40.dp),
                     shape = RectangleShape,
-                    color = CertificationButtonColor
+                    color = LoginLabelColor
                 ) {
                     Column(verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally) {
@@ -227,7 +224,7 @@ fun SchoolSearchTextField() {
                         .width(70.dp)
                         .height(40.dp),
                     shape = RectangleShape,
-                    color = CertificationButtonColor
+                    color = LoginLabelColor
                 ) {
                     Column(verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally) {
@@ -260,7 +257,7 @@ fun AddressSearchTextField() {
                         .width(70.dp)
                         .height(40.dp),
                     shape = RectangleShape,
-                    color = CertificationButtonColor
+                    color = LoginLabelColor
                 ) {
                     Column(verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally) {
@@ -297,7 +294,7 @@ fun SendEmailCodeMessage(){
                         .width(70.dp)
                         .height(40.dp),
                     shape = RectangleShape,
-                    color = CertificationButtonColor
+                    color = LoginLabelColor
                 ) {
                     Column(verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally) {
