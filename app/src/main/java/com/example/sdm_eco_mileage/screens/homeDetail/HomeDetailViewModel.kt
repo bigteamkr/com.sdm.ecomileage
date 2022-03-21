@@ -29,33 +29,44 @@ class HomeDetailViewModel @Inject constructor(private val repository: CommentRep
             )
         )
 
-    suspend fun getCommentInfo(userid: String, feedNo: Int) : DataOrException<CommentInfoResponse, Boolean, Exception> =
+    suspend fun getCommentInfo(
+        userid: String,
+        feedNo: Int
+    ): DataOrException<CommentInfoResponse, Boolean, Exception> =
         repository.getCommentInfo(
             accessToken,
             CommentInfoRequest(
-                CommentInfo = listOf(CommentInfo(
-                    lang = "ko",
-                    uuid = uuidSample,
-                    userid = userid,
-                    feedsno = feedNo,
-                    commentsno = null
-                ))
+                CommentInfo = listOf(
+                    CommentInfo(
+                        lang = "ko",
+                        uuid = uuidSample,
+                        userid = userid,
+                        feedsno = feedNo,
+                        commentsno = null
+                    )
+                )
             )
         )
 
-    suspend fun postNewComment(uuid: String, feedNo: Int, commentcontent: String) : DataOrException<NewCommentResponse, Boolean, Exception> =
+    suspend fun postNewComment(
+        uuid: String,
+        feedNo: Int,
+        commentContent: String
+    ): DataOrException<NewCommentResponse, Boolean, Exception> =
         repository.postNewComment(
             accessToken,
             NewCommentRequest(
-                NewCommentInfo = listOf(NewCommentInfo(
-                    uuid = uuid,
-                    lang = "ko",
-                    feedsno = feedNo,
-                    commentsno = null,
-                    parentcommentsno = null,
-                    commentcontent = commentcontent,
-                    commenthashtag = null
-                ))
+                NewCommentInfo = listOf(
+                    NewCommentInfo(
+                        uuid = uuid,
+                        lang = "ko",
+                        feedsno = feedNo,
+                        commentsno = null,
+                        parentcommentsno = null,
+                        commentcontent = commentContent,
+                        commenthashtag = null
+                    )
+                )
             )
         )
 }

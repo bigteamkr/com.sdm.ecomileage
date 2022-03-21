@@ -2,23 +2,20 @@ package com.example.sdm_eco_mileage.screens.findingAccount
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.example.sdm_eco_mileage.navigation.SecomiScreens
-import com.example.sdm_eco_mileage.screens.login.*
-import com.example.sdm_eco_mileage.screens.register.NameTextField
+import com.example.sdm_eco_mileage.screens.register.RegisterTextField
 import com.example.sdm_eco_mileage.ui.theme.FindingAccountErrorColor
 import com.example.sdm_eco_mileage.ui.theme.LoginButtonColor
-import com.google.accompanist.systemuicontroller.SystemUiController
 
 @Preview
 @Composable
@@ -33,7 +30,7 @@ fun FindingAccountScreen(/* todo::navController: NavController, systemUiControll
             FindingAccountErrorMessage()
         }
         Column {
-            NameTextField()
+            RegisterTextField(Modifier, "성함", KeyboardOptions(keyboardType = KeyboardType.Email))
             PhoneNumberTextField()
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally,

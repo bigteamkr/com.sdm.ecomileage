@@ -22,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -30,7 +31,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
@@ -42,7 +42,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,12 +54,18 @@ import com.example.sdm_eco_mileage.R
 import com.example.sdm_eco_mileage.components.SecomiTopAppBar
 import com.example.sdm_eco_mileage.data.HomeAddSampleData
 import com.example.sdm_eco_mileage.data.SampleHomeAdd
+import com.example.sdm_eco_mileage.model.homeAdd.request.HomeAddRequest
+import com.example.sdm_eco_mileage.model.homeAdd.request.Image
+import com.example.sdm_eco_mileage.model.homeAdd.request.NewActivityInfo
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.*
+import com.example.sdm_eco_mileage.utils.bitmapToString
+import com.example.sdm_eco_mileage.utils.loginedUserId
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.systemuicontroller.SystemUiController
+import kotlinx.coroutines.launch
 
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -76,20 +81,22 @@ fun HomeAddScreen(
             color = Color.White
         )
     }
-    HomeAddScaffold(navController, sample)
+    HomeAddScaffold(navController, sample, viewModel)
 }
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun HomeAddScaffold(
     navController: NavController,
-    sample: SampleHomeAdd
+    sample: SampleHomeAdd,
+    viewModel: HomeAddViewModel
 ) {
     // Todo : selectedCategory should be in ViewModel
-    val selectedCategory = remember {
+    val selectedCategory = rememberSaveable {
         mutableStateOf("카테고리 선택")
     }
-    val showCategoryDialog = remember {
+    val showCategoryDialog = rememberSaveable {
         mutableStateOf(false)
     }
     if (showCategoryDialog.value)
@@ -100,9 +107,12 @@ private fun HomeAddScaffold(
             if (category != null) selectedCategory.value = category
             showCategoryDialog.value = show
         }
+    val imageList = remember {
+        mutableStateListOf<Bitmap?>(null)
+    }
 
     // Todo : inputComment should be in ViewModel
-    val inputComment = remember {
+    val inputComment = rememberSaveable {
         mutableStateOf("")
     }
 
@@ -122,6 +132,8 @@ private fun HomeAddScaffold(
     }
 
     val focusRequester = remember { FocusRequester() }
+
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -145,7 +157,22 @@ private fun HomeAddScaffold(
             Column(
                 modifier = Modifier.padding(start = 15.dp, end = 15.dp)
             ) {
-                HomeAddedImagedRow()
+                HomeAddedImagedRow(
+                    imageList,
+                    deleteImage = { index ->
+                        imageList.removeAt(index)
+                    },
+                    addImage = { bitmap ->
+                        if (imageList.lastIndex == 0)
+                            imageList.add(
+                                index = 0, bitmap
+                            )
+                        else
+                            imageList.add(
+                                index = imageList.lastIndex, bitmap
+                            )
+                    }
+                )
                 Spacer(modifier = Modifier.height(40.dp))
 //                CategoryField(
 //                    selectedCategory,
@@ -157,8 +184,48 @@ private fun HomeAddScaffold(
                 TagInputField(tagInputElement, focusRequester, tagList, tagPlaceholderText)
             }
 
+            //Todo : imageList Upload && scope 아래 스파게티 로직 해결하기
+
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    scope.launch {
+                        val imageData = mutableListOf<Image>()
+                        imageList.forEach { image ->
+                            if (image != null)
+                                imageData.add(
+                                    Image(
+                                        status = "I",
+                                        type = "png",
+                                        filename = "${imageData.size}.png",
+                                        filesno = 0,
+                                        filedtlsno = 0,
+                                        image = bitmapToString(image)
+                                    )
+                                )
+                        }
+
+                        viewModel.postHomeFeedInfo(
+                            HomeAddRequest(
+                                NewActivityInfo = listOf(
+                                    NewActivityInfo(
+                                        userid = loginedUserId,
+                                        title = "",
+                                        content = inputComment.value,
+                                        category = "1",
+                                        hashtag = tagList.toList(),
+                                        sno = 0,
+                                        imageList = imageData.toList(),
+                                    )
+                                )
+                            )
+                        )
+
+
+                        navController.navigate(SecomiScreens.HomeScreen.name) {
+                            popUpTo(SecomiScreens.HomeAddScreen.name) { inclusive = true }
+                        }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(70.dp),
@@ -170,7 +237,6 @@ private fun HomeAddScaffold(
                 Text(text = "업로드하기", fontSize = 17.sp)
             }
         }
-//        HomeAddImage()
     }
 }
 
@@ -211,7 +277,7 @@ private fun TagInputField(
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions {
-                tagList.add("#${tagInputElement.value}")
+                tagList.add(tagInputElement.value)
                 tagInputElement.value = ""
                 focusRequester.requestFocus()
             }
@@ -267,7 +333,7 @@ private fun AddedTagListRow(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = item,
+                        text = "#$item",
                         modifier = Modifier
                             .padding(start = 5.dp, end = 5.dp)
 //                            .onKeyEvent {
@@ -324,7 +390,6 @@ private fun ContentInputField(
                 )
             innerTextField()
         }
-
     }
 }
 
@@ -429,66 +494,18 @@ fun CategoryDialog(
     }
 }
 
-
-@Composable
-fun HomeAddImage() {
-    val imageUri = remember {
-        mutableStateOf<Uri?>(null)
-    }
-    val context = LocalContext.current
-    val bitmap = remember {
-        mutableStateOf<Bitmap?>(null)
-    }
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        imageUri.value = uri
-    }
-
-    Column {
-        Button(onClick = {
-            launcher.launch("image/*")
-        }) {
-            Text(text = "Pick Image")
-        }
-    }
-
-    Spacer(modifier = Modifier.height(12.dp))
-
-    if (imageUri.value != null)
-        imageUri.value.let {
-            if (Build.VERSION.SDK_INT < 28) {
-                bitmap.value = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
-            } else {
-                val source = ImageDecoder.createSource(context.contentResolver, it!!)
-                bitmap.value = ImageDecoder.decodeBitmap(source)
-            }
-        }
-
-    bitmap.value?.let { btm ->
-        Image(
-            bitmap = btm.asImageBitmap(), contentDescription = "",
-            modifier = Modifier.size(300.dp)
-        )
-    }
-}
-
-
 @OptIn(ExperimentalPagerApi::class)
-@Preview
 @Composable
-private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
-    val imageList = remember {
-        mutableStateListOf<Bitmap?>(null)
-    }
-
-
-    val imageUri = remember {
+private fun HomeAddedImagedRow(
+    imageList: SnapshotStateList<Bitmap?>,
+    deleteImage: (Int) -> Unit,
+    addImage: (Bitmap?) -> Unit
+) {
+    val imageUri = rememberSaveable {
         mutableStateOf<Uri?>(null)
     }
     val context = LocalContext.current
-    val bitmap = remember {
+    val bitmap = rememberSaveable {
         mutableStateOf<Bitmap?>(null)
     }
     val imageCropLauncher =
@@ -506,8 +523,7 @@ private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
             imageCropLauncher.launch(cropOptions)
         }
 
-
-    val dotIndicatorSize = remember {
+    val dotIndicatorSize = rememberSaveable {
         mutableStateOf(imageList.size)
     }
 
@@ -519,18 +535,12 @@ private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
             if (Build.VERSION.SDK_INT < 28) {
                 bitmap.value =
                     MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri.value)
-                if (imageList.lastIndex == 0)
-                    imageList.add(0, bitmap.value)
-                else
-                    imageList.add(imageList.lastIndex, bitmap.value)
+                addImage(bitmap.value)
                 dotIndicatorSize.value = imageList.size
             } else {
                 source = ImageDecoder.createSource(context.contentResolver, imageUri.value!!)
                 bitmap.value = ImageDecoder.decodeBitmap(source)
-                if (imageList.lastIndex == 0)
-                    imageList.add(0, bitmap.value)
-                else
-                    imageList.add(imageList.lastIndex, bitmap.value)
+                addImage(bitmap.value)
                 dotIndicatorSize.value = imageList.size
             }
         }
@@ -542,13 +552,16 @@ private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
         Row() {
             HorizontalPager(
                 count = imageList.size,
+                modifier = Modifier.widthIn(150.dp),
                 state = pagerState,
-                itemSpacing = 0.dp
+                itemSpacing = 0.dp,
+                contentPadding = PaddingValues(start = 5.dp, end = 5.dp)
             ) { page ->
                 if (imageList[page] == null)
                     Surface(
                         modifier = Modifier
-                            .size(200.dp)
+                            .padding(10.dp)
+                            .size(150.dp)
                             .clickable {
                                 imagePickerLauncher.launch("image/*")
                             },
@@ -558,39 +571,41 @@ private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.ic_image_add),
-                            contentDescription = "HomeAdd Button"
+                            contentDescription = "HomeAdd Button",
                         )
                     }
                 else
-                    Surface(
+                    Box(
                         modifier = Modifier
-                            .size(200.dp),
-                        shape = RoundedCornerShape(10),
-                        color = AddIconBackgroundColor,
-                        contentColor = Color.White
+                            .size(170.dp),
+                        contentAlignment = Alignment.TopCenter
                     ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.TopCenter
+                        Surface(
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .fillMaxSize(),
+                            shape = RoundedCornerShape(10),
+                            color = Color.Transparent,
+                            contentColor = Color.White
                         ) {
                             Image(
                                 painter = rememberImagePainter(imageList[page]),
-                                modifier = Modifier
-                                    .padding(top = 10.dp)
-                                    .fillMaxSize(),
                                 contentDescription = "bitmap",
                                 contentScale = ContentScale.FillBounds
                             )
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_cancel_upload),
-                                contentDescription = "Cancel Uploading image"
-                            )
                         }
-                    }
 
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_cancel_upload),
+                            contentDescription = "Cancel Uploading image",
+                            modifier = Modifier.clickable {
+                                deleteImage(page)
+                            }
+                        )
+                    }
             }
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(5.dp))
         DotsIndicator(
             totalDots = dotIndicatorSize.value,
             selectedIndex = pagerState.currentPage,
@@ -599,9 +614,6 @@ private fun HomeAddedImagedRow(sample: SampleHomeAdd = HomeAddSampleData) {
         )
     }
 
-
-    val modifier = Modifier.size(150.dp)
-    val scope = rememberCoroutineScope()
 }
 
 

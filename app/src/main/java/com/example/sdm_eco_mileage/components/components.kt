@@ -1,5 +1,7 @@
 package com.example.sdm_eco_mileage.components
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -253,7 +255,7 @@ fun ReactionIconText(
         }
 
         Text(
-            text = "${reactionData}",
+            text = "$reactionData",
             modifier = Modifier
                 .padding(start = 45.dp),
             style = MaterialTheme.typography.subtitle2,
@@ -370,7 +372,8 @@ fun CardContent(
                             .size(30.dp)
                     )
                     ProfileName(
-                        name = profileName,
+                        //Todo : 여기 고쳐욧!!
+                        name = "임시",
                         modifier = Modifier.padding(top = 2.dp, bottom = 5.dp),
                         fontStyle = MaterialTheme.typography.subtitle2,
                         fontWeight = FontWeight.Normal,
@@ -439,7 +442,7 @@ fun CardContent(
                 Row(Modifier.padding(start = 12.dp, end = 10.dp, top = 7.dp)) {
                     hashtagList.forEachIndexed { index, tag ->
                         Text(
-                            text = tag,
+                            text = "#$tag",
                             style = TextStyle(
                                 fontSize = 12.sp,
                                 color = TagColor,
@@ -587,4 +590,8 @@ private fun RowScope.BottomBarItem(
         selectedContentColor = BottomSelectedColor,
         unselectedContentColor = BottomUnSelectedColor
     )
+}
+
+fun showToastMessage(context: Context, message: String) {
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 }

@@ -1,5 +1,6 @@
 package com.example.sdm_eco_mileage.screens.home
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,6 +30,7 @@ import com.example.sdm_eco_mileage.ui.theme.LikeColor
 import com.example.sdm_eco_mileage.ui.theme.StatusBarGreenColor
 import com.example.sdm_eco_mileage.ui.theme.TopBarColor
 import com.example.sdm_eco_mileage.utils.Constants
+import com.example.sdm_eco_mileage.utils.loginedUserId
 import com.google.accompanist.systemuicontroller.SystemUiController
 
 @Composable
@@ -40,7 +42,7 @@ fun HomeScreen(
     val homeInfo = produceState<DataOrException<HomeInfoResponse, Boolean, Exception>>(
         initialValue = DataOrException(loading = true)
     ) {
-        value = homeViewModel.postHomeInfo()
+        value = homeViewModel.getHomeInfo()
     }.value
 
     SideEffect {

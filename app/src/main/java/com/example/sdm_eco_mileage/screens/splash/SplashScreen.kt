@@ -10,25 +10,23 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.sdm_eco_mileage.R
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
+import com.example.sdm_eco_mileage.ui.theme.PointColor
 import com.example.sdm_eco_mileage.ui.theme.SplashColor
 import com.google.accompanist.systemuicontroller.SystemUiController
 import kotlinx.coroutines.delay
@@ -36,10 +34,16 @@ import kotlinx.coroutines.delay
 @Preview
 @Composable
 fun SplashScreen(
-    navController: NavController = NavController(LocalContext.current),
+    navController: NavController,
     systemUiController: SystemUiController
 ) {
     //Todo : Image 바깥 쪽 패딩 정리
+
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = PointColor
+        )
+    }
 
     val gradient = Brush.linearGradient(
         colors = SplashColor,
@@ -57,7 +61,7 @@ fun SplashScreen(
         visible.value = true
         delay(3000)
         navController.navigate(SecomiScreens.LoginScreen.name) {
-            popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
+            popUpTo(SecomiScreens.SplashScreen.name) { inclusive = true }
         }
     }
 
@@ -107,22 +111,26 @@ private fun SplashImage() {
 @Composable
 private fun SplashAppName() {
     Column(
-        verticalArrangement = Arrangement.SpaceEvenly,
+        verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "S E C O M I",
-            modifier = Modifier,
             style = MaterialTheme.typography.h4,
+            fontSize = 34.sp,
             fontWeight = FontWeight.SemiBold,
-            letterSpacing = 5.2.sp,
+            textAlign = TextAlign.Justify,
+            letterSpacing = 5.5.sp,
             color = Color.White,
         )
 
         Text(
             text = "당신의 에코 라이프를 펼쳐보세요",
-            modifier = Modifier.padding(1.dp),
+            modifier = Modifier.padding(start = 1.5.dp),
             style = MaterialTheme.typography.subtitle1,
+            letterSpacing = 4.sp,
+            fontSize = 12.sp,
+            textAlign = TextAlign.Justify,
             color = Color.White
         )
     }

@@ -1,6 +1,5 @@
 package com.example.sdm_eco_mileage.screens.homeDetail
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,6 +23,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -47,8 +47,10 @@ import com.example.sdm_eco_mileage.model.comment.mainFeed.response.MainFeedRespo
 import com.example.sdm_eco_mileage.model.comment.mainFeed.response.PostInfo
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
 import com.example.sdm_eco_mileage.ui.theme.*
+import com.example.sdm_eco_mileage.utils.loginedUserId
 import com.example.sdm_eco_mileage.utils.uuidSample
 import com.google.accompanist.systemuicontroller.SystemUiController
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
@@ -58,10 +60,14 @@ fun HomeDetailScreen(
     feedNo: Int?,
     commentViewModel: HomeDetailViewModel = hiltViewModel()
 ) {
-    systemUiController.setStatusBarColor(
-        color = StatusBarGreenColor
-    )
+    // Todo : rememberSaveable 로 전부 다 바꾸기
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = StatusBarGreenColor
+        )
+    }
 
+    val scope = rememberCoroutineScope()
     val mainFeedData = produceState<DataOrException<MainFeedResponse, Boolean, Exception>>(
         initialValue = DataOrException(loading = true)
     ) {
@@ -71,15 +77,17 @@ fun HomeDetailScreen(
     val commentInfoData = produceState<DataOrException<CommentInfoResponse, Boolean, Exception>>(
         initialValue = DataOrException(loading = true)
     ) {
-        if (feedNo != null)
-            value = commentViewModel.getCommentInfo(
-                userid = "admin@email.com",
-                feedNo = feedNo
-            )
+        scope.launch(context = Dispatchers.IO) {
+            if (feedNo != null) {
+                value = commentViewModel.getCommentInfo(
+                    userid = loginedUserId,
+                    feedNo = feedNo
+                )
+            }
+        }
     }.value
 
 
-    Log.d("FEEDNO", "HomeDetailScreen: $feedNo")
 
 
     when {
@@ -87,29 +95,34 @@ fun HomeDetailScreen(
             Text(text = "잘못된 접근입니다.")
         }
         mainFeedData.loading == true || commentInfoData.loading == true -> CircularProgressIndicator()
-        mainFeedData.data?.result?.postInfo != null &&
-                commentInfoData.data?.result?.mainComment != null
-        -> HomeDetailScaffold(
-            navController,
-            feedNo,
-            commentViewModel,
-            mainFeedData.data!!.result.postInfo,
-            commentInfoData.data!!.result.mainComment
-        )
+        mainFeedData.data?.result?.postInfo != null && commentInfoData.data?.result?.mainComment != null
+        ->
+            HomeDetailScaffold(
+                navController,
+                feedNo,
+                commentViewModel,
+                mainFeedData.data!!.result.postInfo,
+                commentInfoData.data!!.result.mainComment,
+                commentInfoData
+            )
     }
+
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun HomeDetailScaffold(
     navController: NavController,
     feedNo: Int,
     commentViewModel: HomeDetailViewModel,
     postInfo: PostInfo,
-    mainComment: List<MainComment>
+    mainComment: List<MainComment>,
+    commentInfoData: DataOrException<CommentInfoResponse, Boolean, Exception>
 ) {
     val homeDetailCommentData = HomeDetailCommentData
     val focusRequester = remember { FocusRequester() }
     val scope = rememberCoroutineScope()
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold(
         topBar = {
@@ -130,10 +143,11 @@ private fun HomeDetailScaffold(
                             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
                             .focusRequester(focusRequester = focusRequester)
                     ) {
+                        //Todo : ProfileName 고치기
                         HomeDetailContent(
                             Modifier,
                             postInfo.profileimg,
-                            postInfo.userName,
+                            "임시",
                             postInfo.feedcontent,
                             postInfo.hashtags
                         )
@@ -147,8 +161,10 @@ private fun HomeDetailScaffold(
                     commentViewModel.postNewComment(
                         uuid = uuidSample,
                         feedNo = feedNo,
-                        commentcontent = comment
+                        commentContent = comment
                     )
+                    keyboardController?.hide()
+                    commentInfoData.loading = true
                 }
             }
         }
@@ -158,9 +174,10 @@ private fun HomeDetailScaffold(
         ) {
             itemsIndexed(mainComment) { index, data ->
                 Row {
+                    //Todo : ProfileName 고치기
                     HomeDetailContent(
                         image = data.profileimg,
-                        name = data.userName,
+                        name = "data.userName",
                         text = data.title
                     )
                 }
@@ -222,7 +239,7 @@ private fun HomeDetailFormat(
             if (tagList != null)
                 items(tagList) { tag ->
                     Text(
-                        text = tag,
+                        text = "#$tag",
                         modifier = Modifier.padding(start = 5.5.dp, top = 4.dp),
                         style = MaterialTheme.typography.body2,
                         color = TagColor
@@ -236,7 +253,6 @@ private fun HomeDetailFormat(
     ExperimentalComposeUiApi::class,
     androidx.compose.foundation.ExperimentalFoundationApi::class
 )
-
 @Composable
 private fun HomeDetailBottomCommentBar(
     submitComment: (String) -> Unit
@@ -275,7 +291,8 @@ private fun HomeDetailBottomCommentBar(
                 enabled = true,
                 isSingleLine = true,
                 onAction = KeyboardActions(onDone = {
-
+                    if (comment.value != "") submitComment(comment.value)
+                    comment.value = ""
                 })
             )
             Button(

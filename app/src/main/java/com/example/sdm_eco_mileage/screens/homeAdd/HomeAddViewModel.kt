@@ -11,7 +11,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
+import com.example.sdm_eco_mileage.data.DataOrException
+import com.example.sdm_eco_mileage.model.homeAdd.request.HomeAddRequest
+import com.example.sdm_eco_mileage.model.homeAdd.response.HomeAddResponse
 import com.example.sdm_eco_mileage.repository.HomeRepository.HomeRepository
+import com.example.sdm_eco_mileage.utils.accessToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -19,9 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeAddViewModel @Inject constructor(private val repository: HomeRepository) : ViewModel() {
 
-    suspend fun getImagesFromGallery(){
-
-
-    }
+    suspend fun postHomeFeedInfo(body: HomeAddRequest) : DataOrException<HomeAddResponse, Boolean, Exception> =
+        repository.postHomeFeed(accessToken, body = body)
 
 }

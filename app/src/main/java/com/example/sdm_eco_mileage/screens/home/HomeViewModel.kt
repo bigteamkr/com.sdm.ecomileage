@@ -12,8 +12,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(private val repository: HomeRepository) : ViewModel() {
-    suspend fun postHomeInfo(): DataOrException<HomeInfoResponse, Boolean, Exception> =
-        repository.postHomeInfo(
+    suspend fun getHomeInfo(): DataOrException<HomeInfoResponse, Boolean, Exception> =
+        repository.getHomeInfo(
             accessToken, HomeInfoRequest(
                 HomeInfo = listOf(
                     HomeInfo("admin@email.com")

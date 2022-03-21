@@ -1,8 +1,10 @@
 package com.example.sdm_eco_mileage.screens.login
 
-import android.util.Log
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -10,32 +12,31 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sdm_eco_mileage.R
+import com.example.sdm_eco_mileage.components.showToastMessage
 import com.example.sdm_eco_mileage.navigation.SecomiScreens
-import com.example.sdm_eco_mileage.ui.theme.LoginButtonColor
-import com.example.sdm_eco_mileage.ui.theme.LoginGreyTextColor
-import com.example.sdm_eco_mileage.ui.theme.LoginLabelColor
-import com.example.sdm_eco_mileage.ui.theme.LoginTextFieldFocusedColor
-import com.example.sdm_eco_mileage.utils.accessToken
-import com.example.sdm_eco_mileage.utils.uuidSample
+import com.example.sdm_eco_mileage.ui.theme.*
+import com.example.sdm_eco_mileage.utils.*
 import com.google.accompanist.systemuicontroller.SystemUiController
 import kotlinx.coroutines.launch
 
@@ -45,13 +46,271 @@ fun LoginScreen(
     systemUiController: SystemUiController,
     loginViewModel: LoginViewModel = hiltViewModel()
 ) {
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = Color.White
+        )
+    }
+
+    var tabIndex by remember { mutableStateOf(0) }
+    val tabTitles = listOf("로그인", "회원가입")
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        TabRow(
+            selectedTabIndex = tabIndex,
+            backgroundColor = Color.White,
+            contentColor = SelectedTabColor
+        ) {
+            tabTitles.forEachIndexed { index, title ->
+                Tab(
+                    selected = tabIndex == index,
+                    modifier = Modifier.background(Color.White),
+                    onClick = { tabIndex = index },
+                    text = { Text(text = title) },
+                    selectedContentColor = SelectedTabColor,
+                    unselectedContentColor = PlaceholderColor
+                )
+            }
+        }
+
+        when (tabIndex) {
+            0 -> LoginScaffold(
+                loginViewModel,
+                navController
+            )
+            1 -> RegisterScaffold(
+                navController
+            )
+        }
+    }
+
+
+}
+
+@Composable
+fun RegisterScaffold(navController: NavController) {
+    var isFirstTermAgree by remember {
+        mutableStateOf(false)
+    }
+    var isSecondTermAgree by remember {
+        mutableStateOf(false)
+    }
+    var isThirdTermAgree by remember {
+        mutableStateOf(false)
+    }
+    var isTermsAgree by remember {
+        mutableStateOf(false)
+    }
+
+    var showTerms by remember {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(key1 = isFirstTermAgree, key2 = isSecondTermAgree, key3 = isThirdTermAgree) {
+        isTermsAgree = isFirstTermAgree && isSecondTermAgree && isThirdTermAgree
+    }
+
+    if (showTerms) TermsOfServicePage(
+        isFirstTermAgree,
+        isFirstTermEvent = { isFirstTermAgree = it },
+        isSecondTermAgree,
+        isSecondTermEvent = { isSecondTermAgree = it },
+        isThirdTermAgree,
+        isThirdTermEvent = { isThirdTermAgree = it },
+        isTermsAgree,
+        termsCheck = { isTermsAgree = it }
+    ) {
+        showTerms = it
+    }
+    else {
+        Column(
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+
+        }
+    }
+}
+
+@Composable
+private fun TermsOfServicePage(
+    isFirstTermAgree: Boolean,
+    isFirstTermEvent: (Boolean) -> Unit,
+    isSecondTermAgree: Boolean,
+    isSecondTermEvent: (Boolean) -> Unit,
+    isThirdTermAgree: Boolean,
+    isThirdTermEvent: (Boolean) -> Unit,
+    isTermsAgree: Boolean,
+    termsCheck: (Boolean) -> Unit,
+    buttonEvent: (Boolean) -> Unit
+) {
+    var isFirstTermAgreeLocal = isFirstTermAgree
+    var isSecondTermAgreeLocal = isSecondTermAgree
+    var isThirdTermAgreeLocal = isThirdTermAgree
+    var isTermsAgreeLocal = isTermsAgree
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(15.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(
+            text = "약관동의",
+            fontSize = 20.sp,
+            color = PlaceholderColor,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        TermsTextField(termsFirst, isFirstTermAgreeLocal, "동의합니다.") {
+            isFirstTermAgreeLocal = it
+            isFirstTermEvent(isFirstTermAgreeLocal)
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        TermsTextField(termsSecond, isSecondTermAgreeLocal, "동의합니다.") {
+            isSecondTermAgreeLocal = it
+            isSecondTermEvent(isSecondTermAgreeLocal)
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        TermsTextField(termsThird, isThirdTermAgreeLocal, "동의합니다.") {
+            isThirdTermAgreeLocal = it
+            isThirdTermEvent(isThirdTermAgreeLocal)
+        }
+        Divider(Modifier.padding(start = 5.dp, end = 5.dp, top = 20.dp, bottom = 20.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            CustomCheckBox(isTermsAgreeLocal, "전체 동의") {
+                isTermsAgreeLocal = it
+                isFirstTermEvent(it)
+                isSecondTermEvent(it)
+                isThirdTermEvent(it)
+                termsCheck(isTermsAgreeLocal)
+            }
+        }
+        Spacer(modifier = Modifier.height(5.dp))
+        Button(
+            onClick = {
+                buttonEvent(!isTermsAgreeLocal)
+            },
+            modifier = Modifier
+                .padding(5.dp)
+                .fillMaxWidth(),
+            enabled = isTermsAgreeLocal,
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = ButtonColor,
+                contentColor = Color.White,
+                disabledBackgroundColor = PlaceholderColor
+            )
+        ) {
+            Text(text = "다음")
+        }
+    }
+}
+
+@Composable
+private fun TermsTextField(
+    termText: String,
+    termAgreeState: Boolean,
+    checkString: String,
+    checkEvent: (Boolean) -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.Start
+    ) {
+        OutlinedTextField(
+            value = termText,
+            onValueChange = {},
+            modifier = Modifier
+                .height(110.dp),
+            textStyle = TextStyle(
+                fontSize = 11.sp
+            ),
+            readOnly = true,
+            colors = TextFieldDefaults.textFieldColors(
+                textColor = BorderColor,
+                backgroundColor = Color.White
+            )
+        )
+        Spacer(modifier = Modifier.height(5.dp))
+        CustomCheckBox(isTermAgree = termAgreeState, checkString) { checkEvent(!termAgreeState) }
+    }
+}
+
+
+@Composable
+private fun CustomCheckBox(
+    isTermAgree: Boolean,
+    checkString: String,
+    checkEvent: (Boolean) -> Unit
+) {
+    var borderColor by remember {
+        mutableStateOf(BorderColor)
+    }
+    var checkColor by remember {
+        mutableStateOf(Color.White)
+    }
+    if (isTermAgree) {
+        checkColor = LoginButtonColor
+        borderColor = LoginButtonColor
+    } else {
+        checkColor = Color.White
+        borderColor = BorderColor
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(
+            modifier = Modifier
+                .size(13.dp)
+                .clickable {
+                    checkEvent(!isTermAgree)
+                },
+            border = BorderStroke(1.dp, borderColor),
+            shape = RoundedCornerShape(3.dp),
+            color = checkColor
+        ) {}
+        Text(text = checkString, modifier = Modifier.padding(3.dp), fontSize = 12.sp)
+    }
+}
+
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun LoginScaffold(
+    loginViewModel: LoginViewModel,
+    navController: NavController
+) {
     val scope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
+
     val userId = remember {
         mutableStateOf("")
+    }
+    var isUserIdFocus by remember {
+        mutableStateOf(false)
     }
     val userPassword = remember {
         mutableStateOf("")
     }
+    var isPasswordFocus by remember {
+        mutableStateOf(false)
+    }
+    val context = LocalContext.current
+    var message by remember {
+        mutableStateOf("")
+    }
+
 
     Column(
         modifier = Modifier
@@ -60,13 +319,37 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column() {
-            LoginTextField {
-                userId.value = it
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-            PasswordTextField {
-                userPassword.value = it
-            }
+            InputTextField(
+                inputEvent = {
+                    userId.value = it
+                },
+                focusState = isUserIdFocus,
+                label = "이메일",
+                isFocus = {
+                    isUserIdFocus = true
+                    isPasswordFocus = false
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Done
+                )
+            )
+            Spacer(modifier = Modifier.height(30.dp))
+            InputTextField(
+                inputEvent = {
+                    userPassword.value = it
+                },
+                focusState = isPasswordFocus,
+                label = "비밀번호",
+                isFocus = {
+                    isUserIdFocus = false
+                    isPasswordFocus = true
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                )
+            )
         }
         Spacer(modifier = Modifier.height(10.dp))
         Box(
@@ -80,114 +363,112 @@ fun LoginScreen(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             LoginButton {
                 scope.launch() {
-                    if (loginViewModel.getLogin(
-                            userId.value,
-                            userPassword.value
-                        ).data?.code == 200
-                    ) {
+                    loginViewModel.getLogin(
+                        userId.value,
+                        userPassword.value,
+                    ).let {
+                        if (it.data?.code == 200) {
+                            accessToken = it.data!!.data.accessToken
+                            loginedUserId = userId.value
 
-                        Log.d("TAG", "LoginScreen: $uuidSample")
-                        accessToken = loginViewModel.getLogin(
-                            userId.value,
-                            userPassword.value
-                        ).data!!.data.accessToken
-
-                        navController.navigate(SecomiScreens.HomeScreen.name) {
-                            popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
+                            navController.navigate(SecomiScreens.HomeScreen.name) {
+                                popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
+                            }
                         }
+                        message = if (it.data != null) it.data!!.message else "잘못된 접근방법 입니다."
+                        showToastMessage(context, message)
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(10.dp))
             FindIdButton(navController = navController)
-        }
-        Column(modifier = Modifier.padding(top = 50.dp)) {
-            SocialLoginCard()
+            Spacer(modifier = Modifier.height(50.dp))
+            SocialLoginList()
         }
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun LoginTextField(
-    inputEvent: (String) -> Unit
+fun InputTextField(
+    inputEvent: (String) -> Unit,
+    focusState: Boolean,
+    label: String,
+    isFocus: () -> Unit,
+    keyboardOptions: KeyboardOptions
 ) {
     var text by remember {
         mutableStateOf("")
     }
-    val focusRequester = remember { FocusRequester() }
-    var isFocus by remember {
-        mutableStateOf(false)
+    var labelPositionX by remember {
+        mutableStateOf(0.dp)
     }
+    var labelPositionY by remember {
+        mutableStateOf(0.dp)
+    }
+
+    if (text.isNotEmpty()) {
+        labelPositionX = (-2).dp
+        labelPositionY = (-20).dp
+    } else {
+        labelPositionX = 0.dp
+        labelPositionY = 0.dp
+    }
+
+    val xOffsetAnimation: Dp by animateDpAsState(
+        if (!focusState) labelPositionX else (-2).dp
+    )
+    val yOffsetAnimation: Dp by animateDpAsState(
+        if (!focusState) labelPositionY else (-20).dp
+    )
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+
 
     BasicTextField(
         value = text,
         onValueChange = {
             text = it
             inputEvent(it)
+            isFocus()
         },
         modifier = Modifier
             .padding(start = 25.dp, end = 25.dp)
             .fillMaxWidth(),
         textStyle = TextStyle(
-            LoginButtonColor
+            LoginEmailInputColor
         ),
         singleLine = true,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text,
-            imeAction = ImeAction.Default
-        ),
-        keyboardActions = KeyboardActions(onDone = { inputEvent(text) })
+        visualTransformation = if (label == "비밀번호") PasswordVisualTransformation() else VisualTransformation.None,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = KeyboardActions(onDone = {
+            inputEvent(text)
+            keyboardController?.hide()
+        })
     ) { innerTextField ->
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .onFocusChanged { focusState ->
-                    isFocus = focusState.isFocused
-                }
-                .focusRequester(focusRequester)
+        Box(
+            Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.TopStart
         ) {
-            Text(text = "이메일", style = MaterialTheme.typography.caption, color = LoginLabelColor)
-            innerTextField()
-            Divider(
+            Text(
+                text = label,
                 modifier = Modifier
-                    .padding(top = 5.dp)
-                    .fillMaxWidth(),
-                color = if (isFocus) LoginButtonColor else Color.Black
+                    .padding(bottom = 5.dp)
+                    .absoluteOffset(x = xOffsetAnimation, y = yOffsetAnimation),
+                style = MaterialTheme.typography.caption,
+                color = LoginLabelColor
             )
+            Column {
+                innerTextField()
+                Divider(
+                    modifier = Modifier
+                        .padding(top = 7.dp)
+                        .fillMaxWidth(),
+                    color = if (focusState) LoginButtonColor else PlaceholderColor
+                )
+            }
         }
     }
-}
-
-@Composable
-fun PasswordTextField(
-    inputEvent: (String) -> Unit
-) {
-    var password by rememberSaveable { mutableStateOf("") }
-
-    TextField(
-        value = password,
-        onValueChange = {
-            password = it
-            inputEvent(it)
-        },
-        label = { Text("비밀번호", fontSize = 13.sp) },
-        visualTransformation = PasswordVisualTransformation(),
-        colors = TextFieldDefaults.textFieldColors(
-            backgroundColor = MaterialTheme.colors.surface.copy(alpha = 0.3f),
-            focusedIndicatorColor = LoginTextFieldFocusedColor,
-            unfocusedIndicatorColor = Color.Black,
-            focusedLabelColor = LoginLabelColor,
-            unfocusedLabelColor = LoginLabelColor
-        ),
-        modifier = Modifier
-            .padding(start = 25.dp, end = 25.dp)
-            .fillMaxWidth(),
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Password,
-            imeAction = ImeAction.Done
-        ),
-        keyboardActions = KeyboardActions { inputEvent(password) }
-    )
 }
 
 @Composable
@@ -270,105 +551,66 @@ fun LoginButton(
 
 @Composable
 fun FindIdButton(navController: NavController) {
-    TextButton(onClick = { navController.navigate(SecomiScreens.FindingAccountScreen.name) }) {
-        Text("아이디 | 비밀번호 찾기", color = Color.DarkGray)
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TextButton(onClick = { navController.navigate(SecomiScreens.FindingAccountScreen.name) }) {
+            Text("아이디", color = Color.DarkGray)
+        }
+        Text(text = " | ")
+        TextButton(onClick = { navController.navigate(SecomiScreens.FindingAccountScreen.name) }) {
+            Text("비밀번호 찾기", color = Color.DarkGray)
+        }
     }
 }
 
 @Composable
-fun SocialLoginCard() {
+fun SocialLoginList() {
     Column() {
-        Column(modifier = Modifier.padding(vertical = 3.dp)) {
-            Card(
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .width(350.dp)
-                    .height(50.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.padding(start = 10.dp)) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_kakaotalk),
-                            contentDescription = null
-                        )
-                    }
-                }
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("KakaoTalk 로그인")
-                }
+        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+            SocialLoginCard(R.drawable.ic_facebook, "Facebook 로그인")
+            SocialLoginCard(R.drawable.ic_kakaotalk, "Kakao Talk 로그인")
+            SocialLoginCard(R.drawable.ic_naver, "Naver 로그인")
+            SocialLoginCard(R.drawable.ic_google, "Google 로그인")
+        }
+    }
+}
+
+@Composable
+private fun SocialLoginCard(
+    image: Int,
+    buttonText: String
+) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier
+            .padding(start = 25.dp, end = 25.dp, top = 5.dp, bottom = 5.dp)
+            .fillMaxWidth()
+            .height(45.dp),
+        elevation = 4.dp
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.padding(start = 10.dp)) {
+                Image(
+                    painter = painterResource(id = image),
+                    contentDescription = null
+                )
             }
         }
-        Column(modifier = Modifier.padding(vertical = 3.dp)) {
-            Card(
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .width(350.dp)
-                    .height(50.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.padding(start = 10.dp)) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_facebook),
-                            contentDescription = null
-                        )
-                    }
-                }
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("facebook 로그인")
-                }
-            }
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(buttonText, fontSize = 13.sp, fontWeight = FontWeight.Normal)
         }
-        Column(modifier = Modifier.padding(vertical = 3.dp)) {
-            Card(
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .width(350.dp)
-                    .height(50.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.padding(start = 10.dp)) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_google),
-                            contentDescription = null
-                        )
-                    }
-                }
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Google 로그인")
-                }
-            }
-        }
-        Column(modifier = Modifier.padding(vertical = 3.dp)) {
-            Card(
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .width(350.dp)
-                    .height(50.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.padding(start = 10.dp)) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_naver),
-                            contentDescription = null
-                        )
-                    }
-                }
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Naver 로그인")
-                }
-            }
-        }
+    }
+}
+
+
+@Composable
+fun BasicInformText() {
+    Row() {
+        Text(text = "＊", color = Color.Red)
+        Text(text = "기본정보", color = Color.DarkGray)
     }
 }
