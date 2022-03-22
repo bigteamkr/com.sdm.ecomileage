@@ -80,6 +80,9 @@
         <entry key="../../../../../layout/compose-model-1647854019521.xml" value="0.25" />
         <entry key="../../../../../layout/compose-model-1647854888280.xml" value="0.16377952755905512" />
         <entry key="../../../../../layout/compose-model-1647865250189.xml" value="0.335" />
+        <entry key="../../../../../layout/compose-model-1647933005028.xml" value="0.2955" />
+        <entry key="../../../../../layout/compose-model-1647948130443.xml" value="0.1" />
+        <entry key="../../../../../layout/compose-model-1647951185668.xml" value="0.13175675675675674" />
         <entry key="..\:/Users/82109/AndroidStudioProjects/ecomileage_android/app/src/main/res/layout/activity_main.xml" value="0.13903985507246377" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/drawable/ic_facebook.xml" value="0.154" />
         <entry key="..\:/Users/uhyun/StudioProjects/ecomileage_android/app/src/main/res/drawable/ic_google.xml" value="0.154" />
@@ -115,6 +118,9 @@
         <entry key="..\:/android_workspace/sdmecomileage/app/src/main/res/menu/menu_home.xml" value="0.16302083333333334" />
         <entry key="..\:/android_workspace/sdmecomileage/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.17916666666666667" />
         <entry key="app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.118" />
+        <entry key="app/src/main/res/drawable/ic_admin.xml" value="0.118" />
+        <entry key="app/src/main/res/drawable/ic_back_arrow.xml" value="0.118" />
+        <entry key="app/src/main/res/drawable/ic_back_arrow_black.xml" value="0.167" />
         <entry key="app/src/main/res/drawable/ic_default_profile.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_edu_admin.xml" value="0.117" />
         <entry key="app/src/main/res/drawable/ic_event_on.xml" value="0.117" />

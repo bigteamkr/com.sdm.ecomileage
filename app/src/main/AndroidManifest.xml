@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.sdm_eco_mileage">
+    package="com.sdm.ecomileage">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION"/>
@@ -8,7 +8,7 @@
         android:maxSdkVersion="28"/>
 
     <application
-        android:name=".SdmEcoMileageApplication"
+        android:name="com.sdm.ecomileage.SdmEcoMileageApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -17,17 +17,20 @@
         android:theme="@style/Theme.Sdm_eco_mileage"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".MainActivity"
+            android:name="com.sdm.ecomileage.MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.Sdm_eco_mileage"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+
+                <!-- Redirect URI: "kakao${NATIVE_APP_KEY}://oauth" -->
+<!--                <data android:host="oauth"-->
+<!--                    android:scheme="kakaofb7903a5b79c6fb3d7172024332e682d" />-->
             </intent-filter>
+
         </activity>
     </application>
 
