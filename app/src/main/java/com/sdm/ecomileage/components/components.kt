@@ -1,6 +1,7 @@
 package com.sdm.ecomileage.components
 
 import android.content.Context
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -34,21 +35,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
+import com.sdm.ecomileage.utils.Constants
 
 @Composable
 fun SecomiTopAppBar(
-    title: String = "연복중중학교",
+    title: String = "베타테스터",
     navigationIcon: Painter? = null,
     currentScreen: String = SecomiScreens.HomeScreen.name,
     backgroundColor: List<Color> = TopBarColor,
-    actionIconsList: List<Painter>? = null,
+    actionIconsList: Map<String, Painter>? = null,
     navController: NavController = NavController(LocalContext.current),
     contentColor: Color = Color.White
 ) {
-    // Todo : 다시 수정 .. Icon 을 key-value 로 받아서 key 에 따른 행동 추가하기
     // navigation Icon = start(left) icon
     // actionIconsList = end(right) icons
 
@@ -157,18 +161,76 @@ fun SecomiTopAppBar(
                         .fillMaxHeight(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    actionIconsList?.forEachIndexed { index, icons ->
-                        if (index == actionIconsList.lastIndex)
-                            Image(painter = icons, contentDescription = "action icons")
-                        else
-                            Icon(
-                                painter = icons,
-                                contentDescription = "action icons",
-                                tint = contentColor,
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .padding(5.dp)
-                            )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        actionIconsList?.forEach { (key, painter) ->
+                            when (key) {
+                                "Search" -> {
+                                    Surface(
+                                        shape = CircleShape,
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .padding(5.dp)
+                                            .clickable {
+                                                navController.navigate(SecomiScreens.SearchScreen.name) {
+                                                    popUpTo(SecomiScreens.HomeScreen.name)
+                                                }
+                                            },
+                                        color = Color.Transparent
+                                    ) {
+                                        Icon(
+                                            painter = painter,
+                                            contentDescription = "Search icon",
+                                            tint = contentColor,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
+                                }
+                                "Ranking" -> {
+                                    Surface(
+                                        shape = CircleShape,
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .padding(5.dp)
+                                            .clickable {
+                                                navController.navigate(SecomiScreens.RankingScreen.name) {
+                                                    popUpTo(SecomiScreens.HomeScreen.name)
+                                                }
+                                            },
+                                        color = Color.Transparent
+                                    ) {
+                                        Icon(
+                                            painter = painter,
+                                            contentDescription = "Ranking icon",
+                                            tint = contentColor,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                        )
+                                    }
+                                }
+                                "Push" -> {
+                                    Surface(
+                                        shape = CircleShape,
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .padding(5.dp)
+                                            .clickable {
+                                                navController.navigate(SecomiScreens.NoticeScreen.name) {
+                                                    popUpTo(SecomiScreens.HomeScreen.name)
+                                                }
+                                            },
+                                        color = Color.Transparent
+                                    ) {
+                                        Image(
+                                            painter = painter,
+                                            contentDescription = "Push icon",
+                                            modifier = Modifier
+                                                .fillMaxSize(),
+                                            contentScale = ContentScale.FillBounds
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -213,7 +275,7 @@ fun SecomiMainFloatingActionButton(navController: NavController) {
 }
 
 @Composable
-fun ReactionIconText(
+fun CustomIconText(
     iconResourceList: List<Int>,
     reactionData: Int,
     onClickReaction: (Boolean) -> Unit,
@@ -306,144 +368,211 @@ fun ProfileImage(
 
 @Composable
 fun CardContent(
-    currentScreen: String,
-    contentImage: String = "",
-    profileImage: String = "",
-    profileName: String = "세코미",
+    contentImageList: List<String>,
+    contentText: String,
+    profileImage: String,
+    profileName: String,
     reactionIcon: List<Int>,
     reactionData: Int,
-    likeYN: Boolean,
-    onClickReaction: (Boolean) -> Unit,
     reactionTint: Color,
-    commentIcon: Painter,
-    needMoreIcon: Boolean,
-    moreIcon: Painter?,
-    contentText: String = " ",
+    likeYN: Boolean,
+    onReactionClick: (Boolean) -> Unit,
+    otherIcons: Map<String, Int>,
     hashtagList: List<String>?,
     navController: NavController,
-    destinationScreen: String,
-    feedNo: Int
+    feedNo: Int,
+    currentScreen: String,
+    destinationScreen: String?
 ) {
-    // Todo : Card 에 이미지도 LazyRow
-    // Todo : CardContent fix 방향 : 1. 각 아이콘의 Reaction 을 람다식으로 받는다. 2. ReactionIcon 받는 방법을 수정한다.
     Card(
         modifier = Modifier
             .padding(5.dp)
             .padding(start = 5.dp, end = 5.dp)
             .fillMaxWidth()
-            .height(300.dp),
+            .height(400.dp)
+            .clickable {
+                if (destinationScreen != null) navController.navigate(destinationScreen) {
+                    launchSingleTop
+                    popUpTo(currentScreen)
+                }
+            },
         shape = RoundedCornerShape(10.dp),
         backgroundColor = Color.White
     ) {
         Column {
-            Image(
-                painter = rememberImagePainter(data = contentImage),
-                contentDescription = "Card Content Main Image",
-                modifier = Modifier
-                    .fillMaxHeight(0.65f)
-                    .fillMaxWidth(),
-                contentScale = ContentScale.FillHeight
-            )
-
-            Row(
-                modifier = Modifier
-                    .padding(5.dp)
-                    .padding(top = 5.dp)
-                    .fillMaxWidth()
-                    .height(30.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-
-                Row {
-                    Spacer(modifier = Modifier.width(5.dp))
-                    ProfileImage(
-                        image = profileImage,
-                        modifier = Modifier
-                            .size(30.dp)
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    ProfileName(
-                        name = profileName,
-                        modifier = Modifier.padding(top = 2.dp, bottom = 5.dp),
-                        fontStyle = MaterialTheme.typography.subtitle2,
-                        fontWeight = FontWeight.Normal,
-                    )
-                }
-
+            Column() {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 1.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.75f)
                 ) {
-                    ReactionIconText(
-                        iconResourceList = reactionIcon,
-                        reactionData = reactionData,
-                        onClickReaction = { onClickReaction(it) },
-                        tintColor = reactionTint,
-                        likeYN = likeYN
-                    )
-
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    Surface(
-                        modifier = Modifier
-                            .clickable {
-                                if (currentScreen == SecomiScreens.HomeScreen.name)
-                                    navController.navigate("$destinationScreen/$feedNo") {
-                                        launchSingleTop
-                                    }
-                            },
-                        shape = RoundedCornerShape(percent = 30)
-                    ) {
-                        Icon(
-                            painter = commentIcon,
-                            contentDescription = "Comment button",
-                            modifier = Modifier
-                                .padding(start = 2.dp, top = 1.dp)
-                                .size(24.dp),
-                            tint = Color.LightGray
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    if (needMoreIcon)
-                        Icon(
-                            painter = moreIcon!!,
-                            contentDescription = "More button",
-                            modifier = Modifier
-                                .padding(top = 1.dp)
-                                .size(22.dp),
-                            tint = Color.LightGray
-                        )
+                    CardImageRow(contentImageList)
                 }
-
+                CardWriterInformation(
+                    profileImage,
+                    profileName,
+                    reactionIcon,
+                    reactionData,
+                    onReactionClick,
+                    reactionTint,
+                    likeYN,
+                    otherIcons,
+                    navController,
+                    currentScreen,
+                    feedNo
+                )
             }
-            Text(
-                text = contentText,
-                modifier = Modifier.padding(
-                    start = 12.dp,
-                    end = 10.dp,
-                    top = 7.dp
-                ),
-                style = MaterialTheme.typography.body2,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+
+            CardContent(contentText, hashtagList)
+        }
+    }
+}
+
+@Composable
+private fun CardWriterInformation(
+    profileImage: String,
+    profileName: String,
+    reactionIcon: List<Int>,
+    reactionData: Int,
+    onReactionClick: (Boolean) -> Unit,
+    reactionTint: Color,
+    likeYN: Boolean,
+    otherIcons: Map<String, Int>,
+    navController: NavController,
+    currentScreen: String,
+    feedNo: Int
+) {
+    Row(
+        modifier = Modifier
+            .padding(5.dp)
+            .padding(top = 5.dp)
+            .fillMaxWidth()
+            .height(30.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+
+        Row {
+            ProfileImage(
+                image = "${Constants.BASE_IMAGE_URL}$profileImage",
+                modifier = Modifier
+                    .size(30.dp)
+                    .padding(start = 5.dp)
             )
-            if (!hashtagList.isNullOrEmpty())
-                Row(Modifier.padding(start = 12.dp, end = 10.dp, top = 7.dp)) {
-                    hashtagList.forEachIndexed { index, tag ->
-                        Text(
-                            text = "#$tag",
-                            style = TextStyle(
-                                fontSize = 12.sp,
-                                color = TagColor,
-                                textAlign = TextAlign.Justify
-                            )
+            ProfileName(
+                name = profileName,
+                modifier = Modifier.padding(start = 5.dp, top = 2.dp, bottom = 5.dp),
+                fontStyle = MaterialTheme.typography.subtitle2,
+                fontWeight = FontWeight.Normal,
+            )
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = 1.dp)
+        ) {
+            CustomIconText(
+                iconResourceList = reactionIcon,
+                reactionData = reactionData,
+                onClickReaction = { onReactionClick(it) },
+                tintColor = reactionTint,
+                likeYN = likeYN
+            )
+
+            otherIcons.forEach { (key, icon) ->
+                when (key) {
+                    "comment" -> {
+                        Icon(
+                            painter = painterResource(icon),
+                            contentDescription = "댓글창으로 이동하기",
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .clickable {
+                                    navController.navigate(SecomiScreens.HomeDetailScreen.name + "/$feedNo") {
+                                        launchSingleTop
+                                        popUpTo(currentScreen)
+                                    }
+                                },
+                            tint = CardIconsColor
                         )
-                        if (index != hashtagList.lastIndex)
-                            Spacer(modifier = Modifier.width(5.dp))
+                    }
+                    "more" -> {
+                        Icon(
+                            painter = painterResource(icon),
+                            contentDescription = "설정창 열기",
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .clickable {
+
+                                },
+                            tint = CardIconsColor
+                        )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CardContent(
+    contentText: String,
+    hashtagList: List<String>?
+) {
+    Column(
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text(
+            text = contentText,
+            modifier = Modifier.padding(
+                start = 12.dp,
+                end = 10.dp,
+                top = 7.dp
+            ),
+            style = MaterialTheme.typography.body2,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        if (!hashtagList.isNullOrEmpty())
+            Row(Modifier.padding(start = 12.dp, end = 10.dp, top = 4.dp)) {
+                hashtagList.forEachIndexed { index, tag ->
+                    Text(
+                        text = "#$tag",
+                        style = TextStyle(
+                            fontSize = 12.sp,
+                            color = TagColor,
+                            textAlign = TextAlign.Justify
+                        )
+                    )
+                    if (index != hashtagList.lastIndex)
+                        Spacer(modifier = Modifier.width(5.dp))
+                }
+            }
+    }
+}
+
+@OptIn(ExperimentalPagerApi::class)
+@Composable
+private fun CardImageRow(
+    imageList: List<String>
+) {
+    val pagerState = rememberPagerState()
+
+    HorizontalPager(
+        count = imageList.size,
+        state = pagerState,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) { page ->
+        Surface(
+            Modifier.fillMaxSize()
+        ) {
+            Image(
+                painter = rememberImagePainter("${Constants.BASE_IMAGE_URL}${imageList[page]}"),
+                contentDescription = "HomeFeed",
+                contentScale = ContentScale.FillBounds
+            )
         }
     }
 }

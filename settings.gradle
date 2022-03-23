@@ -23,5 +23,5 @@ dependencyResolutionManagement {
 }
 
 
-rootProject.name = "sdm_eco_mileage"
+rootProject.name = "sdm.eco.mileage"
 include ':app'

@@ -1,11 +1,37 @@
 package com.sdm.ecomileage.data
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavController
+import com.sdm.ecomileage.R
+import com.sdm.ecomileage.navigation.SecomiScreens
+import com.sdm.ecomileage.ui.theme.LikeColor
+
 data class SampleHomeRow(val image: String, val name: String)
 data class SampleHomeColumn(val image: String, val name: String, val data: Int, val content: String)
 data class SampleHomeDetailComment(val image: String, val name: String, val text: String)
 data class SampleHomeAdd(val imageList: List<String>, val content: String, val tag: String)
 data class SampleEducation(val image: String, val name: String, val data: Int, val content: String)
-
+data class SampleCard(
+    val currentScreen: String,
+    val contentImage: String = "",
+    val profileImage: String = "",
+    val profileName: String = "세코미",
+    val reactionIcon: List<Int>,
+    val reactionData: Int,
+    val likeYN: Boolean,
+    val onClickReaction: (Boolean) -> Unit,
+    val reactionTint: Color,
+    val commentIcon: Painter,
+    val needMoreIcon: Boolean,
+    val moreIcon: Painter?,
+    val contentText: String = " ",
+    val hashtagList: List<String>?,
+    val navController: NavController,
+    val destinationScreen: String,
+    val feedNo: Int
+)
 
 val HomeTopScrollRowViewData = listOf<SampleHomeRow>(
     SampleHomeRow(
@@ -192,4 +218,10 @@ val EventCurrentSampleData = listOf(
     "https://cdn.pixabay.com/photo/2015/11/16/16/28/bird-1045954_960_720.jpg",
     "https://cdn.pixabay.com/photo/2015/07/28/22/11/wheat-865152_960_720.jpg",
     "https://cdn.pixabay.com/photo/2020/07/09/03/41/duck-5385741_960_720.jpg"
+)
+
+val CardSampleImage = listOf(
+    "https://pbs.twimg.com/profile_images/1374979417915547648/vKspl9Et_400x400.jpg",
+    "https://us.123rf.com/450wm/yod67/yod671603/yod67160300036/55619539-흰색-배경에-고양이-얼굴-디자인의-벡터-이미지입니다-.jpg?ver=6",
+    "https://ww.namu.la/s/4d74824f000826e6e0339e4f8984314ed2bc04a135255dc7b2332e2ca451705c0928eb21fa7724cb072f5c182dfe5bd6bcbce1602aa55656f706b4d5555ac7e619f8a092f5ebbb74d020f6472b6c06be"
 )

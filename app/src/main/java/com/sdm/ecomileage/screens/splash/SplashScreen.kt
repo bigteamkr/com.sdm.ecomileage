@@ -31,14 +31,11 @@ import com.sdm.ecomileage.ui.theme.SplashTopBarColor
 import com.google.accompanist.systemuicontroller.SystemUiController
 import kotlinx.coroutines.delay
 
-@Preview
 @Composable
 fun SplashScreen(
     navController: NavController,
     systemUiController: SystemUiController
 ) {
-    //Todo : Image 바깥 쪽 패딩 정리
-
     SideEffect {
         systemUiController.setStatusBarColor(
             color = SplashTopBarColor
@@ -66,6 +63,7 @@ fun SplashScreen(
     }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
         content = {
             Column(
                 modifier = Modifier

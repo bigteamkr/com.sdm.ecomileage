@@ -8,20 +8,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sdm.ecomileage.screens.education.EducationScreen
 import com.sdm.ecomileage.screens.event.EventScreen
 import com.sdm.ecomileage.screens.findingAccount.FindingAccountScreen
 import com.sdm.ecomileage.screens.home.HomeScreen
 import com.sdm.ecomileage.screens.homeAdd.HomeAddScreen
 import com.sdm.ecomileage.screens.homeDetail.HomeDetailScreen
-import com.sdm.ecomileage.screens.login.LoginScreen
+import com.sdm.ecomileage.screens.loginRegister.LoginScreen
 import com.sdm.ecomileage.screens.myPage.MyPageScreen
+import com.sdm.ecomileage.screens.notice.NoticeScreen
 import com.sdm.ecomileage.screens.ranking.RankingScreen
-import com.sdm.ecomileage.screens.register.RegisterScreen
 import com.sdm.ecomileage.screens.search.SearchScreen
 import com.sdm.ecomileage.screens.settings.SettingsScreen
 import com.sdm.ecomileage.screens.splash.SplashScreen
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
@@ -39,15 +39,11 @@ fun SdmNavigation() {
         composable(SecomiScreens.LoginScreen.name) {
             LoginScreen(navController, systemUiController)
         }
-        composable(SecomiScreens.RegisterScreen.name) {
-//            RegisterScreen(navController, systemUiController)
-            RegisterScreen()
-        }
+
         composable(SecomiScreens.FindingAccountScreen.name) {
 //            FindingAccountScreen(navController, systemUiController)
             FindingAccountScreen()
         }
-
 
         composable(SecomiScreens.HomeScreen.name) {
             HomeScreen(navController, systemUiController)
@@ -80,12 +76,9 @@ fun SdmNavigation() {
             MyPageScreen(navController, systemUiController)
         }
 
-
         composable(SecomiScreens.RankingScreen.name) {
-//            RankingScreen(navController, systemUiController)
-            RankingScreen()
+            RankingScreen(navController, systemUiController)
         }
-
 
         composable(SecomiScreens.SearchScreen.name) {
             SearchScreen(navController, systemUiController)
@@ -94,6 +87,9 @@ fun SdmNavigation() {
             SettingsScreen(navController, systemUiController)
         }
 
+        composable(SecomiScreens.NoticeScreen.name) {
+            NoticeScreen(navController, systemUiController)
+        }
 
     }
 }

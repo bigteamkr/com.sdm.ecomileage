@@ -58,7 +58,7 @@ private fun EventScaffold(navController: NavController) {
         floatingActionButtonPosition = FabPosition.Center
     ) {
 
-        Column() {
+        Column {
             TabRow(
                 selectedTabIndex = pagerState.currentPage,
                 indicator = { tabPositions ->
@@ -126,7 +126,7 @@ private fun EventAttendScaffold(navController: NavController) {
 
 @Composable
 private fun QuizChallengeScaffold(navController: NavController) {
-    Scaffold() {
+    Scaffold {
         Column(
             modifier = Modifier
                 .fillMaxSize()

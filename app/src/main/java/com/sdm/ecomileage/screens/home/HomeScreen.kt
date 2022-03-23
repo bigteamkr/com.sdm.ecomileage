@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.*
 import com.sdm.ecomileage.data.DataOrException
@@ -30,7 +31,6 @@ import com.sdm.ecomileage.ui.theme.LikeColor
 import com.sdm.ecomileage.ui.theme.StatusBarGreenColor
 import com.sdm.ecomileage.ui.theme.TopBarColor
 import com.sdm.ecomileage.utils.Constants
-import com.google.accompanist.systemuicontroller.SystemUiController
 import kotlinx.coroutines.launch
 
 @Composable
@@ -64,6 +64,10 @@ private fun HomeScaffold(
     homeViewModel: HomeViewModel,
     homeInfoResponse: DataOrException<HomeInfoResponse, Boolean, Exception>
 ) {
+    var pushIcon by remember {
+        mutableStateOf(R.drawable.ic_push_off)
+    }
+
     Scaffold(
         topBar = {
             SecomiTopAppBar(
@@ -71,11 +75,10 @@ private fun HomeScaffold(
                 navController = navController,
                 currentScreen = SecomiScreens.HomeScreen.name,
                 backgroundColor = TopBarColor,
-                actionIconsList = listOf(
-                    painterResource(id = R.drawable.ic_search),
-                    // Todo: Ranking 왼쪽 두꺼운거 이미지 처리
-                    painterResource(id = R.drawable.ic_ranking),
-                    painterResource(id = R.drawable.ic_push_on),
+                actionIconsList = mapOf(
+                    "Search" to painterResource(id = R.drawable.ic_search),
+                    "Ranking" to painterResource(id = R.drawable.ic_ranking),
+                    "Push" to painterResource(id = pushIcon)
                 ),
             )
         },
@@ -112,31 +115,33 @@ private fun HomeMainContent(
         modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 5.dp)
     ) {
         itemsIndexed(postListData) { index, data ->
+            //Todo : HomeInfo CardContent
             CardContent(
-                currentScreen = SecomiScreens.HomeScreen.name,
-                contentImage = "${Constants.BASE_IMAGE_URL}${data.photo}",
-                profileImage = "${Constants.BASE_IMAGE_URL}${data.profileimg}",
+                contentImageList = data.imageList,
+                contentText = data.feedcontent,
+                profileImage = data.profileimg,
                 profileName = data.userName,
                 reactionIcon = listOf(
                     R.drawable.ic_like_off,
                     R.drawable.ic_like_on
                 ),
                 reactionData = data.likeCount,
+                reactionTint = LikeColor,
                 likeYN = data.likeyn,
-                onClickReaction = {
+                onReactionClick = {
                     scope.launch {
                         homeViewModel.postFeedLike(data.feedsno, it)
                     }
                 },
-                reactionTint = LikeColor,
-                commentIcon = painterResource(id = R.drawable.ic_comment),
-                needMoreIcon = true,
-                moreIcon = painterResource(id = R.drawable.ic_more),
-                contentText = data.feedcontent,
+                otherIcons = mapOf(
+                    "comment" to R.drawable.ic_comment,
+                    "more" to R.drawable.ic_more
+                ),
                 hashtagList = data.hashtags,
                 navController = navController,
-                destinationScreen = SecomiScreens.HomeDetailScreen.name,
-                feedNo = data.feedsno
+                feedNo = data.feedsno,
+                currentScreen = SecomiScreens.HomeDetailScreen.name,
+                destinationScreen = null
             )
             if (index == postListData.lastIndex)
                 Spacer(modifier = Modifier.height(70.dp))

@@ -13,5 +13,6 @@ enum class SecomiScreens {
     EventScreen,
     MyPageScreen,
     RankingScreen,
-    SettingsScreen
+    SettingsScreen,
+    NoticeScreen
 }

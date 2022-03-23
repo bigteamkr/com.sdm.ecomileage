@@ -9,14 +9,13 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -25,26 +24,27 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.ui.theme.*
-import com.google.accompanist.systemuicontroller.SystemUiController
 
 @Composable
 fun SearchScreen(navController: NavController, systemUiController: SystemUiController) {
-    systemUiController.setStatusBarColor(Color.White)
-
+    SideEffect {
+        systemUiController.setStatusBarColor(Color.White)
+    }
 
     SearchScaffold()
 }
 
 @Composable
 private fun SearchScaffold() {
-    val searchElement = remember {
+    var searchData by remember {
         mutableStateOf("")
     }
 
-    val isFocusOnSearch = remember {
-        mutableStateOf(true)
+    var isFocusOnSearch by remember {
+        mutableStateOf(false)
     }
 
     val selectedZone = remember {
@@ -58,11 +58,19 @@ private fun SearchScaffold() {
 
     val sampleHistory = listOf("장바구니", "나무", "화초키우기", "분리수거", "라벨분리법")
 
+
     Scaffold(
-        topBar = { SearchScreenTopBar() }
+        topBar = {
+            SearchScreenTopBar(
+                valueState = searchData,
+                valueHoist = { searchData = it }
+            ) {
+
+            }
+        }
     ) {
         Column {
-            if (isFocusOnSearch.value) {
+            if (isFocusOnSearch) {
                 SearchHistoryColumn(sampleHistory)
             }
 
@@ -73,6 +81,7 @@ private fun SearchScaffold() {
                 onSelectZone = { selectedZone.value = it },
                 onSelectFilter = { selectedFilter.value = it }
             )
+
 
         }
     }
@@ -127,7 +136,7 @@ private fun SearchFilterRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row() {
+            Row {
                 Text(
                     text = "동네별",
                     modifier = Modifier.clickable {
@@ -190,11 +199,14 @@ private fun SearchFilterRow(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun SearchScreenTopBar() {
-    val searchData = remember {
-        mutableStateOf("")
-    }
+private fun SearchScreenTopBar(
+    valueState: String,
+    valueHoist: (String) -> Unit,
+    onAction: () -> Unit
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     TopAppBar(
         modifier = Modifier.padding(5.dp),
@@ -204,9 +216,11 @@ private fun SearchScreenTopBar() {
         SearchInputField(
             fontSize = 18.sp,
             placeholderText = "검색",
-            valueState = searchData,
+            valueState = valueState,
+            valueHoist = { valueHoist(it) },
             onAction = KeyboardActions(onDone = {
-
+                keyboardController?.hide()
+                onAction()
             })
         )
     }
@@ -216,7 +230,8 @@ private fun SearchScreenTopBar() {
 @Composable
 private fun SearchInputField(
     modifier: Modifier = Modifier,
-    valueState: MutableState<String>,
+    valueState: String,
+    valueHoist: (String) -> Unit,
     fontSize: TextUnit,
     placeholderText: String,
     isSingleLine: Boolean = true,
@@ -238,9 +253,9 @@ private fun SearchInputField(
         elevation = 0.dp,
     ) {
         BasicTextField(
-            value = valueState.value,
+            value = valueState,
             onValueChange = {
-                valueState.value = it
+                valueHoist(it)
             },
             modifier = Modifier.padding(start = 15.dp, top = 5.dp, bottom = 8.dp, end = 15.dp),
             singleLine = isSingleLine,
@@ -260,10 +275,10 @@ private fun SearchInputField(
                     modifier = Modifier.weight(1f),
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    if (valueState.value.isEmpty())
+                    if (valueState.isEmpty())
                         Text(
                             text = placeholderText,
-                            modifier = Modifier.padding(start = 30.dp),
+                            modifier = Modifier.padding(start = 30.dp, top = 1.dp),
                             style = LocalTextStyle.current.copy(
                                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
                                 fontSize = fontSize
@@ -274,12 +289,15 @@ private fun SearchInputField(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_search),
-                            contentDescription = "",
+                            contentDescription = "검색",
                             tint = SearchIconColor
                         )
 
-                        Spacer(modifier = Modifier.width(5.dp))
-                        innerTextField()
+                        Column(
+                            modifier = Modifier.padding(start = 5.dp, top = 2.dp)
+                        ) {
+                            innerTextField()
+                        }
                     }
                 }
             }

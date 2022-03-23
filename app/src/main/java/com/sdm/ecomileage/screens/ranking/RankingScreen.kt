@@ -19,13 +19,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R.*
 import com.sdm.ecomileage.ui.theme.RankingPeriodColor
 import com.sdm.ecomileage.ui.theme.RankingTitleColor
 
 @Preview
 @Composable
-fun RankingScreen(/* todo::navController: NavController, systemUiController: SystemUiController*/) {
+fun RankingScreen(navController: NavController, systemUiController: SystemUiController) {
     Column(
         modifier = Modifier
             .background(Color.White)
@@ -75,7 +77,7 @@ fun RankingChangeButton(){
     val isSchool = remember{
         mutableStateOf(true)
     }
-    Column() {
+    Column {
         if(isSchool.value) {
             Image(
                 painter = painterResource(id = drawable.ic_ranking_school),
@@ -106,14 +108,14 @@ fun FirstRankImage(){
 
 @Composable
 fun TopRankingCard(){
-    Column() {
+    Column {
         Card(shape = RoundedCornerShape(8.dp),
             modifier = Modifier
                 .width(350.dp)
                 .height(60.dp)) {
             Column(verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally) {
-                Column() {
+                Column {
                     Text(text = "연북중학교", color = Color.Black)
                 }
                 Column(modifier = Modifier.padding(top = 5.dp)) {
@@ -126,13 +128,13 @@ fun TopRankingCard(){
 
 @Composable
 fun RankingCard(){
-    Column() {
+    Column {
         Card(shape = RoundedCornerShape(8.dp),
             modifier = Modifier
                 .width(350.dp)
                 .height(420.dp)) {
-            Column() {
-                Column() {
+            Column {
+                Column {
                     Row(modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween){
@@ -150,7 +152,7 @@ fun RankingCard(){
                     }
                 }
 
-                Column() {
+                Column {
                     Row(modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween){

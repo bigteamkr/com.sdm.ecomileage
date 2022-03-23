@@ -30,6 +30,7 @@ val LeavesColor = Color(0xFFADFF9D)
 val LikeColor = Color(0xFFF97884)
 val PointColor = Color(0xFF4EDE99)
 val TagColor = Color(0xFF0096EB)
+val CardIconsColor = Color(0xFFC6C6C6)
 
 // Home Detail Color
 val CommentBackgroundColor = Color(0xFFE7EEF9)
@@ -44,13 +45,15 @@ val PlaceholderColor = Color(0xFF9F9F9F)
 val ButtonColor = Color(0xFF3FDB74)
 
 
-// Login Button Color
+// Login Register Color
 val LoginEmailInputColor = Color(0xFF006F33)
 val LoginButtonColor = Color(0xFF67DF84)
 val LoginLabelColor = Color(0xFFBCBCBC)
 val LoginGreyTextColor = Color(0xFF9E9E9E)
 val LoginTextFieldFocusedColor = Color(0xFF00D749)
 val BorderColor = Color(0xFF717171)
+val ProfileDescriptionColor = Color(0xFF757575)
+val ProfileIconColor = Color(0xFF04A964)
 
 // Finding Account Color
 val FindingAccountErrorColor = Color(0xFFE56857)

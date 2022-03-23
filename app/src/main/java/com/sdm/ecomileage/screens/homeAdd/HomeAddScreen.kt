@@ -556,7 +556,7 @@ private fun HomeAddedImagedRow(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row() {
+        Row {
             HorizontalPager(
                 count = imageList.size,
                 state = pagerState,
@@ -707,7 +707,7 @@ fun AddImageIcon(
             .size(110.dp)
             .clickable {
                 launcher.launch("image/*")
-                imageUris.forEach() { uri ->
+                imageUris.forEach { uri ->
                     if (Build.VERSION.SDK_INT < 28) {
                         bitmapList.add(
                             MediaStore.Images.Media.getBitmap(

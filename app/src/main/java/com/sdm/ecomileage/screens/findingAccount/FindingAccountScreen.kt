@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.sdm.ecomileage.screens.register.RegisterTextField
 import com.sdm.ecomileage.ui.theme.FindingAccountErrorColor
 import com.sdm.ecomileage.ui.theme.LoginButtonColor
 
@@ -30,7 +29,6 @@ fun FindingAccountScreen(/* todo::navController: NavController, systemUiControll
             FindingAccountErrorMessage()
         }
         Column {
-            RegisterTextField(Modifier, "성함", KeyboardOptions(keyboardType = KeyboardType.Email))
             PhoneNumberTextField()
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally,
@@ -68,7 +66,7 @@ fun PhoneNumberTextField() {
 
 @Composable
 fun FindAccountButton() {
-    Column() {
+    Column {
         Button(
             modifier = Modifier.width(350.dp),
             onClick = { },
