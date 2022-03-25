@@ -31,6 +31,7 @@ val LikeColor = Color(0xFFF97884)
 val PointColor = Color(0xFF4EDE99)
 val TagColor = Color(0xFF0096EB)
 val CardIconsColor = Color(0xFFC6C6C6)
+val IndicatorBlackTransparentColor = Color(0x80000000)
 
 // Home Detail Color
 val CommentBackgroundColor = Color(0xFFE7EEF9)

@@ -164,7 +164,7 @@ fun SecomiTopAppBar(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         actionIconsList?.forEach { (key, painter) ->
                             when (key) {
-                                "Search" -> {
+                                "search" -> {
                                     Surface(
                                         shape = CircleShape,
                                         modifier = Modifier
@@ -185,7 +185,7 @@ fun SecomiTopAppBar(
                                         )
                                     }
                                 }
-                                "Ranking" -> {
+                                "ranking" -> {
                                     Surface(
                                         shape = CircleShape,
                                         modifier = Modifier
@@ -207,7 +207,7 @@ fun SecomiTopAppBar(
                                         )
                                     }
                                 }
-                                "Push" -> {
+                                "push" -> {
                                     Surface(
                                         shape = CircleShape,
                                         modifier = Modifier
@@ -326,6 +326,7 @@ fun CustomIconText(
 fun ProfileName(
     name: String?,
     modifier: Modifier = Modifier,
+    fontSize: TextUnit = TextUnit.Unspecified,
     textAlign: TextAlign = TextAlign.Center,
     fontStyle: TextStyle,
     fontWeight: FontWeight = FontWeight.Normal,
@@ -334,6 +335,7 @@ fun ProfileName(
         text = name ?: "세코미",
         modifier = modifier
             .padding(top = 2.dp),
+        fontSize = fontSize,
         style = fontStyle,
         fontWeight = fontWeight,
         textAlign = textAlign,
@@ -389,7 +391,7 @@ fun CardContent(
             .padding(5.dp)
             .padding(start = 5.dp, end = 5.dp)
             .fillMaxWidth()
-            .height(400.dp)
+            .height(460.dp)
             .clickable {
                 if (destinationScreen != null) navController.navigate(destinationScreen) {
                     launchSingleTop
@@ -404,7 +406,7 @@ fun CardContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.75f)
+                        .fillMaxHeight(0.77f)
                 ) {
                     CardImageRow(contentImageList)
                 }
@@ -455,13 +457,14 @@ private fun CardWriterInformation(
             ProfileImage(
                 image = "${Constants.BASE_IMAGE_URL}$profileImage",
                 modifier = Modifier
-                    .size(30.dp)
+                    .size(35.dp)
                     .padding(start = 5.dp)
             )
             ProfileName(
                 name = profileName,
-                modifier = Modifier.padding(start = 5.dp, top = 2.dp, bottom = 5.dp),
-                fontStyle = MaterialTheme.typography.subtitle2,
+                fontSize = 15.sp,
+                modifier = Modifier.padding(start = 8.dp, top = 4.dp, bottom = 5.dp),
+                fontStyle = MaterialTheme.typography.body2,
                 fontWeight = FontWeight.Normal,
             )
         }
@@ -519,6 +522,7 @@ private fun CardContent(
     hashtagList: List<String>?
 ) {
     Column(
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start
     ) {
         Text(
@@ -529,17 +533,18 @@ private fun CardContent(
                 top = 7.dp
             ),
             style = MaterialTheme.typography.body2,
+            fontSize = 14.sp,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
 
         if (!hashtagList.isNullOrEmpty())
-            Row(Modifier.padding(start = 12.dp, end = 10.dp, top = 4.dp)) {
+            Row(Modifier.padding(start = 12.dp, end = 10.dp, top = 7.dp)) {
                 hashtagList.forEachIndexed { index, tag ->
                     Text(
                         text = "#$tag",
                         style = TextStyle(
-                            fontSize = 12.sp,
+                            fontSize = 14.sp,
                             color = TagColor,
                             textAlign = TextAlign.Justify
                         )
@@ -557,21 +562,39 @@ private fun CardImageRow(
     imageList: List<String>
 ) {
     val pagerState = rememberPagerState()
+    Box(
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        HorizontalPager(
+            count = imageList.size,
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+        ) { page ->
+            Surface(
+                Modifier.fillMaxSize()
+            ) {
+                Image(
+                    painter = rememberImagePainter("${Constants.BASE_IMAGE_URL}${imageList[page]}"),
+                    contentDescription = "HomeFeed",
+                    contentScale = ContentScale.FillBounds
+                )
+            }
+        }
 
-    HorizontalPager(
-        count = imageList.size,
-        state = pagerState,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) { page ->
         Surface(
-            Modifier.fillMaxSize()
+            modifier = Modifier
+                .padding(2.dp)
+                .padding(bottom = 10.dp),
+            shape = RoundedCornerShape(50),
+            color = IndicatorBlackTransparentColor
         ) {
-            Image(
-                painter = rememberImagePainter("${Constants.BASE_IMAGE_URL}${imageList[page]}"),
-                contentDescription = "HomeFeed",
-                contentScale = ContentScale.FillBounds
+            Text(
+                text = "${pagerState.currentPage + 1}/${imageList.size}",
+                modifier = Modifier.padding(start = 17.dp, end = 17.dp, top = 7.dp, bottom = 7.dp),
+                color = Color.White,
+                style = MaterialTheme.typography.caption
             )
         }
     }

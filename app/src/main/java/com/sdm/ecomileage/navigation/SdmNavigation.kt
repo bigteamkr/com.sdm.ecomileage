@@ -31,7 +31,7 @@ fun SdmNavigation() {
 
 
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = SecomiScreens.SplashScreen.name) {
+    NavHost(navController = navController, startDestination = SecomiScreens.LoginScreen.name) {
         composable(SecomiScreens.SplashScreen.name) {
             SplashScreen(navController, systemUiController)
         }

@@ -300,7 +300,6 @@ private fun HomeDetailBottomCommentBar(
                 valueState = comment,
                 fontSize = 13.sp,
                 placeholderText = "댓글을 입력하세요",
-                enabled = true,
                 isSingleLine = true,
                 onAction = KeyboardActions(onDone = {
                     if (comment.value != "") submitComment(comment.value)
@@ -336,7 +335,6 @@ fun InputField(
     valueState: MutableState<String>,
     fontSize: TextUnit,
     placeholderText: String,
-    enabled: Boolean,
     isSingleLine: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Done,

@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -23,49 +24,63 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
+import com.sdm.ecomileage.components.CardContent
+import com.sdm.ecomileage.data.DataOrException
+import com.sdm.ecomileage.model.search.response.Feed
+import com.sdm.ecomileage.model.search.response.Result
+import com.sdm.ecomileage.model.search.response.SearchFeedResponse
+import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
+import kotlinx.coroutines.launch
 
 @Composable
-fun SearchScreen(navController: NavController, systemUiController: SystemUiController) {
+fun SearchScreen(
+    navController: NavController,
+    systemUiController: SystemUiController,
+    searchViewModel: SearchViewModel = hiltViewModel()
+) {
     SideEffect {
         systemUiController.setStatusBarColor(Color.White)
     }
 
-    SearchScaffold()
+    SearchScaffold(navController, searchViewModel)
 }
 
 @Composable
-private fun SearchScaffold() {
-    var searchData by remember {
-        mutableStateOf("")
-    }
+private fun SearchScaffold(
+    navController: NavController,
+    searchViewModel: SearchViewModel = hiltViewModel()
+) {
 
     var isFocusOnSearch by remember {
         mutableStateOf(false)
     }
+    val focusRequester = remember { FocusRequester() }
 
-    val selectedZone = remember {
-        mutableStateOf("")
-    }
-    val selectedFilter = remember {
-        mutableStateOf("")
-    }
-
-    val filterFontSize = 15.sp
 
     val sampleHistory = listOf("장바구니", "나무", "화초키우기", "분리수거", "라벨분리법")
 
+    val scope = rememberCoroutineScope()
+    var searchedFeedResponse: DataOrException<SearchFeedResponse, Boolean, Exception> =
+        DataOrException(loading = false)
+
+    var searchedFeedData: List<Feed>? = searchedFeedResponse.data?.result?.feedList
 
     Scaffold(
         topBar = {
             SearchScreenTopBar(
-                valueState = searchData,
-                valueHoist = { searchData = it }
+                valueState = searchViewModel.searchText,
+                valueHoist = { searchViewModel.onSearchTextChanged(it) }
             ) {
-
+                scope.launch {
+                    searchViewModel.getSearchFeedInfo().let {
+                        searchedFeedResponse = it
+                    }
+                }
             }
         }
     ) {
@@ -75,12 +90,47 @@ private fun SearchScaffold() {
             }
 
             SearchFilterRow(
-                filterFontSize,
-                selectedZone,
-                selectedFilter,
-                onSelectZone = { selectedZone.value = it },
-                onSelectFilter = { selectedFilter.value = it }
+                searchViewModel.selectedZone,
+                searchViewModel.selectedFilter,
+                onSelectZone = { searchViewModel.onSelectedZone(it) },
+                onSelectFilter = { searchViewModel.onSelectedFilter(it) }
             )
+
+
+            //Todo : Search API 요소가 다름
+//            LazyColumn {
+//                items(searchedFeedData) { data ->
+//                    CardContent(
+//                        contentImageList = listOf(data.photo),
+//                        contentText = data.feedcontent,
+//                        profileImage = data.profileimg,
+//                        profileName = data.userName,
+//                        reactionIcon = listOf(
+//                            R.drawable.ic_like_off,
+//                            R.drawable.ic_like_on
+//                        ),
+//                        reactionData = data.likeCount,
+//                        reactionTint = LikeColor,
+//                        likeYN = data,
+//                        onReactionClick = {
+//                            scope.launch {
+//                                homeViewModel.postFeedLike(data.feedsno, it)
+//                            }
+//                        },
+//                        otherIcons = mapOf(
+//                            "comment" to R.drawable.ic_comment,
+//                            "more" to R.drawable.ic_more
+//                        ),
+//                        hashtagList = data.hashtags,
+//                        navController = navController,
+//                        feedNo = data.feedsno,
+//                        currentScreen = SecomiScreens.HomeDetailScreen.name,
+//                        destinationScreen = null
+//                    )
+//                    if (index == postListData.lastIndex)
+//                        Spacer(modifier = Modifier.height(70.dp))
+//                }
+//            }
 
 
         }
@@ -120,12 +170,13 @@ private fun SearchHistoryColumn(sampleHistory: List<String>) {
 
 @Composable
 private fun SearchFilterRow(
-    fontSize: TextUnit,
-    selectedZone: MutableState<String>,
-    selectedFilter: MutableState<String>,
+    selectedZone: String,
+    selectedFilter: String,
     onSelectZone: (String) -> Unit,
     onSelectFilter: (String) -> Unit
 ) {
+    val filterFontSize = 15.sp
+
     Column(
         modifier = Modifier
             .padding(5.dp)
@@ -143,8 +194,8 @@ private fun SearchFilterRow(
                         onSelectZone("동네별")
                     },
                     style = TextStyle(
-                        fontSize = fontSize,
-                        color = if (selectedZone.value == "동네별") TagColor else PlaceholderColor
+                        fontSize = filterFontSize,
+                        color = if (selectedZone == "동네별") TagColor else PlaceholderColor
                     )
                 )
                 Spacer(modifier = Modifier.width(15.dp))
@@ -154,8 +205,8 @@ private fun SearchFilterRow(
                         onSelectZone("학교별")
                     },
                     style = TextStyle(
-                        fontSize = fontSize,
-                        color = if (selectedZone.value == "학교별") TagColor else PlaceholderColor
+                        fontSize = filterFontSize,
+                        color = if (selectedZone == "학교별") TagColor else PlaceholderColor
                     )
                 )
             }
@@ -168,8 +219,8 @@ private fun SearchFilterRow(
                         onSelectFilter("인기")
                     },
                     style = TextStyle(
-                        fontSize = fontSize,
-                        color = if (selectedFilter.value == "인기") indicatorSelectedColor else PlaceholderColor
+                        fontSize = filterFontSize,
+                        color = if (selectedFilter == "인기") indicatorSelectedColor else PlaceholderColor
                     )
                 )
                 Spacer(modifier = Modifier.width(15.dp))
@@ -179,8 +230,8 @@ private fun SearchFilterRow(
                         onSelectFilter("사용자")
                     },
                     style = TextStyle(
-                        fontSize = fontSize,
-                        color = if (selectedFilter.value == "사용자") indicatorSelectedColor else PlaceholderColor
+                        fontSize = filterFontSize,
+                        color = if (selectedFilter == "사용자") indicatorSelectedColor else PlaceholderColor
                     )
                 )
                 Spacer(modifier = Modifier.width(15.dp))
@@ -190,8 +241,8 @@ private fun SearchFilterRow(
                         onSelectFilter("태그")
                     },
                     style = TextStyle(
-                        fontSize = fontSize,
-                        color = if (selectedFilter.value == "태그") indicatorSelectedColor else PlaceholderColor
+                        fontSize = filterFontSize,
+                        color = if (selectedFilter == "태그") indicatorSelectedColor else PlaceholderColor
                     )
                 )
             }

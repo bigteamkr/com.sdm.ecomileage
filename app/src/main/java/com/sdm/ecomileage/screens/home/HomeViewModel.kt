@@ -16,6 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(private val repository: HomeRepository) : ViewModel() {
+    //Todo : Proto Datastore 넣으면 여기 로그인된 id 받아서 HomeRequest 보내주는 걸로 수정할 것 !!
     suspend fun getHomeInfo(): DataOrException<HomeInfoResponse, Boolean, Exception> =
         repository.getHomeInfo(
             accessToken, HomeInfoRequest(

@@ -76,9 +76,9 @@ private fun HomeScaffold(
                 currentScreen = SecomiScreens.HomeScreen.name,
                 backgroundColor = TopBarColor,
                 actionIconsList = mapOf(
-                    "Search" to painterResource(id = R.drawable.ic_search),
-                    "Ranking" to painterResource(id = R.drawable.ic_ranking),
-                    "Push" to painterResource(id = pushIcon)
+                    "search" to painterResource(id = R.drawable.ic_search),
+                    "ranking" to painterResource(id = R.drawable.ic_ranking),
+                    "push" to painterResource(id = pushIcon)
                 ),
             )
         },

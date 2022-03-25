@@ -5,6 +5,7 @@ import com.sdm.ecomileage.network.HomeInfoAPI
 import com.sdm.ecomileage.network.LoginRegisterFindAPI
 import com.sdm.ecomileage.utils.Constants
 import com.google.gson.GsonBuilder
+import com.sdm.ecomileage.network.SearchAPI
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,8 +41,6 @@ object AppModule {
 //            .create(String::class.java)
 //
 
-
-
     @Provides
     @Singleton
     fun provideCommentAPI(): CommentAPI =
@@ -63,4 +62,14 @@ object AppModule {
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
             .create(LoginRegisterFindAPI::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSearchAPI(): SearchAPI =
+        Retrofit
+            .Builder()
+            .baseUrl(Constants.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(SearchAPI::class.java)
 }
