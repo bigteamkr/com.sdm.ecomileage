@@ -1,4 +1,4 @@
-package com.sdm.ecomileage.repository.SearchRepository
+package com.sdm.ecomileage.repository.searchRepository
 
 import android.util.Log
 import com.sdm.ecomileage.data.DataOrException

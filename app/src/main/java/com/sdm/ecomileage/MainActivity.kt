@@ -1,5 +1,6 @@
 package com.sdm.ecomileage
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -26,6 +27,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+        val context: Context = this.applicationContext
+
         setContent {
             Sdm_eco_mileageTheme {
                 // A surface container using the 'background' color from the theme

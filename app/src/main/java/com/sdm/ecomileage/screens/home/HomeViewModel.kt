@@ -8,7 +8,7 @@ import com.sdm.ecomileage.model.feedLike.response.FeedLikeResponse
 import com.sdm.ecomileage.model.homeInfo.request.HomeInfo
 import com.sdm.ecomileage.model.homeInfo.request.HomeInfoRequest
 import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
-import com.sdm.ecomileage.repository.HomeRepository.HomeRepository
+import com.sdm.ecomileage.repository.homeRepository.HomeRepository
 import com.sdm.ecomileage.utils.accessToken
 import com.sdm.ecomileage.utils.uuidSample
 import dagger.hilt.android.lifecycle.HiltViewModel

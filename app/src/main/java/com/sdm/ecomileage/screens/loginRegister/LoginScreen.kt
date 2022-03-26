@@ -1,5 +1,6 @@
 package com.sdm.ecomileage.screens.loginRegister
 
+import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -32,20 +33,22 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.SystemUiController
+import com.sdm.ecomileage.MainActivity
 import com.sdm.ecomileage.R
+import com.sdm.ecomileage.SdmEcoMileageApplication
 import com.sdm.ecomileage.components.showLongToastMessage
 import com.sdm.ecomileage.components.showShortToastMessage
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.*
 import kotlinx.coroutines.launch
+import java.util.*
 
 @Composable
 fun LoginScreen(
@@ -151,7 +154,6 @@ fun RegisterScaffold(loginRegisterViewModel: LoginRegisterViewModel, navControll
     }
 }
 
-@Preview
 @Composable
 private fun ProfileSubmitPage(navController: NavController) {
     Column(
@@ -871,13 +873,13 @@ private fun LoginScaffold(
     val focusRequester = remember { FocusRequester() }
 
     val userId = remember {
-        mutableStateOf("")
+        mutableStateOf(loginRegisterViewModel.dataStore.value?.lastId ?: "")
     }
     var isUserIdFocus by remember {
         mutableStateOf(false)
     }
     val userPassword = remember {
-        mutableStateOf("")
+        mutableStateOf(loginRegisterViewModel.dataStore.value?.lastPassword ?: "")
     }
     var isPasswordFocus by remember {
         mutableStateOf(false)
@@ -885,6 +887,12 @@ private fun LoginScaffold(
     val context = LocalContext.current
     var message by remember {
         mutableStateOf("")
+    }
+    var isSaveId by remember {
+        mutableStateOf(false)
+    }
+    var isAutoLogin by remember {
+        mutableStateOf(false)
     }
 
 
@@ -895,39 +903,10 @@ private fun LoginScaffold(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column {
-            InputTextField(
-                modifier = Modifier.padding(start = 25.dp, end = 25.dp),
-                inputEvent = {
-                    userId.value = it
-                },
-                focusState = isUserIdFocus,
-                label = "이메일",
-                isFocus = {
-                    isUserIdFocus = true
-                    isPasswordFocus = false
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Done
-                )
-            )
-            Spacer(modifier = Modifier.height(30.dp))
-            InputTextField(
-                modifier = Modifier.padding(start = 25.dp, end = 25.dp),
-                inputEvent = {
-                    userPassword.value = it
-                },
-                focusState = isPasswordFocus,
-                label = "비밀번호",
-                isFocus = {
-                    isUserIdFocus = false
-                    isPasswordFocus = true
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                )
-            )
+            InputLoginInformation(userId, isUserIdFocus, isPasswordFocus, userPassword){ idFocus, passwordFocus ->
+                isUserIdFocus = idFocus
+                isPasswordFocus = passwordFocus
+            }
         }
         Spacer(modifier = Modifier.height(10.dp))
         Box(
@@ -935,8 +914,12 @@ private fun LoginScaffold(
                 .fillMaxWidth(),
             contentAlignment = Alignment.TopStart
         ) {
-            SaveId()
-            AutoLogin()
+            SaveId(isSaveId) {
+                isSaveId = it
+            }
+            AutoLogin(isAutoLogin) {
+                isAutoLogin = it
+            }
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             LoginButton {
@@ -949,10 +932,24 @@ private fun LoginScaffold(
                             accessToken = it.data!!.data.accessToken
                             loginedUserId = userId.value
 
+                            if (isSaveId)
+                                loginRegisterViewModel.updateId(loginId = userId.value)
+                            if (isAutoLogin)
+                                loginRegisterViewModel.updateAutoLogin(
+                                    loginId = userId.value,
+                                    loginPassword = userPassword.value
+                                )
+
+                            if (loginRegisterViewModel.dataStore.value?.uuid == null){
+                                loginRegisterViewModel.updateUUID(uuid = UUID.randomUUID().toString())
+                                Log.d("LoginScreen", "LoginScaffold: UUID = ${loginRegisterViewModel.dataStore.value?.uuid}")
+                            }
+
                             navController.navigate(SecomiScreens.HomeScreen.name) {
                                 popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
                             }
                         }
+
                         message = if (it.data != null) it.data!!.message else "잘못된 접근방법 입니다."
                         showShortToastMessage(context, message)
                     }
@@ -964,6 +961,48 @@ private fun LoginScaffold(
             SocialLoginList(navController, loginRegisterViewModel)
         }
     }
+}
+
+@Composable
+private fun InputLoginInformation(
+    userId: MutableState<String>,
+    isUserIdFocus: Boolean,
+    isPasswordFocus: Boolean,
+    userPassword: MutableState<String>,
+    onClickIdPasswordFocus: (Boolean, Boolean) -> Unit
+) {
+
+    InputTextField(
+        modifier = Modifier.padding(start = 25.dp, end = 25.dp),
+        inputEvent = {
+            userId.value = it
+        },
+        focusState = isUserIdFocus,
+        label = "이메일",
+        isFocus = {
+            onClickIdPasswordFocus(true, false)
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Email,
+            imeAction = ImeAction.Done
+        )
+    )
+    Spacer(modifier = Modifier.height(30.dp))
+    InputTextField(
+        modifier = Modifier.padding(start = 25.dp, end = 25.dp),
+        inputEvent = {
+            userPassword.value = it
+        },
+        focusState = isPasswordFocus,
+        label = "비밀번호",
+        isFocus = {
+            onClickIdPasswordFocus(false, true)
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Done
+        )
+    )
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -1050,18 +1089,17 @@ fun InputTextField(
 }
 
 @Composable
-fun SaveId() {
-    val checkboxState = remember {
-        mutableStateOf(false)
-    }
-
+fun SaveId(
+    isSaveId: Boolean,
+    onClick: (Boolean) -> Unit
+) {
     Row(
         Modifier.padding(start = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
-            checked = checkboxState.value,
-            onCheckedChange = { checkboxState.value = it },
+            checked = isSaveId,
+            onCheckedChange = { onClick(it) },
             colors = CheckboxDefaults.colors(
                 checkedColor = LoginButtonColor,
                 uncheckedColor = LoginLabelColor
@@ -1080,18 +1118,17 @@ fun SaveId() {
 
 
 @Composable
-fun AutoLogin() {
-    val checkboxState = remember {
-        mutableStateOf(false)
-    }
-
+fun AutoLogin(
+    isAutoLogin: Boolean,
+    onClick: (Boolean) -> Unit
+) {
     Row(
         Modifier.padding(start = 10.dp, top = 35.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
-            checked = checkboxState.value,
-            onCheckedChange = { checkboxState.value = it },
+            checked = isAutoLogin,
+            onCheckedChange = { onClick(it) },
             colors = CheckboxDefaults.colors(
                 checkedColor = LoginButtonColor,
                 uncheckedColor = LoginLabelColor

@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.homeAdd.request.HomeAddRequest
 import com.sdm.ecomileage.model.homeAdd.response.HomeAddResponse
-import com.sdm.ecomileage.repository.HomeRepository.HomeRepository
+import com.sdm.ecomileage.repository.homeRepository.HomeRepository
 import com.sdm.ecomileage.utils.accessToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject

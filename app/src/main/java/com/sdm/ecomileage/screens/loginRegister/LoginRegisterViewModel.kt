@@ -3,6 +3,8 @@ package com.sdm.ecomileage.screens.loginRegister
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.SdmEcoMileageApplication
 import com.sdm.ecomileage.data.DataOrException
@@ -14,6 +16,9 @@ import com.sdm.ecomileage.model.register.response.RegisterResponse
 import com.sdm.ecomileage.repository.loginRegisterFindRepository.LoginRegisterFindRepository
 import com.sdm.ecomileage.utils.bitmapToString
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,10 +37,11 @@ class LoginRegisterViewModel @Inject constructor(private val repository: LoginRe
             )
         )
 
-
-
-
-    private val defaultProfile = ResourcesCompat.getDrawable(SdmEcoMileageApplication.ApplicationContext().resources, R.drawable.ic_default_profile, null)
+    private val defaultProfile = ResourcesCompat.getDrawable(
+        SdmEcoMileageApplication.ApplicationContext().resources,
+        R.drawable.ic_default_profile,
+        null
+    )
 
     suspend fun postRegister(
         userName: String,
@@ -60,4 +66,26 @@ class LoginRegisterViewModel @Inject constructor(private val repository: LoginRe
                 )
             )
         )
+
+    var dataStore = repository.readProto.asLiveData()
+
+
+    suspend fun updateUUID(
+        uuid: String? = null
+    ) = viewModelScope.launch(Dispatchers.IO) {
+        repository.updateValue(uuid, null, null)
+    }
+
+    suspend fun updateId(
+        loginId: String
+    ) = viewModelScope.launch(Dispatchers.IO) {
+        repository.updateValue(null, loginId, null)
+    }
+
+    suspend fun updateAutoLogin(
+        loginId: String,
+        loginPassword: String
+    ) = viewModelScope.launch(Dispatchers.IO) {
+        repository.updateValue(null, loginId, loginPassword)
+    }
 }

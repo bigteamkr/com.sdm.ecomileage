@@ -1,4 +1,4 @@
-package com.sdm.ecomileage.repository.HomeRepository
+package com.sdm.ecomileage.repository.homeRepository
 
 import android.util.Log
 import com.sdm.ecomileage.data.DataOrException
