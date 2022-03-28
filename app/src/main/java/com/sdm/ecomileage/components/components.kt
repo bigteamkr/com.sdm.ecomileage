@@ -3,6 +3,7 @@ package com.sdm.ecomileage.components
 import android.content.Context
 import android.os.Build
 import android.widget.Toast
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -10,14 +11,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -25,11 +27,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -282,14 +289,12 @@ fun CustomIconText(
     tintColor: Color,
     likeYN: Boolean,
 ) {
-    val isChecked = remember {
+    var isChecked by remember {
         mutableStateOf(likeYN)
     }
-
-    val iconResource = remember {
-        mutableStateOf(iconResourceList[0])
+    var _reactionData by remember {
+        mutableStateOf(reactionData)
     }
-
     val isReactionEnable = iconResourceList.size > 1
 
     Box(
@@ -297,22 +302,24 @@ fun CustomIconText(
         contentAlignment = Alignment.Center
     ) {
         IconToggleButton(
-            checked = isChecked.value,
+            checked = isChecked,
             onCheckedChange = {
-                onClickReaction(!likeYN)
+                isChecked = !isChecked
+                onClickReaction(isChecked)
+                _reactionData = if (isChecked) _reactionData + 1 else _reactionData - 1
             },
             modifier = Modifier.size(22.dp),
             enabled = isReactionEnable
         ) {
             Icon(
-                painter = painterResource(id = iconResource.value),
-                contentDescription = "null",
+                painter = painterResource(id = if (!isChecked) iconResourceList[0] else iconResourceList[1]),
+                contentDescription = if (isChecked) "좋아요 취소" else "좋아요",
                 tint = tintColor
             )
         }
 
         Text(
-            text = "$reactionData",
+            text = "$_reactionData",
             modifier = Modifier
                 .padding(start = 45.dp),
             style = MaterialTheme.typography.subtitle2,
@@ -401,30 +408,30 @@ fun CardContent(
         shape = RoundedCornerShape(10.dp),
         backgroundColor = Color.White
     ) {
-        Column {
-            Column() {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.77f)
-                ) {
-                    CardImageRow(contentImageList)
-                }
-                CardWriterInformation(
-                    profileImage,
-                    profileName,
-                    reactionIcon,
-                    reactionData,
-                    onReactionClick,
-                    reactionTint,
-                    likeYN,
-                    otherIcons,
-                    navController,
-                    currentScreen,
-                    feedNo
-                )
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.77f)
+            ) {
+                CardImageRow(contentImageList)
             }
-
+            CardWriterInformation(
+                profileImage,
+                profileName,
+                reactionIcon,
+                reactionData,
+                onReactionClick,
+                reactionTint,
+                likeYN,
+                otherIcons,
+                navController,
+                currentScreen,
+                feedNo
+            )
             CardContent(contentText, hashtagList)
         }
     }
@@ -452,7 +459,6 @@ private fun CardWriterInformation(
             .height(30.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-
         Row {
             ProfileImage(
                 image = "${Constants.BASE_IMAGE_URL}$profileImage",
@@ -538,7 +544,7 @@ private fun CardContent(
             overflow = TextOverflow.Ellipsis
         )
 
-        if (!hashtagList.isNullOrEmpty())
+        if (!hashtagList.isNullOrEmpty()) {
             Row(Modifier.padding(start = 12.dp, end = 10.dp, top = 7.dp)) {
                 hashtagList.forEachIndexed { index, tag ->
                     Text(
@@ -553,6 +559,7 @@ private fun CardContent(
                         Spacer(modifier = Modifier.width(5.dp))
                 }
             }
+        }
     }
 }
 
@@ -733,6 +740,182 @@ private fun RowScope.BottomBarItem(
         selectedContentColor = BottomSelectedColor,
         unselectedContentColor = BottomUnSelectedColor
     )
+}
+
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun CustomInputTextField(
+    modifier: Modifier,
+    inputEvent: (String) -> Unit,
+    focusState: Boolean,
+    color: Color = LoginLabelColor,
+    label: String,
+    isFocus: () -> Unit,
+    keyboardOptions: KeyboardOptions
+) {
+    var text by remember {
+        mutableStateOf("")
+    }
+    var labelPositionX by remember {
+        mutableStateOf(0.dp)
+    }
+    var labelPositionY by remember {
+        mutableStateOf(0.dp)
+    }
+
+    if (text.isNotEmpty()) {
+        labelPositionX = (-2).dp
+        labelPositionY = (-20).dp
+    } else {
+        labelPositionX = 0.dp
+        labelPositionY = 0.dp
+    }
+
+    val xOffsetAnimation: Dp by animateDpAsState(
+        if (!focusState) labelPositionX else (-2).dp
+    )
+    val yOffsetAnimation: Dp by animateDpAsState(
+        if (!focusState) labelPositionY else (-20).dp
+    )
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    BasicTextField(
+        value = text,
+        onValueChange = {
+            text = it
+            inputEvent(it)
+            isFocus()
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(modifier),
+        textStyle = TextStyle(
+            LoginEmailInputColor
+        ),
+        singleLine = true,
+        visualTransformation = if (label == "비밀번호" || label == "비밀번호 확인") PasswordVisualTransformation() else VisualTransformation.None,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = KeyboardActions(onDone = {
+            inputEvent(text)
+            keyboardController?.hide()
+        })
+    ) { innerTextField ->
+        Box(
+            Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.TopStart
+        ) {
+            Text(
+                text = label,
+                modifier = Modifier
+                    .padding(bottom = 5.dp)
+                    .absoluteOffset(x = xOffsetAnimation, y = yOffsetAnimation),
+                style = MaterialTheme.typography.caption,
+                color = color
+            )
+            Column {
+                innerTextField()
+                Divider(
+                    modifier = Modifier
+                        .padding(top = 7.dp)
+                        .fillMaxWidth(),
+                    color = if (focusState) LoginButtonColor else PlaceholderColor
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun CustomBottomSheet() {
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = BottomSheetState(BottomSheetValue.Collapsed)
+    )
+    val reportOptions =
+        listOf("음란성 게시물", "폭력적 또는 불쾌한 게시물", "스팸 게시물", "사생활 침해/개인정보 유출 게시물", "불법적인 게시물")
+    var selectedOption by remember {
+        mutableStateOf("")
+    }
+
+    BottomSheetScaffold(
+        modifier = Modifier
+            .padding(horizontal = 32.dp)
+            .fillMaxWidth()
+            .height(400.dp),
+        scaffoldState = bottomSheetScaffoldState,
+        sheetContent = {}
+    ) {
+        Column(
+            modifier = Modifier.padding(start = 20.dp, end = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Divider(
+                modifier = Modifier
+                    .width(40.dp)
+                    .padding(top = 10.dp)
+                    .background(BottomSheetDividerColor),
+                thickness = 2.dp
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(20.dp)
+                        .height(20.dp)
+                ) {}
+                Text(
+                    text = "신고하기",
+                    modifier = Modifier.padding(start = 5.dp),
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = "확인",
+                    color = BottomSheetCheckColor,
+                    textAlign = TextAlign.Center,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            reportOptions.forEach { reportOption ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    RadioButton(
+                        selected = selectedOption == reportOption,
+                        onClick = {
+                            selectedOption = reportOption
+                        },
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = LoginButtonColor
+                        )
+                    )
+                    Text(
+                        text = reportOption,
+                        modifier = Modifier
+                            .padding(start = 10.dp)
+                            .clickable {
+                                selectedOption = reportOption
+                            }
+                    )
+                }
+            }
+        }
+    }
 }
 
 fun showShortToastMessage(context: Context, message: String) {

@@ -53,6 +53,7 @@ import com.sdm.ecomileage.utils.loginedUserId
 import com.sdm.ecomileage.utils.uuidSample
 import com.google.accompanist.systemuicontroller.SystemUiController
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 @Composable
@@ -89,7 +90,6 @@ fun HomeDetailScreen(
             }
         }
     }.value
-
 
 
 
@@ -133,7 +133,6 @@ private fun HomeDetailScaffold(
     commentInfoData: DataOrException<CommentInfoResponse, Boolean, Exception>
 ) {
     val homeDetailCommentData = HomeDetailCommentData
-    val focusRequester = remember { FocusRequester() }
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -154,7 +153,6 @@ private fun HomeDetailScaffold(
                     Row(
                         modifier = Modifier
                             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
-                            .focusRequester(focusRequester = focusRequester)
                     ) {
                         //Todo : ProfileName 고치기
                         HomeDetailContent(
@@ -358,7 +356,8 @@ fun InputField(
             onValueChange = {
                 valueState.value = it
             },
-            modifier = Modifier.padding(start = 15.dp, top = 5.dp, bottom = 8.dp, end = 15.dp),
+            modifier = Modifier
+                .padding(start = 15.dp, top = 5.dp, bottom = 8.dp, end = 15.dp),
             singleLine = isSingleLine,
             cursorBrush = SolidColor(Color.Black),
             textStyle = TextStyle(

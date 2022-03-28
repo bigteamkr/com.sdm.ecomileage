@@ -24,6 +24,8 @@ val StatusBarGreenColor = Color(0xFF51C872)
 val BottomSelectedColor = Color(0xFF2DDA93)
 val BottomUnSelectedColor = Color(0xFFC4C4C4)
 val LeavesColor = Color(0xFFADFF9D)
+val BottomSheetDividerColor = Color(0xFFCCCCCC)
+val BottomSheetCheckColor = Color(0xFF9C9C9C)
 
 
 // Home Color
@@ -73,3 +75,7 @@ val SearchIconColor = Color(0xFF2DDA93)
 // Event Color
 val SelectedTabColor = Color(0xFF00A127)
 val UnSelectedTabColor = Color(0xFF616161)
+
+// MyPage Color
+val UnselectedButtonColor = Color(0xFFE8E8E8)
+val IndicationColor = Color(0xFF676767)

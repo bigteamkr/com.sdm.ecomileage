@@ -39,9 +39,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.SystemUiController
-import com.sdm.ecomileage.MainActivity
 import com.sdm.ecomileage.R
-import com.sdm.ecomileage.SdmEcoMileageApplication
+import com.sdm.ecomileage.components.CustomInputTextField
 import com.sdm.ecomileage.components.showLongToastMessage
 import com.sdm.ecomileage.components.showShortToastMessage
 import com.sdm.ecomileage.navigation.SecomiScreens
@@ -339,7 +338,7 @@ private fun RegisterPage(
                 )
             )
             Spacer(modifier = Modifier.height(25.dp))
-            InputTextField(
+            CustomInputTextField(
                 modifier = Modifier
                     .padding(start = 25.dp, end = 25.dp)
                     .focusRequester(focusRequester)
@@ -376,7 +375,7 @@ private fun RegisterPage(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(modifier = Modifier.fillMaxWidth(0.4f)) {
-                    InputTextField(
+                    CustomInputTextField(
                         modifier = Modifier
                             .padding(start = 25.dp)
                             .focusRequester(focusRequester)
@@ -413,9 +412,9 @@ private fun RegisterPage(
                     shape = RoundedCornerShape(5),
                     border = BorderStroke(1.dp, PlaceholderColor)
                 ) {
-                    InputTextField(
+                    CustomInputTextField(
                         modifier = Modifier
-                            .padding(top = 2.dp)
+                            .padding(top = 6.dp)
                             .fillMaxWidth()
                             .focusRequester(focusRequester)
                             .clickable {
@@ -447,7 +446,7 @@ private fun RegisterPage(
                 }
             }
             Spacer(modifier = Modifier.height(25.dp))
-            InputTextField(
+            CustomInputTextField(
                 modifier = Modifier
                     .padding(start = 25.dp, end = 25.dp)
                     .focusRequester(focusRequester)
@@ -476,7 +475,7 @@ private fun RegisterPage(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
             Spacer(modifier = Modifier.height(25.dp))
-            InputTextField(
+            CustomInputTextField(
                 modifier = Modifier
                     .padding(start = 25.dp, end = 25.dp)
                     .focusRequester(focusRequester)
@@ -505,7 +504,7 @@ private fun RegisterPage(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
             Spacer(modifier = Modifier.height(25.dp))
-            InputTextField(
+            CustomInputTextField(
                 modifier = Modifier
                     .padding(start = 25.dp, end = 25.dp)
                     .focusRequester(focusRequester)
@@ -558,9 +557,9 @@ private fun RegisterPage(
                     shape = RoundedCornerShape(5),
                     border = BorderStroke(1.dp, PlaceholderColor)
                 ) {
-                    InputTextField(
+                    CustomInputTextField(
                         modifier = Modifier
-                            .padding(top = 3.dp, start = 5.dp)
+                            .padding(top = 7.dp, start = 5.dp)
                             .fillMaxWidth()
                             .focusRequester(focusRequester)
                             .clickable {
@@ -630,9 +629,9 @@ private fun RegisterPage(
                     shape = RoundedCornerShape(5),
                     border = BorderStroke(1.dp, PlaceholderColor)
                 ) {
-                    InputTextField(
+                    CustomInputTextField(
                         modifier = Modifier
-                            .padding(top = 3.dp, start = 5.dp)
+                            .padding(top = 7.dp, start = 5.dp)
                             .fillMaxWidth()
                             .focusRequester(focusRequester)
                             .clickable {
@@ -972,7 +971,7 @@ private fun InputLoginInformation(
     onClickIdPasswordFocus: (Boolean, Boolean) -> Unit
 ) {
 
-    InputTextField(
+    CustomInputTextField(
         modifier = Modifier.padding(start = 25.dp, end = 25.dp),
         inputEvent = {
             userId.value = it
@@ -988,7 +987,7 @@ private fun InputLoginInformation(
         )
     )
     Spacer(modifier = Modifier.height(30.dp))
-    InputTextField(
+    CustomInputTextField(
         modifier = Modifier.padding(start = 25.dp, end = 25.dp),
         inputEvent = {
             userPassword.value = it
@@ -1003,89 +1002,6 @@ private fun InputLoginInformation(
             imeAction = ImeAction.Done
         )
     )
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun InputTextField(
-    modifier: Modifier,
-    inputEvent: (String) -> Unit,
-    focusState: Boolean,
-    color: Color = LoginLabelColor,
-    label: String,
-    isFocus: () -> Unit,
-    keyboardOptions: KeyboardOptions
-) {
-    var text by remember {
-        mutableStateOf("")
-    }
-    var labelPositionX by remember {
-        mutableStateOf(0.dp)
-    }
-    var labelPositionY by remember {
-        mutableStateOf(0.dp)
-    }
-
-    if (text.isNotEmpty()) {
-        labelPositionX = (-2).dp
-        labelPositionY = (-20).dp
-    } else {
-        labelPositionX = 0.dp
-        labelPositionY = 0.dp
-    }
-
-    val xOffsetAnimation: Dp by animateDpAsState(
-        if (!focusState) labelPositionX else (-2).dp
-    )
-    val yOffsetAnimation: Dp by animateDpAsState(
-        if (!focusState) labelPositionY else (-20).dp
-    )
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    BasicTextField(
-        value = text,
-        onValueChange = {
-            text = it
-            inputEvent(it)
-            isFocus()
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(modifier),
-        textStyle = TextStyle(
-            LoginEmailInputColor
-        ),
-        singleLine = true,
-        visualTransformation = if (label == "비밀번호" || label == "비밀번호 확인") PasswordVisualTransformation() else VisualTransformation.None,
-        keyboardOptions = keyboardOptions,
-        keyboardActions = KeyboardActions(onDone = {
-            inputEvent(text)
-            keyboardController?.hide()
-        })
-    ) { innerTextField ->
-        Box(
-            Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.TopStart
-        ) {
-            Text(
-                text = label,
-                modifier = Modifier
-                    .padding(bottom = 5.dp)
-                    .absoluteOffset(x = xOffsetAnimation, y = yOffsetAnimation),
-                style = MaterialTheme.typography.caption,
-                color = color
-            )
-            Column {
-                innerTextField()
-                Divider(
-                    modifier = Modifier
-                        .padding(top = 7.dp)
-                        .fillMaxWidth(),
-                    color = if (focusState) LoginButtonColor else PlaceholderColor
-                )
-            }
-        }
-    }
 }
 
 @Composable
