@@ -2,6 +2,7 @@ package com.sdm.ecomileage.components
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
@@ -40,6 +41,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -304,7 +307,10 @@ fun CustomIconText(
         IconToggleButton(
             checked = isChecked,
             onCheckedChange = {
+                Log.d("Home-Like", "CustomIconText: likeYN was $likeYN / isChecked was $isChecked")
                 isChecked = !isChecked
+                Log.d("Home-Like", "CustomIconText: likeYN is $likeYN / isChecked is $isChecked")
+
                 onClickReaction(isChecked)
                 _reactionData = if (isChecked) _reactionData + 1 else _reactionData - 1
             },
@@ -390,6 +396,8 @@ fun CardContent(
     hashtagList: List<String>?,
     navController: NavController,
     feedNo: Int,
+    reportVisible: Boolean,
+    reportAction: (Boolean) -> Unit,
     currentScreen: String,
     destinationScreen: String?
 ) {
@@ -398,7 +406,6 @@ fun CardContent(
             .padding(5.dp)
             .padding(start = 5.dp, end = 5.dp)
             .fillMaxWidth()
-            .height(460.dp)
             .clickable {
                 if (destinationScreen != null) navController.navigate(destinationScreen) {
                     launchSingleTop
@@ -415,7 +422,7 @@ fun CardContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.77f)
+                    .height(355.dp)
             ) {
                 CardImageRow(contentImageList)
             }
@@ -429,6 +436,8 @@ fun CardContent(
                 likeYN,
                 otherIcons,
                 navController,
+                reportVisible,
+                reportAction,
                 currentScreen,
                 feedNo
             )
@@ -448,6 +457,8 @@ private fun CardWriterInformation(
     likeYN: Boolean,
     otherIcons: Map<String, Int>,
     navController: NavController,
+    reportVisible: Boolean,
+    reportAction: (Boolean) -> Unit,
     currentScreen: String,
     feedNo: Int
 ) {
@@ -511,7 +522,7 @@ private fun CardWriterInformation(
                             modifier = Modifier
                                 .padding(start = 10.dp)
                                 .clickable {
-
+                                    reportAction(true)
                                 },
                             tint = CardIconsColor
                         )
@@ -559,7 +570,9 @@ private fun CardContent(
                         Spacer(modifier = Modifier.width(5.dp))
                 }
             }
+            Spacer(modifier = Modifier.height(20.dp))
         }
+        else Spacer(modifier = Modifier.height(20.dp))
     }
 }
 
@@ -826,94 +839,122 @@ fun CustomInputTextField(
     }
 }
 
-@Preview
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun CustomBottomSheet() {
-    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = BottomSheetState(BottomSheetValue.Collapsed)
-    )
+fun CustomReportDialog(
+    reportAction: (Boolean) -> Unit
+) {
     val reportOptions =
         listOf("음란성 게시물", "폭력적 또는 불쾌한 게시물", "스팸 게시물", "사생활 침해/개인정보 유출 게시물", "불법적인 게시물")
     var selectedOption by remember {
         mutableStateOf("")
     }
 
-    BottomSheetScaffold(
-        modifier = Modifier
-            .padding(horizontal = 32.dp)
-            .fillMaxWidth()
-            .height(400.dp),
-        scaffoldState = bottomSheetScaffoldState,
-        sheetContent = {}
+    Dialog(
+        onDismissRequest = { reportAction(false) },
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
     ) {
-        Column(
-            modifier = Modifier.padding(start = 20.dp, end = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceEvenly
+        Surface(
+            modifier = Modifier.wrapContentHeight(),
+            shape = RoundedCornerShape(5),
+            elevation = 1.dp
         ) {
-            Divider(
+            Column(
                 modifier = Modifier
-                    .width(40.dp)
-                    .padding(top = 10.dp)
-                    .background(BottomSheetDividerColor),
-                thickness = 2.dp
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(start = 17.dp, end = 17.dp)
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                Box(
-                    modifier = Modifier
-                        .width(20.dp)
-                        .height(20.dp)
-                ) {}
-                Text(
-                    text = "신고하기",
-                    modifier = Modifier.padding(start = 5.dp),
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = "확인",
-                    color = BottomSheetCheckColor,
-                    textAlign = TextAlign.Center,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            reportOptions.forEach { reportOption ->
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
+                        .fillMaxWidth()
+                        .padding(top = 10.dp)
+                        .height(50.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    RadioButton(
-                        selected = selectedOption == reportOption,
-                        onClick = {
-                            selectedOption = reportOption
-                        },
-                        colors = RadioButtonDefaults.colors(
-                            selectedColor = LoginButtonColor
-                        )
+                    Box(
+                        modifier = Modifier
+                            .width(20.dp)
+                            .height(20.dp)
+                    ) {}
+                    Text(
+                        text = "신고하기",
+                        modifier = Modifier.padding(start = 5.dp),
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        fontSize = 16.sp
                     )
                     Text(
-                        text = reportOption,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .clickable {
-                                selectedOption = reportOption
-                            }
+                        text = "확인",
+                        color = BottomSheetCheckColor,
+                        textAlign = TextAlign.Center,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
+
+                Box {
+                    reportOptions.forEachIndexed { index, reportOption ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = (index * 35).dp)
+                                .clickable {
+                                    selectedOption = reportOption
+                                },
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            RadioButton(
+                                selected = selectedOption == reportOption,
+                                onClick = {
+                                    selectedOption = reportOption
+                                },
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = LoginButtonColor
+                                )
+                            )
+                            Text(
+                                text = reportOption
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(20.dp))
             }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun reportedFeed(){
+    Card(
+        modifier = Modifier
+            .padding(5.dp)
+            .padding(start = 5.dp, end = 5.dp)
+            .fillMaxWidth()
+            .background(Color.White),
+        shape = RoundedCornerShape(10.dp),
+        backgroundColor = Color.White
+    ) {
+        Column(
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "신고 처리된 게시물입니다.",
+                modifier = Modifier.padding(top = 25.dp),
+                fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text(
+                text = "실행 취소",
+                modifier = Modifier.padding(top = 15.dp, bottom = 25.dp),
+                color = ReportedNotificationColor)
         }
     }
 }

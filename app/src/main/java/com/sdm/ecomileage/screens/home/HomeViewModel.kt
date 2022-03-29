@@ -20,8 +20,9 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
     suspend fun getHomeInfo(): DataOrException<HomeInfoResponse, Boolean, Exception> =
         repository.getHomeInfo(
             accessToken, HomeInfoRequest(
+                // Todo : Like 안바뀌는 이유 :: 아이디 안 바꿔서 멍청아 !!!!!!!!!!!!!!!!
                 HomeInfo = listOf(
-                    HomeInfo("admin@email.com")
+                    HomeInfo("IUENA@google.com")
                 )
             )
         )

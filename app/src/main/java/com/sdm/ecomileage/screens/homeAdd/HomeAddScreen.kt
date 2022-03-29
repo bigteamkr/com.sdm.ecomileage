@@ -132,7 +132,6 @@ private fun HomeAddScaffold(
     }
 
     val focusRequester = remember { FocusRequester() }
-
     val scope = rememberCoroutineScope()
 
     Scaffold(

@@ -1,5 +1,6 @@
 package com.sdm.ecomileage.screens.home
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -68,6 +69,7 @@ private fun HomeScaffold(
         mutableStateOf(R.drawable.ic_push_off)
     }
 
+
     Scaffold(
         topBar = {
             SecomiTopAppBar(
@@ -110,6 +112,9 @@ private fun HomeMainContent(
 ) {
     var scope = rememberCoroutineScope()
     val context = LocalContext.current
+    var reportVisible by remember {
+        mutableStateOf(false)
+    }
 
     LazyColumn(
         modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 5.dp)
@@ -130,7 +135,10 @@ private fun HomeMainContent(
                 likeYN = data.likeyn,
                 onReactionClick = {
                     scope.launch {
-                        homeViewModel.postFeedLike(data.feedsno, it)
+                        homeViewModel.postFeedLike(data.feedsno, it).let {
+                            Log.d("Home-Like", "HomeMainContent: ${it.data?.code}")
+                            Log.d("Home-Like", "HomeMainContent: ${it.data?.message}")
+                        }
                     }
                 },
                 otherIcons = mapOf(
@@ -140,11 +148,20 @@ private fun HomeMainContent(
                 hashtagList = data.hashtags,
                 navController = navController,
                 feedNo = data.feedsno,
+                reportVisible = reportVisible,
+                reportAction = {
+                    reportVisible = it
+                },
                 currentScreen = SecomiScreens.HomeDetailScreen.name,
                 destinationScreen = null
             )
             if (index == postListData.lastIndex)
                 Spacer(modifier = Modifier.height(70.dp))
+        }
+    }
+    if (reportVisible) {
+        CustomReportDialog() {
+            reportVisible = false
         }
     }
     Spacer(modifier = Modifier.height(56.dp))

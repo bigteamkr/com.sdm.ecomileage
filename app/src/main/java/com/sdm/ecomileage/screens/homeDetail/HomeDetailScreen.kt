@@ -16,11 +16,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -36,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.ProfileImage
 import com.sdm.ecomileage.components.ProfileName
@@ -51,9 +51,7 @@ import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.Constants
 import com.sdm.ecomileage.utils.loginedUserId
 import com.sdm.ecomileage.utils.uuidSample
-import com.google.accompanist.systemuicontroller.SystemUiController
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 @Composable
@@ -136,6 +134,12 @@ private fun HomeDetailScaffold(
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val localComment = SnapshotStateList<MainComment>()
+    mainComment.forEach {
+        localComment.add(it)
+    }
+
+
     Scaffold(
         topBar = {
             Surface(
@@ -176,6 +180,19 @@ private fun HomeDetailScaffold(
                     )
                     keyboardController?.hide()
                     commentInfoData.loading = true
+
+                    // Todo : Proto Datastore 적용하면 profileImg, userName 바꾸기
+                    localComment.add(
+                        MainComment(
+                            commentsno = 0,
+                            parentcommentsno = 0,
+                            photo = "",
+                            profileimg = "https://t1.daumcdn.net/cfile/tistory/24283C3858F778CA2E",
+                            title = comment,
+                            userId = "",
+                            userName = "아이유는뉘집아이유"
+                        )
+                    )
                 }
             }
         }
@@ -183,7 +200,7 @@ private fun HomeDetailScaffold(
         LazyColumn(
             modifier = Modifier.padding(10.dp)
         ) {
-            itemsIndexed(mainComment) { index, data ->
+            itemsIndexed(localComment) { index, data ->
                 Row {
                     HomeDetailContent(
                         image = "${Constants.BASE_IMAGE_URL}${data.profileimg}",
