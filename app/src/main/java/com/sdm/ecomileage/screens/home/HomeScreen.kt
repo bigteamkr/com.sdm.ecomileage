@@ -24,6 +24,7 @@ import com.sdm.ecomileage.components.*
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.data.HomeScrollColumnViewData
 import com.sdm.ecomileage.data.HomeTopScrollRowViewData
+import com.sdm.ecomileage.data.Report
 import com.sdm.ecomileage.model.homeInfo.response.Friend
 import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
 import com.sdm.ecomileage.model.homeInfo.response.Post
@@ -69,7 +70,6 @@ private fun HomeScaffold(
         mutableStateOf(R.drawable.ic_push_off)
     }
 
-
     Scaffold(
         topBar = {
             SecomiTopAppBar(
@@ -112,16 +112,29 @@ private fun HomeMainContent(
 ) {
     var scope = rememberCoroutineScope()
     val context = LocalContext.current
-    var reportVisible by remember {
+
+    var reportDialogVisible by remember {
         mutableStateOf(false)
     }
+
+    var reportTargetFeedNo by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+    var isCurrentFeedReporting by remember {
+        mutableStateOf(false)
+    }
+    var reportListValue: String?
+
 
     LazyColumn(
         modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 5.dp)
     ) {
         itemsIndexed(postListData) { index, data ->
             //Todo : HomeInfo CardContent
-            CardContent(
+            isCurrentFeedReporting = homeViewModel.isFeedIncludedReportingList(data.feedsno)
+
+            MainFeedCard(
                 contentImageList = data.imageList,
                 contentText = data.feedcontent,
                 profileImage = data.profileimg,
@@ -148,10 +161,28 @@ private fun HomeMainContent(
                 hashtagList = data.hashtags,
                 navController = navController,
                 feedNo = data.feedsno,
-                reportVisible = reportVisible,
-                reportAction = {
-                    reportVisible = it
+                reportDialogCallAction = {
+                    reportDialogVisible = it
+                    reportTargetFeedNo = data.feedsno
                 },
+                reportingCancelAction = {
+                    reportListValue = homeViewModel.getReportingFeedNoValueFromKey(data.feedsno)
+                    Log.d("HomeRepo", "HomeMainContent: $reportListValue")
+
+                    if (reportListValue != null){
+                        scope.launch {
+                            homeViewModel.postReport(
+                                data.feedsno,
+                                reportListValue!!,
+                                reportYN = false
+                            )
+                            Log.d("HomeRepo", "HomeMainContent: 뀽")
+                        }
+                        homeViewModel.reportingFeedNoRemove(it)
+                    }
+                },
+                isCurrentReportingFeedsNo = isCurrentFeedReporting,
+                reportYN = data.reportyn,
                 currentScreen = SecomiScreens.HomeDetailScreen.name,
                 destinationScreen = null
             )
@@ -159,10 +190,29 @@ private fun HomeMainContent(
                 Spacer(modifier = Modifier.height(70.dp))
         }
     }
-    if (reportVisible) {
-        CustomReportDialog() {
-            reportVisible = false
-        }
+
+    if (reportDialogVisible && reportTargetFeedNo != null) {
+        CustomReportDialog(
+            reportAction = {
+                homeViewModel.reportingFeedAdd(reportTargetFeedNo!!, it)
+
+                scope.launch {
+                    homeViewModel.postReport(
+                        feedsNo = reportTargetFeedNo!!,
+                        reportType = it,
+                        reportYN = true
+                    )
+                    reportTargetFeedNo = null
+                }
+
+                reportDialogVisible = false
+            },
+            dismissAction = {
+                reportDialogVisible = false
+                reportTargetFeedNo = null
+            }
+
+        )
     }
     Spacer(modifier = Modifier.height(56.dp))
 }

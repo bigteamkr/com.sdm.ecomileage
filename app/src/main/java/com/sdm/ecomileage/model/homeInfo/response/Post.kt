@@ -2,6 +2,7 @@ package com.sdm.ecomileage.model.homeInfo.response
 
 data class Post(
     val imageList: List<String>,
+    val reportyn: Boolean,
     val likeyn: Boolean,
     val profileimg: String,
     val hashtags: List<String>,

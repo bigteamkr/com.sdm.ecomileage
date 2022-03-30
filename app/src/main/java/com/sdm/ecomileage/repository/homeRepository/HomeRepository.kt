@@ -8,6 +8,8 @@ import com.sdm.ecomileage.model.homeAdd.request.HomeAddRequest
 import com.sdm.ecomileage.model.homeAdd.response.HomeAddResponse
 import com.sdm.ecomileage.model.homeInfo.request.HomeInfoRequest
 import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
+import com.sdm.ecomileage.model.report.request.ReportRequest
+import com.sdm.ecomileage.model.report.response.ReportResponse
 import com.sdm.ecomileage.network.HomeInfoAPI
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
@@ -66,6 +68,25 @@ class HomeRepository @Inject constructor(private val api: HomeInfoAPI) {
         }
 
         Log.d("HomeRepo", "postFeedLike: ${response.code}, ${response.message}")
+        return DataOrException(data = response)
+    }
+
+    suspend fun postReport(
+        token: String,
+        body: ReportRequest
+    ) : DataOrException<ReportResponse, Boolean, Exception>{
+        val response = try {
+            api.postReport(token, body)
+        } catch (e: Exception) {
+            if (e is CancellationException)
+                throw e
+            Log.d("HomeRepo", "postReport: api call in repository didn't work")
+            Log.d("HomeRepo", "postReport: exception is $e")
+
+             return DataOrException(e = e)
+        }
+
+        Log.d("HomeRepo", "postReport: ${response.code}, ${response.message}")
         return DataOrException(data = response)
     }
 }

@@ -6,6 +6,8 @@ import com.sdm.ecomileage.model.homeAdd.request.HomeAddRequest
 import com.sdm.ecomileage.model.homeAdd.response.HomeAddResponse
 import com.sdm.ecomileage.model.homeInfo.request.HomeInfoRequest
 import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
+import com.sdm.ecomileage.model.report.request.ReportRequest
+import com.sdm.ecomileage.model.report.response.ReportResponse
 import retrofit2.http.*
 import javax.inject.Singleton
 
@@ -28,4 +30,10 @@ interface HomeInfoAPI {
         @Header("token") token: String,
         @Body body:FeedLikeRequest
     ) : FeedLikeResponse
+
+    @POST(value = "NewReportInfo")
+    suspend fun postReport(
+        @Header("token") token: String,
+        @Body body: ReportRequest
+    ) : ReportResponse
 }

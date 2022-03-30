@@ -8,26 +8,67 @@ import com.sdm.ecomileage.model.feedLike.response.FeedLikeResponse
 import com.sdm.ecomileage.model.homeInfo.request.HomeInfo
 import com.sdm.ecomileage.model.homeInfo.request.HomeInfoRequest
 import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
+import com.sdm.ecomileage.model.report.request.NewReportInfo
+import com.sdm.ecomileage.model.report.request.ReportRequest
+import com.sdm.ecomileage.model.report.response.ReportResponse
 import com.sdm.ecomileage.repository.homeRepository.HomeRepository
 import com.sdm.ecomileage.utils.accessToken
+import com.sdm.ecomileage.utils.loginedUserId
 import com.sdm.ecomileage.utils.uuidSample
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(private val repository: HomeRepository) : ViewModel() {
-    //Todo : Proto Datastore 넣으면 여기 로그인된 id 받아서 HomeRequest 보내주는 걸로 수정할 것 !!
     suspend fun getHomeInfo(): DataOrException<HomeInfoResponse, Boolean, Exception> =
         repository.getHomeInfo(
             accessToken, HomeInfoRequest(
-                // Todo : Like 안바뀌는 이유 :: 아이디 안 바꿔서 멍청아 !!!!!!!!!!!!!!!!
                 HomeInfo = listOf(
-                    HomeInfo("IUENA@google.com")
+                    HomeInfo(loginedUserId)
                 )
             )
         )
 
-    suspend fun postFeedLike(feedsNo: Int, likeYN: Boolean): DataOrException<FeedLikeResponse, Boolean, Exception> =
+    private val _reportingFeedNoList = mutableMapOf<Int, String>()
+    fun getReportingFeedNoValueFromKey(key: Int) = _reportingFeedNoList[key]
+
+
+    fun reportingFeedAdd(feedsNo: Int, reportType: String) {
+        _reportingFeedNoList[feedsNo] = reportType
+    }
+
+    fun reportingFeedNoRemove(feedsNo: Int) {
+        _reportingFeedNoList.remove(feedsNo)
+    }
+
+    fun isFeedIncludedReportingList(feedsNo: Int): Boolean = _reportingFeedNoList.contains(feedsNo)
+
+    suspend fun postReport(
+        feedsNo: Int,
+        reportType: String,
+        reportContent: String? = null,
+        reportYN: Boolean
+    ): DataOrException<ReportResponse, Boolean, Exception> =
+        repository.postReport(
+            accessToken,
+            ReportRequest(
+                NewReportInfo = listOf(
+                    NewReportInfo(
+                        uuid = uuidSample,
+                        feedsno = feedsNo,
+                        reporttype = reportType,
+                        reportcontent = reportContent,
+                        reportyn = reportYN
+                    )
+                )
+            )
+        )
+
+
+    suspend fun postFeedLike(
+        feedsNo: Int,
+        likeYN: Boolean
+    ): DataOrException<FeedLikeResponse, Boolean, Exception> =
         repository.postFeedLike(
             accessToken, FeedLikeRequest(
                 FeedLikes = listOf(

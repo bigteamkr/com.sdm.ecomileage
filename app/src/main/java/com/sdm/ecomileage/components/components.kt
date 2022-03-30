@@ -36,7 +36,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -382,7 +381,7 @@ fun ProfileImage(
 }
 
 @Composable
-fun CardContent(
+fun MainFeedCard(
     contentImageList: List<String>,
     contentText: String,
     profileImage: String,
@@ -391,57 +390,73 @@ fun CardContent(
     reactionData: Int,
     reactionTint: Color,
     likeYN: Boolean,
+    reportYN: Boolean,
     onReactionClick: (Boolean) -> Unit,
     otherIcons: Map<String, Int>,
     hashtagList: List<String>?,
     navController: NavController,
     feedNo: Int,
-    reportVisible: Boolean,
-    reportAction: (Boolean) -> Unit,
+    isCurrentReportingFeedsNo: Boolean,
+    reportDialogCallAction: (Boolean) -> Unit,
+    reportingCancelAction: (Int) -> Unit,
     currentScreen: String,
     destinationScreen: String?
 ) {
-    Card(
-        modifier = Modifier
-            .padding(5.dp)
-            .padding(start = 5.dp, end = 5.dp)
-            .fillMaxWidth()
-            .clickable {
-                if (destinationScreen != null) navController.navigate(destinationScreen) {
-                    launchSingleTop
-                    popUpTo(currentScreen)
-                }
-            },
-        shape = RoundedCornerShape(10.dp),
-        backgroundColor = Color.White
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(355.dp)
-            ) {
-                CardImageRow(contentImageList)
+    var isReportingCard by remember { mutableStateOf(isCurrentReportingFeedsNo) }
+    LaunchedEffect(key1 = isCurrentReportingFeedsNo){
+        isReportingCard = isCurrentReportingFeedsNo
+    }
+
+    when {
+        reportYN -> Box { }
+        isReportingCard -> {
+            ReportedFeed(feedNo) {
+                reportingCancelAction(it)
             }
-            CardWriterInformation(
-                profileImage,
-                profileName,
-                reactionIcon,
-                reactionData,
-                onReactionClick,
-                reactionTint,
-                likeYN,
-                otherIcons,
-                navController,
-                reportVisible,
-                reportAction,
-                currentScreen,
-                feedNo
-            )
-            CardContent(contentText, hashtagList)
+        }
+        else -> {
+            Card(
+                modifier = Modifier
+                    .padding(5.dp)
+                    .padding(start = 5.dp, end = 5.dp)
+                    .fillMaxWidth()
+                    .clickable {
+                        if (destinationScreen != null) navController.navigate(destinationScreen) {
+                            launchSingleTop
+                            popUpTo(currentScreen)
+                        }
+                    },
+                shape = RoundedCornerShape(10.dp),
+                backgroundColor = Color.White
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(355.dp)
+                    ) {
+                        CardImageRow(contentImageList)
+                    }
+                    CardWriterInformation(
+                        profileImage,
+                        profileName,
+                        reactionIcon,
+                        reactionData,
+                        onReactionClick,
+                        reactionTint,
+                        likeYN,
+                        otherIcons,
+                        navController,
+                        reportDialogCallAction,
+                        currentScreen,
+                        feedNo
+                    )
+                    CardContent(contentText, hashtagList)
+                }
+            }
         }
     }
 }
@@ -457,8 +472,7 @@ private fun CardWriterInformation(
     likeYN: Boolean,
     otherIcons: Map<String, Int>,
     navController: NavController,
-    reportVisible: Boolean,
-    reportAction: (Boolean) -> Unit,
+    reportDialogCallAction: (Boolean) -> Unit,
     currentScreen: String,
     feedNo: Int
 ) {
@@ -522,7 +536,7 @@ private fun CardWriterInformation(
                             modifier = Modifier
                                 .padding(start = 10.dp)
                                 .clickable {
-                                    reportAction(true)
+                                    reportDialogCallAction(true)
                                 },
                             tint = CardIconsColor
                         )
@@ -570,9 +584,8 @@ private fun CardContent(
                         Spacer(modifier = Modifier.width(5.dp))
                 }
             }
-            Spacer(modifier = Modifier.height(20.dp))
-        }
-        else Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+        } else Spacer(modifier = Modifier.height(20.dp))
     }
 }
 
@@ -842,16 +855,18 @@ fun CustomInputTextField(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun CustomReportDialog(
-    reportAction: (Boolean) -> Unit
+    reportAction: (String) -> Unit,
+    dismissAction: (Boolean) -> Unit
 ) {
     val reportOptions =
         listOf("음란성 게시물", "폭력적 또는 불쾌한 게시물", "스팸 게시물", "사생활 침해/개인정보 유출 게시물", "불법적인 게시물")
     var selectedOption by remember {
         mutableStateOf("")
     }
+    var selectedOptionToCode = "00"
 
     Dialog(
-        onDismissRequest = { reportAction(false) },
+        onDismissRequest = { dismissAction(false) },
         properties = DialogProperties(
             dismissOnBackPress = true,
             dismissOnClickOutside = true
@@ -891,6 +906,16 @@ fun CustomReportDialog(
                     )
                     Text(
                         text = "확인",
+                        modifier = Modifier.clickable {
+                            when (selectedOption) {
+                                reportOptions[0] -> selectedOptionToCode = "10"
+                                reportOptions[1] -> selectedOptionToCode = "20"
+                                reportOptions[2] -> selectedOptionToCode = "30"
+                                reportOptions[3] -> selectedOptionToCode = "40"
+                                reportOptions[4] -> selectedOptionToCode = "50"
+                            }
+                            reportAction(selectedOptionToCode)
+                        },
                         color = BottomSheetCheckColor,
                         textAlign = TextAlign.Center,
                         fontSize = 15.sp,
@@ -931,9 +956,11 @@ fun CustomReportDialog(
     }
 }
 
-@Preview
 @Composable
-fun reportedFeed(){
+fun ReportedFeed(
+    feedNo: Int,
+    reportCancelAction: (Int) -> Unit
+) {
     Card(
         modifier = Modifier
             .padding(5.dp)
@@ -944,17 +971,22 @@ fun reportedFeed(){
         backgroundColor = Color.White
     ) {
         Column(
+            modifier = Modifier.clickable {
+                reportCancelAction(feedNo)
+            },
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "신고 처리된 게시물입니다.",
                 modifier = Modifier.padding(top = 25.dp),
-                fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                fontWeight = FontWeight.Bold, fontSize = 15.sp
+            )
             Text(
                 text = "실행 취소",
                 modifier = Modifier.padding(top = 15.dp, bottom = 25.dp),
-                color = ReportedNotificationColor)
+                color = ReportedNotificationColor
+            )
         }
     }
 }

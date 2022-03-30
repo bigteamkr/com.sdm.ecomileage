@@ -682,6 +682,7 @@ private fun RegisterPage(
                             when {
                                 it.data?.code == 200 -> {
                                     showLongToastMessage(context, "${it.data?.message}")
+                                    loginedUserId = "$emailHead@$emailTail"
                                     navController.navigate(SecomiScreens.LoginScreen.name) {
                                         launchSingleTop
                                     }
@@ -944,6 +945,7 @@ private fun LoginScaffold(
                                 Log.d("LoginScreen", "LoginScaffold: UUID = ${loginRegisterViewModel.dataStore.value?.uuid}")
                             }
 
+                            loginedUserId = userId.value
                             navController.navigate(SecomiScreens.HomeScreen.name) {
                                 popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
                             }

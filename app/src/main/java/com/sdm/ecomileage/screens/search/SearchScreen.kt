@@ -28,12 +28,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
-import com.sdm.ecomileage.components.CardContent
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.search.response.Feed
-import com.sdm.ecomileage.model.search.response.Result
 import com.sdm.ecomileage.model.search.response.SearchFeedResponse
-import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -65,10 +62,10 @@ private fun SearchScaffold(
     val sampleHistory = listOf("장바구니", "나무", "화초키우기", "분리수거", "라벨분리법")
 
     val scope = rememberCoroutineScope()
-    var searchedFeedResponse: DataOrException<SearchFeedResponse, Boolean, Exception> =
-        DataOrException(loading = false)
-
-    var searchedFeedData: List<Feed>? = searchedFeedResponse.data?.result?.feedList
+//    var searchedFeedResponse: DataOrException<SearchFeedResponse, Boolean, Exception> =
+//        DataOrException(loading = false)
+//
+//    var searchedFeedData: List<Feed>? = searchedFeedResponse.data?.result?.feedList
 
     Scaffold(
         topBar = {
@@ -76,11 +73,11 @@ private fun SearchScaffold(
                 valueState = searchViewModel.searchText,
                 valueHoist = { searchViewModel.onSearchTextChanged(it) }
             ) {
-                scope.launch {
-                    searchViewModel.getSearchFeedInfo().let {
-                        searchedFeedResponse = it
-                    }
-                }
+//                scope.launch {
+//                    searchViewModel.getSearchFeedInfo().let {
+//                        searchedFeedResponse = it
+//                    }
+//                }
             }
         }
     ) {
