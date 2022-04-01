@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.sdm.ecomileage.screens.diary.DiaryScreen
 import com.sdm.ecomileage.screens.education.EducationScreen
 import com.sdm.ecomileage.screens.event.EventScreen
 import com.sdm.ecomileage.screens.findingAccount.FindingAccountScreen
@@ -31,7 +32,7 @@ fun SdmNavigation() {
 
 
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = SecomiScreens.LoginScreen.name) {
+    NavHost(navController = navController, startDestination = SecomiScreens.SplashScreen.name) {
         composable(SecomiScreens.SplashScreen.name) {
             SplashScreen(navController, systemUiController)
         }
@@ -64,6 +65,16 @@ fun SdmNavigation() {
 
         composable(SecomiScreens.EducationScreen.name) {
             EducationScreen(navController, systemUiController)
+        }
+
+        composable("${SecomiScreens.DiaryScreen.name}/{educationNo}", arguments = listOf(
+            navArgument(name = "educationNo") {
+                type = NavType.IntType
+            }
+        )) { navBackStackEntry ->
+            navBackStackEntry.arguments?.getInt("educationNo").let { educationNo ->
+                DiaryScreen(navController, systemUiController, educationNo)
+            }
         }
 
 

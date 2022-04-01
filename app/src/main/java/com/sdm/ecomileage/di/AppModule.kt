@@ -1,18 +1,16 @@
 package com.sdm.ecomileage.di
 
 import android.content.Context
-import com.sdm.ecomileage.network.CommentAPI
-import com.sdm.ecomileage.network.HomeInfoAPI
-import com.sdm.ecomileage.network.LoginRegisterFindAPI
 import com.sdm.ecomileage.utils.Constants
 import com.google.gson.GsonBuilder
-import com.sdm.ecomileage.network.SearchAPI
+import com.sdm.ecomileage.network.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.create
 import javax.inject.Singleton
 
 @Module
@@ -74,4 +72,17 @@ object AppModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(SearchAPI::class.java)
+
+
+    @Provides
+    @Singleton
+    fun provideEducationAPI(): EducationAPI =
+        Retrofit
+            .Builder()
+            .baseUrl(Constants.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(EducationAPI::class.java)
+
+
 }

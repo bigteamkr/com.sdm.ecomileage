@@ -3,7 +3,6 @@ package com.sdm.ecomileage.navigation
 enum class SecomiScreens {
     SplashScreen,
     LoginScreen,
-    RegisterScreen,
     FindingAccountScreen,
     HomeScreen,
     HomeDetailScreen,
@@ -14,5 +13,6 @@ enum class SecomiScreens {
     MyPageScreen,
     RankingScreen,
     SettingsScreen,
-    NoticeScreen
+    NoticeScreen,
+    DiaryScreen
 }

@@ -1,7 +1,6 @@
 package com.sdm.ecomileage.screens.loginRegister
 
 import android.util.Log
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -9,8 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -22,7 +19,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -30,17 +26,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
-import com.sdm.ecomileage.components.CustomInputTextField
+import com.sdm.ecomileage.components.CustomLoginInputTextField
 import com.sdm.ecomileage.components.showLongToastMessage
 import com.sdm.ecomileage.components.showShortToastMessage
 import com.sdm.ecomileage.navigation.SecomiScreens
@@ -338,7 +331,7 @@ private fun RegisterPage(
                 )
             )
             Spacer(modifier = Modifier.height(25.dp))
-            CustomInputTextField(
+            CustomLoginInputTextField(
                 modifier = Modifier
                     .padding(start = 25.dp, end = 25.dp)
                     .focusRequester(focusRequester)
@@ -375,7 +368,7 @@ private fun RegisterPage(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(modifier = Modifier.fillMaxWidth(0.4f)) {
-                    CustomInputTextField(
+                    CustomLoginInputTextField(
                         modifier = Modifier
                             .padding(start = 25.dp)
                             .focusRequester(focusRequester)
@@ -412,7 +405,7 @@ private fun RegisterPage(
                     shape = RoundedCornerShape(5),
                     border = BorderStroke(1.dp, PlaceholderColor)
                 ) {
-                    CustomInputTextField(
+                    CustomLoginInputTextField(
                         modifier = Modifier
                             .padding(top = 6.dp)
                             .fillMaxWidth()
@@ -446,7 +439,7 @@ private fun RegisterPage(
                 }
             }
             Spacer(modifier = Modifier.height(25.dp))
-            CustomInputTextField(
+            CustomLoginInputTextField(
                 modifier = Modifier
                     .padding(start = 25.dp, end = 25.dp)
                     .focusRequester(focusRequester)
@@ -475,7 +468,7 @@ private fun RegisterPage(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
             Spacer(modifier = Modifier.height(25.dp))
-            CustomInputTextField(
+            CustomLoginInputTextField(
                 modifier = Modifier
                     .padding(start = 25.dp, end = 25.dp)
                     .focusRequester(focusRequester)
@@ -504,7 +497,7 @@ private fun RegisterPage(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
             Spacer(modifier = Modifier.height(25.dp))
-            CustomInputTextField(
+            CustomLoginInputTextField(
                 modifier = Modifier
                     .padding(start = 25.dp, end = 25.dp)
                     .focusRequester(focusRequester)
@@ -557,7 +550,7 @@ private fun RegisterPage(
                     shape = RoundedCornerShape(5),
                     border = BorderStroke(1.dp, PlaceholderColor)
                 ) {
-                    CustomInputTextField(
+                    CustomLoginInputTextField(
                         modifier = Modifier
                             .padding(top = 7.dp, start = 5.dp)
                             .fillMaxWidth()
@@ -629,7 +622,7 @@ private fun RegisterPage(
                     shape = RoundedCornerShape(5),
                     border = BorderStroke(1.dp, PlaceholderColor)
                 ) {
-                    CustomInputTextField(
+                    CustomLoginInputTextField(
                         modifier = Modifier
                             .padding(top = 7.dp, start = 5.dp)
                             .fillMaxWidth()
@@ -973,7 +966,7 @@ private fun InputLoginInformation(
     onClickIdPasswordFocus: (Boolean, Boolean) -> Unit
 ) {
 
-    CustomInputTextField(
+    CustomLoginInputTextField(
         modifier = Modifier.padding(start = 25.dp, end = 25.dp),
         inputEvent = {
             userId.value = it
@@ -989,7 +982,7 @@ private fun InputLoginInformation(
         )
     )
     Spacer(modifier = Modifier.height(30.dp))
-    CustomInputTextField(
+    CustomLoginInputTextField(
         modifier = Modifier.padding(start = 25.dp, end = 25.dp),
         inputEvent = {
             userPassword.value = it

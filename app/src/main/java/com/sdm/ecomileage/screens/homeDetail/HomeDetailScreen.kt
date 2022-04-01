@@ -161,7 +161,7 @@ private fun HomeDetailScaffold(
                         //Todo : ProfileName 고치기
                         HomeDetailContent(
                             Modifier,
-                            "${Constants.BASE_IMAGE_URL}${postInfo.profileimg}",
+                            postInfo.profileimg,
                             postInfo.userName,
                             postInfo.feedcontent,
                             postInfo.hashtags
@@ -203,7 +203,7 @@ private fun HomeDetailScaffold(
             itemsIndexed(localComment) { index, data ->
                 Row {
                     HomeDetailContent(
-                        image = "${Constants.BASE_IMAGE_URL}${data.profileimg}",
+                        image = data.profileimg,
                         name = data.userName,
                         text = data.title
                     )

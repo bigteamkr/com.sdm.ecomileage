@@ -241,7 +241,7 @@ private fun HomeUserFeedRow(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         ProfileImage(
-                            "${Constants.BASE_IMAGE_URL}${data.profileimg}",
+                            data.profileimg,
                             Modifier,
                             borderStroke = borderStroke
                         )

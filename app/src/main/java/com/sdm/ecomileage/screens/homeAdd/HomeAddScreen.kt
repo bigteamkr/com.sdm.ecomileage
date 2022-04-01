@@ -178,7 +178,7 @@ private fun HomeAddScaffold(
 //                    showCategoryDialog.value
 //                ) { showCategoryDialog.value = it }
 //                Spacer(modifier = Modifier.height(20.dp))
-                ContentInputField(inputComment, keyboardAction, contentPlaceholderText)
+                ContentInputField(inputComment, keyboardAction, contentPlaceholderText, Modifier.height(150.dp))
                 Spacer(modifier = Modifier.height(20.dp))
                 TagInputField(tagInputElement, focusRequester, tagList, tagPlaceholderText)
             }
@@ -359,10 +359,11 @@ private fun AddedTagListRow(
 }
 
 @Composable
-private fun ContentInputField(
+fun ContentInputField(
     inputComment: MutableState<String>,
     keyboardAction: () -> Unit,
-    placeholderText: String
+    placeholderText: String,
+    modifier: Modifier = Modifier
 ) {
     Surface(
         shape = RoundedCornerShape(5),
@@ -375,8 +376,8 @@ private fun ContentInputField(
             onValueChange = { inputComment.value = it },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
-                .padding(10.dp),
+                .padding(10.dp)
+                .then(modifier),
             textStyle = MaterialTheme.typography.body1,
             keyboardOptions = KeyboardOptions.Default,
             keyboardActions = KeyboardActions(onDone = { keyboardAction() }),

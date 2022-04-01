@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -50,16 +49,15 @@ import com.google.accompanist.pager.rememberPagerState
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
-import com.sdm.ecomileage.utils.Constants
 
 @Composable
 fun SecomiTopAppBar(
-    title: String = "베타테스터",
+    title: String,
     navigationIcon: Painter? = null,
-    currentScreen: String = SecomiScreens.HomeScreen.name,
+    currentScreen: String,
     backgroundColor: List<Color> = TopBarColor,
     actionIconsList: Map<String, Painter>? = null,
-    navController: NavController = NavController(LocalContext.current),
+    navController: NavController,
     contentColor: Color = Color.White
 ) {
     // navigation Icon = start(left) icon
@@ -153,6 +151,15 @@ fun SecomiTopAppBar(
                         }
 
                         SecomiScreens.RankingScreen.name -> {
+                            AppBarTitleText(
+                                title,
+                                Modifier.padding(end = 25.dp),
+                                contentColor,
+                                18.sp
+                            )
+                        }
+
+                        SecomiScreens.DiaryScreen.name -> {
                             AppBarTitleText(
                                 title,
                                 Modifier.padding(end = 25.dp),
@@ -285,6 +292,7 @@ fun SecomiMainFloatingActionButton(navController: NavController) {
 
 @Composable
 fun CustomReaction(
+    modifier: Modifier = Modifier,
     iconResourceList: List<Int>,
     reactionData: Int,
     onClickReaction: (Boolean) -> Unit,
@@ -300,7 +308,7 @@ fun CustomReaction(
     val isReactionEnable = iconResourceList.size > 1
 
     Box(
-        modifier = Modifier,
+        modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
         IconToggleButton(
@@ -313,7 +321,7 @@ fun CustomReaction(
                 onClickReaction(isChecked)
                 _reactionData = if (isChecked) _reactionData + 1 else _reactionData - 1
             },
-            modifier = Modifier.size(22.dp),
+            modifier = Modifier.size(24.dp),
             enabled = isReactionEnable
         ) {
             Icon(
@@ -338,6 +346,7 @@ fun CustomReaction(
 fun CustomIconText(
     iconResource: Int,
     contentDescription: String,
+    modifier: Modifier = Modifier,
     tintColor: Color,
     textData: String
 ) {
@@ -348,13 +357,15 @@ fun CustomIconText(
         Icon(
             painter = painterResource(id = iconResource),
             contentDescription = contentDescription,
+            modifier = Modifier.size(24.dp),
             tint = tintColor
         )
 
         Text(
             text = textData,
             modifier = Modifier
-                .padding(start = 45.dp),
+                .padding(start = (45 + (textData.length * 2)).dp, bottom = 3.dp)
+                .then(modifier),
             style = MaterialTheme.typography.subtitle2,
             fontWeight = FontWeight.Normal,
             color = tintColor
@@ -443,89 +454,100 @@ fun MainFeedCardStructure(
             }
         }
         else -> {
-            Card(
-                modifier = Modifier
-                    .padding(5.dp)
-                    .padding(start = 5.dp, end = 5.dp)
-                    .fillMaxWidth()
-                    .clickable {
-                        if (destinationScreen != null) navController.navigate(destinationScreen) {
-                            launchSingleTop
-                            popUpTo(currentScreen)
-                        }
-                    },
-                shape = RoundedCornerShape(10.dp),
-                backgroundColor = Color.White
-            ) {
-                MainCardFeed(
-                    contentImageList,
-                    profileImage,
-                    profileName,
-                    reactionIcon,
-                    reactionData,
-                    onReactionClick,
-                    reactionTint,
-                    likeYN,
-                    otherIcons,
-                    navController,
-                    reportDialogCallAction,
-                    currentScreen,
-                    feedNo,
-                    contentText,
-                    hashtagList
-                )
-            }
+            MainCardFeed(
+                contentImageList,
+                profileImage,
+                profileName,
+                null,
+                null,
+                reactionIcon,
+                reactionData,
+                onReactionClick,
+                reactionTint,
+                likeYN,
+                null,
+                otherIcons,
+                navController,
+                reportDialogCallAction,
+                currentScreen,
+                feedNo,
+                contentText,
+                hashtagList,
+                destinationScreen
+            )
+
         }
     }
 }
 
 @Composable
-private fun MainCardFeed(
+fun MainCardFeed(
     contentImageList: List<String>,
     profileImage: String,
     profileName: String,
-    reactionIcon: List<Int>,
-    reactionData: Int,
-    onReactionClick: (Boolean) -> Unit,
-    reactionTint: Color,
-    likeYN: Boolean,
-    otherIcons: Map<String, Int>,
+    educationTitle: String?,
+    educationTime: String?,
+    reactionIcon: List<Int>?,
+    reactionData: Int?,
+    onReactionClick: ((Boolean) -> Unit)?,
+    reactionTint: Color?,
+    likeYN: Boolean?,
+    colorIcon: (@Composable () -> Unit)?,
+    otherIcons: (Map<String, Int>)?,
     navController: NavController,
-    reportDialogCallAction: (Boolean) -> Unit,
+    reportDialogCallAction: ((Boolean) -> Unit)?,
     currentScreen: String,
     feedNo: Int,
     contentText: String,
-    hashtagList: List<String>?
+    hashtagList: List<String>?,
+    destinationScreen: String?
 ) {
     val heightModifier = if (currentScreen == SecomiScreens.EducationScreen.name) 230.dp else 355.dp
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(heightModifier)
-        ) {
-            CardImageRow(contentImageList)
+    val navigatingModifier = if (destinationScreen != null) Modifier.clickable {
+        navController.navigate(destinationScreen) {
+            launchSingleTop
+            popUpTo(currentScreen)
         }
-        CardWriterInformation(
-            profileImage,
-            profileName,
-            reactionIcon,
-            reactionData,
-            onReactionClick,
-            reactionTint,
-            likeYN,
-            null,
-            otherIcons,
-            navController,
-            reportDialogCallAction,
-            currentScreen,
-            feedNo
-        )
-        CardContent(contentText, hashtagList)
+    } else Modifier
+
+    Card(
+        modifier = Modifier
+            .padding(5.dp)
+            .padding(start = 5.dp, end = 5.dp)
+            .fillMaxWidth()
+            .then(navigatingModifier),
+        shape = RoundedCornerShape(10.dp),
+        backgroundColor = Color.White
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(heightModifier)
+            ) {
+                CardImageRow(contentImageList, educationTitle, educationTime, currentScreen)
+            }
+            CardWriterInformation(
+                profileImage,
+                profileName,
+                reactionIcon,
+                reactionData,
+                onReactionClick,
+                reactionTint,
+                likeYN,
+                colorIcon,
+                otherIcons,
+                navController,
+                reportDialogCallAction,
+                currentScreen,
+                feedNo
+            )
+            CardContent(contentText, hashtagList)
+        }
     }
 }
 
@@ -539,7 +561,7 @@ fun CardWriterInformation(
     reactionTint: Color?,
     likeYN: Boolean?,
     colorIcon: (@Composable () -> Unit)?,
-    otherIcons: Map<String, Int>,
+    otherIcons: (Map<String, Int>)?,
     navController: NavController?,
     reportDialogCallAction: ((Boolean) -> Unit)?,
     currentScreen: String,
@@ -551,11 +573,14 @@ fun CardWriterInformation(
             .padding(top = 5.dp)
             .fillMaxWidth()
             .height(30.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             ProfileImage(
-                image = "${Constants.BASE_IMAGE_URL}$profileImage",
+                image = profileImage,
                 modifier = Modifier
                     .size(35.dp)
                     .padding(start = 5.dp)
@@ -563,18 +588,18 @@ fun CardWriterInformation(
             ProfileName(
                 name = profileName,
                 fontSize = 15.sp,
-                modifier = Modifier.padding(start = 8.dp, top = 4.dp, bottom = 5.dp),
+                modifier = Modifier.padding(start = 8.dp, bottom = 2.dp),
                 fontStyle = MaterialTheme.typography.body2,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight.Normal
             )
         }
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(top = 1.dp)
         ) {
             if (onReactionClick != null && reactionIcon != null && reactionData != null && reactionTint != null && likeYN != null)
                 CustomReaction(
+                    modifier = Modifier,
                     iconResourceList = reactionIcon,
                     reactionData = reactionData,
                     onClickReaction = { onReactionClick(it) },
@@ -586,7 +611,7 @@ fun CardWriterInformation(
                 colorIcon()
             }
 
-            otherIcons.forEach { (key, icon) ->
+            otherIcons?.forEach { (key, icon) ->
                 when (key) {
                     "comment" -> {
                         Icon(
@@ -667,7 +692,10 @@ private fun CardContent(
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 private fun CardImageRow(
-    imageList: List<String>
+    imageList: List<String>,
+    educationTitle: String?,
+    educationTime: String?,
+    currentScreen: String
 ) {
     val pagerState = rememberPagerState()
     Box(
@@ -680,31 +708,55 @@ private fun CardImageRow(
                 .fillMaxSize()
                 .background(Color.White)
         ) { page ->
-            Surface(
-                Modifier.fillMaxSize()
+            Column(
+                Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Bottom,
+                horizontalAlignment = Alignment.End
             ) {
-                Image(
-                    painter = rememberImagePainter("${Constants.BASE_IMAGE_URL}${imageList[page]}"),
-                    contentDescription = "HomeFeed",
-                    contentScale = ContentScale.FillBounds
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = rememberImagePainter(imageList[page]),
+                        contentDescription = "HomeFeed",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    if (educationTitle != null) Text(
+                        text = educationTitle,
+                        style = MaterialTheme.typography.h4,
+                        color = Color.White
+                    )
+                }
+                if (educationTime != null) Text(
+                    text = educationTime,
+                    modifier = Modifier.padding(end = 10.dp, bottom = 10.dp),
+                    color = Color.White
                 )
             }
         }
 
-        Surface(
-            modifier = Modifier
-                .padding(2.dp)
-                .padding(bottom = 10.dp),
-            shape = RoundedCornerShape(50),
-            color = IndicatorBlackTransparentColor
-        ) {
-            Text(
-                text = "${pagerState.currentPage + 1}/${imageList.size}",
-                modifier = Modifier.padding(start = 17.dp, end = 17.dp, top = 7.dp, bottom = 7.dp),
-                color = Color.White,
-                style = MaterialTheme.typography.caption
-            )
-        }
+        if (currentScreen != SecomiScreens.EducationScreen.name)
+            Surface(
+                modifier = Modifier
+                    .padding(2.dp)
+                    .padding(bottom = 10.dp),
+                shape = RoundedCornerShape(50),
+                color = IndicatorBlackTransparentColor
+            ) {
+                Text(
+                    text = "${pagerState.currentPage + 1}/${imageList.size}",
+                    modifier = Modifier.padding(
+                        start = 17.dp,
+                        end = 17.dp,
+                        top = 7.dp,
+                        bottom = 7.dp
+                    ),
+                    color = Color.White,
+                    style = MaterialTheme.typography.caption
+                )
+            }
     }
 }
 
@@ -846,7 +898,7 @@ private fun RowScope.BottomBarItem(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun CustomInputTextField(
+fun CustomLoginInputTextField(
     modifier: Modifier,
     inputEvent: (String) -> Unit,
     focusState: Boolean,
