@@ -284,7 +284,7 @@ fun SecomiMainFloatingActionButton(navController: NavController) {
 }
 
 @Composable
-fun CustomIconText(
+fun CustomReaction(
     iconResourceList: List<Int>,
     reactionData: Int,
     onClickReaction: (Boolean) -> Unit,
@@ -325,6 +325,34 @@ fun CustomIconText(
 
         Text(
             text = "$_reactionData",
+            modifier = Modifier
+                .padding(start = 45.dp),
+            style = MaterialTheme.typography.subtitle2,
+            fontWeight = FontWeight.Normal,
+            color = tintColor
+        )
+    }
+}
+
+@Composable
+fun CustomIconText(
+    iconResource: Int,
+    contentDescription: String,
+    tintColor: Color,
+    textData: String
+) {
+    Box(
+        modifier = Modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(id = iconResource),
+            contentDescription = contentDescription,
+            tint = tintColor
+        )
+
+        Text(
+            text = textData,
             modifier = Modifier
                 .padding(start = 45.dp),
             style = MaterialTheme.typography.subtitle2,
@@ -381,7 +409,7 @@ fun ProfileImage(
 }
 
 @Composable
-fun MainFeedCard(
+fun MainFeedCardStructure(
     contentImageList: List<String>,
     contentText: String,
     profileImage: String,
@@ -403,7 +431,7 @@ fun MainFeedCard(
     destinationScreen: String?
 ) {
     var isReportingCard by remember { mutableStateOf(isCurrentReportingFeedsNo) }
-    LaunchedEffect(key1 = isCurrentReportingFeedsNo){
+    LaunchedEffect(key1 = isCurrentReportingFeedsNo) {
         isReportingCard = isCurrentReportingFeedsNo
     }
 
@@ -429,40 +457,31 @@ fun MainFeedCard(
                 shape = RoundedCornerShape(10.dp),
                 backgroundColor = Color.White
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(355.dp)
-                    ) {
-                        CardImageRow(contentImageList)
-                    }
-                    CardWriterInformation(
-                        profileImage,
-                        profileName,
-                        reactionIcon,
-                        reactionData,
-                        onReactionClick,
-                        reactionTint,
-                        likeYN,
-                        otherIcons,
-                        navController,
-                        reportDialogCallAction,
-                        currentScreen,
-                        feedNo
-                    )
-                    CardContent(contentText, hashtagList)
-                }
+                MainCardFeed(
+                    contentImageList,
+                    profileImage,
+                    profileName,
+                    reactionIcon,
+                    reactionData,
+                    onReactionClick,
+                    reactionTint,
+                    likeYN,
+                    otherIcons,
+                    navController,
+                    reportDialogCallAction,
+                    currentScreen,
+                    feedNo,
+                    contentText,
+                    hashtagList
+                )
             }
         }
     }
 }
 
 @Composable
-private fun CardWriterInformation(
+private fun MainCardFeed(
+    contentImageList: List<String>,
     profileImage: String,
     profileName: String,
     reactionIcon: List<Int>,
@@ -474,7 +493,57 @@ private fun CardWriterInformation(
     navController: NavController,
     reportDialogCallAction: (Boolean) -> Unit,
     currentScreen: String,
-    feedNo: Int
+    feedNo: Int,
+    contentText: String,
+    hashtagList: List<String>?
+) {
+    val heightModifier = if (currentScreen == SecomiScreens.EducationScreen.name) 230.dp else 355.dp
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(heightModifier)
+        ) {
+            CardImageRow(contentImageList)
+        }
+        CardWriterInformation(
+            profileImage,
+            profileName,
+            reactionIcon,
+            reactionData,
+            onReactionClick,
+            reactionTint,
+            likeYN,
+            null,
+            otherIcons,
+            navController,
+            reportDialogCallAction,
+            currentScreen,
+            feedNo
+        )
+        CardContent(contentText, hashtagList)
+    }
+}
+
+@Composable
+fun CardWriterInformation(
+    profileImage: String,
+    profileName: String,
+    reactionIcon: List<Int>?,
+    reactionData: Int?,
+    onReactionClick: ((Boolean) -> Unit)?,
+    reactionTint: Color?,
+    likeYN: Boolean?,
+    colorIcon: (@Composable () -> Unit)?,
+    otherIcons: Map<String, Int>,
+    navController: NavController?,
+    reportDialogCallAction: ((Boolean) -> Unit)?,
+    currentScreen: String,
+    feedNo: Int?
 ) {
     Row(
         modifier = Modifier
@@ -504,13 +573,18 @@ private fun CardWriterInformation(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(top = 1.dp)
         ) {
-            CustomIconText(
-                iconResourceList = reactionIcon,
-                reactionData = reactionData,
-                onClickReaction = { onReactionClick(it) },
-                tintColor = reactionTint,
-                likeYN = likeYN
-            )
+            if (onReactionClick != null && reactionIcon != null && reactionData != null && reactionTint != null && likeYN != null)
+                CustomReaction(
+                    iconResourceList = reactionIcon,
+                    reactionData = reactionData,
+                    onClickReaction = { onReactionClick(it) },
+                    tintColor = reactionTint,
+                    likeYN = likeYN
+                )
+
+            if (colorIcon != null) {
+                colorIcon()
+            }
 
             otherIcons.forEach { (key, icon) ->
                 when (key) {
@@ -521,7 +595,7 @@ private fun CardWriterInformation(
                             modifier = Modifier
                                 .padding(start = 10.dp)
                                 .clickable {
-                                    navController.navigate(SecomiScreens.HomeDetailScreen.name + "/$feedNo") {
+                                    navController?.navigate(SecomiScreens.HomeDetailScreen.name + "/$feedNo") {
                                         launchSingleTop
                                         popUpTo(currentScreen)
                                     }
@@ -536,7 +610,7 @@ private fun CardWriterInformation(
                             modifier = Modifier
                                 .padding(start = 10.dp)
                                 .clickable {
-                                    reportDialogCallAction(true)
+                                    if (reportDialogCallAction != null) reportDialogCallAction(true)
                                 },
                             tint = CardIconsColor
                         )
@@ -546,6 +620,7 @@ private fun CardWriterInformation(
         }
     }
 }
+
 
 @Composable
 private fun CardContent(

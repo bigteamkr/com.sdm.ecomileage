@@ -32,7 +32,6 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
     private val _reportingFeedNoList = mutableMapOf<Int, String>()
     fun getReportingFeedNoValueFromKey(key: Int) = _reportingFeedNoList[key]
 
-
     fun reportingFeedAdd(feedsNo: Int, reportType: String) {
         _reportingFeedNoList[feedsNo] = reportType
     }

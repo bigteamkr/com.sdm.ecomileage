@@ -24,7 +24,6 @@ import com.sdm.ecomileage.components.*
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.data.HomeScrollColumnViewData
 import com.sdm.ecomileage.data.HomeTopScrollRowViewData
-import com.sdm.ecomileage.data.Report
 import com.sdm.ecomileage.model.homeInfo.response.Friend
 import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
 import com.sdm.ecomileage.model.homeInfo.response.Post
@@ -134,7 +133,7 @@ private fun HomeMainContent(
             //Todo : HomeInfo CardContent
             isCurrentFeedReporting = homeViewModel.isFeedIncludedReportingList(data.feedsno)
 
-            MainFeedCard(
+            MainFeedCardStructure(
                 contentImageList = data.imageList,
                 contentText = data.feedcontent,
                 profileImage = data.profileimg,
