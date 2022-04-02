@@ -192,13 +192,14 @@ private fun HomeMainContent(
 
     if (reportDialogVisible && reportTargetFeedNo != null) {
         CustomReportDialog(
-            reportAction = {
-                homeViewModel.reportingFeedAdd(reportTargetFeedNo!!, it)
+            reportAction = { selectedOptionCode, reportDescription ->
+                homeViewModel.reportingFeedAdd(reportTargetFeedNo!!, selectedOptionCode)
 
                 scope.launch {
                     homeViewModel.postReport(
                         feedsNo = reportTargetFeedNo!!,
-                        reportType = it,
+                        reportType = selectedOptionCode,
+                        reportContent = reportDescription,
                         reportYN = true
                     )
                     reportTargetFeedNo = null

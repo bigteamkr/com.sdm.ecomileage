@@ -10,6 +10,8 @@ import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.data.UserInformationSerializer
 import com.sdm.ecomileage.model.login.request.LoginRequest
 import com.sdm.ecomileage.model.login.response.LoginResponse
+import com.sdm.ecomileage.model.memberUpdate.request.MemberUpdateRequest
+import com.sdm.ecomileage.model.memberUpdate.response.MemberUpdateResponse
 import com.sdm.ecomileage.model.register.request.RegisterRequest
 import com.sdm.ecomileage.model.register.response.RegisterResponse
 import com.sdm.ecomileage.network.LoginRegisterFindAPI
@@ -38,20 +40,20 @@ class LoginRegisterFindRepository @Inject constructor(private val api: LoginRegi
     }
 
     suspend fun updateValue(uuid: String?, id: String?, password: String?) {
-        if (uuid != null){
+        if (uuid != null) {
             context.userStore.updateData { preference ->
                 preference.toBuilder().setUuid(uuid).build()
             }
             Log.d("Login", "updateValue: UUID come?")
         }
-        if (id != null){
+        if (id != null) {
             context.userStore.updateData { preference ->
                 preference.toBuilder().setLastId(id).build()
             }
             Log.d("Login", "updateValue: Id come?")
 
         }
-        if (password != null){
+        if (password != null) {
             context.userStore.updateData { preference ->
                 preference.toBuilder().setLastPassword(password).build()
             }
@@ -93,4 +95,28 @@ class LoginRegisterFindRepository @Inject constructor(private val api: LoginRegi
 
         return DataOrException(response)
     }
+
+    suspend fun putMemberUpdate(
+        token: String,
+        body: MemberUpdateRequest
+    ): DataOrException<MemberUpdateResponse, Boolean, Exception> {
+        val response = try {
+            api.putMemberUpdate(token, body)
+        } catch (e: Exception) {
+            if (e is CancellationException)
+                throw e
+
+            Log.d(
+                "LoginRegisterFindRepository",
+                "putMemberUpdate: api call in repository didn't work"
+            )
+            Log.d("LoginRegisterFindRepository", "putMemberUpdate: exception is $e")
+
+            return DataOrException(e = e)
+        }
+        return DataOrException(response)
+    }
+
+
+
 }

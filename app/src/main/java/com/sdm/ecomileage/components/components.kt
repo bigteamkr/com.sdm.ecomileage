@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -48,6 +49,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.navigation.SecomiScreens
+import com.sdm.ecomileage.screens.homeAdd.ContentInputField
 import com.sdm.ecomileage.ui.theme.*
 
 @Composable
@@ -903,6 +905,7 @@ fun CustomLoginInputTextField(
     inputEvent: (String) -> Unit,
     focusState: Boolean,
     color: Color = LoginLabelColor,
+    enabled: Boolean = true,
     label: String,
     isFocus: () -> Unit,
     keyboardOptions: KeyboardOptions
@@ -946,6 +949,7 @@ fun CustomLoginInputTextField(
         textStyle = TextStyle(
             LoginEmailInputColor
         ),
+        enabled = enabled,
         singleLine = true,
         visualTransformation = if (label == "비밀번호" || label == "비밀번호 확인") PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = keyboardOptions,
@@ -979,28 +983,36 @@ fun CustomLoginInputTextField(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun CustomReportDialog(
-    reportAction: (String) -> Unit,
+    reportAction: (String, String?) -> Unit,
     dismissAction: (Boolean) -> Unit
 ) {
+    val configuration = LocalConfiguration.current
     val reportOptions =
         listOf("음란성 게시물", "폭력적 또는 불쾌한 게시물", "스팸 게시물", "사생활 침해/개인정보 유출 게시물", "불법적인 게시물")
     var selectedOption by remember {
         mutableStateOf("")
     }
     var selectedOptionToCode = "00"
+    var reportDetailDescription = remember {
+        mutableStateOf("")
+    }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Dialog(
         onDismissRequest = { dismissAction(false) },
         properties = DialogProperties(
             dismissOnBackPress = true,
-            dismissOnClickOutside = true
+            dismissOnClickOutside = true,
+            usePlatformDefaultWidth = false
         )
     ) {
         Surface(
-            modifier = Modifier.wrapContentHeight(),
+            modifier = Modifier
+                .width((configuration.screenWidthDp * 0.85).dp)
+                .height((configuration.screenHeightDp * 0.45).dp),
             shape = RoundedCornerShape(5),
             elevation = 1.dp
         ) {
@@ -1041,7 +1053,7 @@ fun CustomReportDialog(
                                 reportOptions[3] -> selectedOptionToCode = "40"
                                 reportOptions[4] -> selectedOptionToCode = "50"
                             }
-                            reportAction(selectedOptionToCode)
+                            reportAction(selectedOptionToCode, reportDetailDescription.value)
                         },
                         color = BottomSheetCheckColor,
                         textAlign = TextAlign.Center,
@@ -1050,31 +1062,43 @@ fun CustomReportDialog(
                     )
                 }
 
-                Box {
-                    reportOptions.forEachIndexed { index, reportOption ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = (index * 35).dp)
-                                .clickable {
-                                    selectedOption = reportOption
-                                },
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            RadioButton(
-                                selected = selectedOption == reportOption,
-                                onClick = {
-                                    selectedOption = reportOption
-                                },
-                                colors = RadioButtonDefaults.colors(
-                                    selectedColor = LoginButtonColor
+                Column() {
+                    Box {
+                        reportOptions.forEachIndexed { index, reportOption ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = (index * 35).dp)
+                                    .clickable {
+                                        selectedOption = reportOption
+                                    },
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Start
+                            ) {
+                                RadioButton(
+                                    selected = selectedOption == reportOption,
+                                    onClick = {
+                                        selectedOption = reportOption
+                                    },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = LoginButtonColor
+                                    )
                                 )
-                            )
-                            Text(
-                                text = reportOption
-                            )
+                                Text(
+                                    text = reportOption
+                                )
+                            }
                         }
+                    }
+                    Surface(
+                        modifier = Modifier.padding(top = 10.dp, start = 10.dp, end = 10.dp),
+                        border = BorderStroke(1.dp, BorderColor)
+                    ) {
+                        ContentInputField(
+                            inputComment = reportDetailDescription,
+                            keyboardAction = { keyboardController?.hide() },
+                            placeholderText = "상세사유(선택사항)"
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(20.dp))

@@ -1,6 +1,13 @@
 package com.sdm.ecomileage.screens.loginRegister
 
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,6 +25,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -29,8 +37,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.rememberImagePainter
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.CustomLoginInputTextField
@@ -94,7 +107,6 @@ fun LoginScreen(
 
 @Composable
 fun RegisterScaffold(loginRegisterViewModel: LoginRegisterViewModel, navController: NavController) {
-
     //Todo : WA 리팩토링할게 천지뺴까리에요 :) 이거 전부 함수안에 넣으세요 :)
     var isFirstTermAgree by remember {
         mutableStateOf(false)
@@ -134,20 +146,59 @@ fun RegisterScaffold(loginRegisterViewModel: LoginRegisterViewModel, navControll
         showTerms = it
     }
     else if (isRegisterDataInputStep) {
-        RegisterPage(
-            loginRegisterViewModel,
-            navController,
-            isRegisterDataInputStep,
-        ) {
+        RegisterPage(loginRegisterViewModel) {
             isRegisterDataInputStep = it
         }
     } else if (!isRegisterDataInputStep) {
-        ProfileSubmitPage(navController)
+        ProfileSubmitPage(navController, loginRegisterViewModel)
     }
 }
 
 @Composable
-private fun ProfileSubmitPage(navController: NavController) {
+private fun ProfileSubmitPage(
+    navController: NavController,
+    loginRegisterViewModel: LoginRegisterViewModel
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var profileImgBitmap by remember {
+        mutableStateOf<Bitmap?>(null)
+    }
+
+
+    var imageUri by remember {
+        mutableStateOf<Uri?>(null)
+    }
+    var source: ImageDecoder.Source
+
+    val imageCropLauncher =
+        rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
+            if (result.isSuccessful) {
+                imageUri = result.uriContent
+            } else {
+                val exception = result.error
+            }
+        }
+    val imagePickerLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+            val cropOptions = CropImageContractOptions(uri, CropImageOptions())
+            imageCropLauncher.launch(cropOptions)
+        }
+
+    LaunchedEffect(key1 = imageUri) {
+        if (imageUri != null) {
+            if (Build.VERSION.SDK_INT < 28) {
+                profileImgBitmap =
+                    MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+            } else {
+                source = ImageDecoder.createSource(context.contentResolver, imageUri!!)
+                profileImgBitmap = ImageDecoder.decodeBitmap(source)
+            }
+        }
+    }
+
+
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -155,82 +206,112 @@ private fun ProfileSubmitPage(navController: NavController) {
     ) {
         Column(
             modifier = Modifier
-                .padding(top = 150.dp),
+                .padding(top = 100.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_default_profile),
-                contentDescription = "프로필 변경 아이콘",
-                modifier = Modifier.size(170.dp)
-            )
-            Spacer(modifier = Modifier.height(30.dp))
+            Surface(
+                modifier = Modifier
+                    .size(150.dp),
+                shape = CircleShape
+            ) {
+                Image(
+                    painter = rememberImagePainter(if (profileImgBitmap == null) loginRegisterViewModel.defaultProfile!!.toBitmap() else profileImgBitmap),
+                    contentDescription = "프로필 변경 아이콘",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            Spacer(modifier = Modifier.height(20.dp))
             Text(
                 text = "당신의 프로필 사진을\n등록해보세요",
-                fontSize = 19.sp,
+                fontSize = 15.sp,
                 color = ProfileDescriptionColor,
                 textAlign = TextAlign.Center,
             )
-        }
-        Row(
-            modifier = Modifier
-                .padding(start = 104.dp, end = 104.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+
+            Row(
+                modifier = Modifier
+                    .padding(start = 110.dp, end = 110.dp, top = 70.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_camera),
-                    contentDescription = "카메라를 통해 프로필 사진 업로드",
-                    modifier = Modifier.size(50.dp)
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                Text(
-                    text = "카메라",
-                    modifier = Modifier.padding(start = 1.dp),
-                    fontSize = 20.sp,
-                    color = ProfileIconColor
-                )
-            }
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_camera),
-                    contentDescription = "카메라를 통해 프로필 사진 업로드",
-                    modifier = Modifier.size(50.dp)
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                Text(
-                    text = "카메라",
-                    modifier = Modifier.padding(start = 1.dp),
-                    fontSize = 20.sp,
-                    color = ProfileIconColor
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_camera),
+                        contentDescription = "카메라를 통해 프로필 사진 업로드",
+                        modifier = Modifier.size(43.dp)
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text(
+                        text = "카메라",
+                        modifier = Modifier.padding(start = 1.dp),
+                        fontSize = 15.sp,
+                        color = ProfileIconColor
+                    )
+                }
+                Column(
+                    modifier = Modifier,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_camera),
+                        contentDescription = "갤러리를 통해 프로필 사진 업로드",
+                        modifier = Modifier
+                            .size(43.dp)
+                            .clickable {
+                                scope.launch {
+                                    imagePickerLauncher.launch("image/*")
+                                }
+                            }
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text(
+                        text = "갤러리",
+                        modifier = Modifier.padding(start = 1.dp),
+                        fontSize = 15.sp,
+                        color = ProfileIconColor
+                    )
+                }
             }
         }
+
         Column(
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
         ) {
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    if (profileImgBitmap != null) {
+                        scope.launch {
+                            loginRegisterViewModel.putMemberUpdate(
+                                profileImg = bitmapToString(profileImgBitmap!!)
+                            ).let {
+                                Log.d("putMemberUpdate", "ProfileSubmitPage: ${it.data?.message}")
+                                navController.navigate(SecomiScreens.LoginScreen.name) {
+                                    launchSingleTop
+                                }
+                            }
+                        }
+                    } else
+                        showShortToastMessage(context, "프로필을 다시 업로드해주세요.")
+                },
                 modifier = Modifier
                     .fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = LoginButtonColor,
                     disabledBackgroundColor = PlaceholderColor
                 ),
-                enabled = false
+                enabled = profileImgBitmap != null
             ) {
                 Text(text = "완료", color = Color.White)
             }
             Button(
                 onClick = {
-                    navController.navigate(SecomiScreens.HomeScreen.name) {
-                        popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
+                    navController.navigate(SecomiScreens.LoginScreen.name){
+                        launchSingleTop
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -247,9 +328,7 @@ private fun ProfileSubmitPage(navController: NavController) {
 @Composable
 private fun RegisterPage(
     loginRegisterViewModel: LoginRegisterViewModel,
-    navController: NavController,
-    isRegisterDataInputStep: Boolean,
-    onClick: (Boolean) -> Unit
+    onRegisterButtonClick: (Boolean) -> Unit
 ) {
     var userName by remember {
         mutableStateOf("")
@@ -300,6 +379,9 @@ private fun RegisterPage(
         mutableStateOf("")
     }
     var isDeptFocus by remember {
+        mutableStateOf(false)
+    }
+    var isOrganizationNull by remember {
         mutableStateOf(false)
     }
     val scope = rememberCoroutineScope()
@@ -401,13 +483,14 @@ private fun RegisterPage(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth(0.42f)
-                        .height(30.dp),
+                        .height(30.dp)
+                        .padding(bottom = 2.dp),
                     shape = RoundedCornerShape(5),
                     border = BorderStroke(1.dp, PlaceholderColor)
                 ) {
                     CustomLoginInputTextField(
                         modifier = Modifier
-                            .padding(top = 6.dp)
+                            .padding(top = 3.2.dp, start = 2.dp)
                             .fillMaxWidth()
                             .focusRequester(focusRequester)
                             .clickable {
@@ -548,7 +631,8 @@ private fun RegisterPage(
                         .padding(0.5.dp)
                         .height(30.dp),
                     shape = RoundedCornerShape(5),
-                    border = BorderStroke(1.dp, PlaceholderColor)
+                    border = BorderStroke(1.dp, PlaceholderColor),
+                    color = if (isOrganizationNull) PlaceholderColor else Color.White
                 ) {
                     CustomLoginInputTextField(
                         modifier = Modifier
@@ -561,6 +645,7 @@ private fun RegisterPage(
                         inputEvent = { dept = it },
                         focusState = isDeptFocus,
                         color = BorderColor,
+                        enabled = isOrganizationNull,
                         label = "",
                         isFocus = {
                             isNameInputFocus = false
@@ -579,9 +664,7 @@ private fun RegisterPage(
                 var backgroundColor by remember {
                     mutableStateOf(Color.White)
                 }
-                var isOrganizationNull by remember {
-                    mutableStateOf(false)
-                }
+
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -592,12 +675,11 @@ private fun RegisterPage(
                             .size(13.dp)
                             .clickable {
                                 isOrganizationNull = !isOrganizationNull
-                                backgroundColor =
-                                    if (isOrganizationNull) Color.White else LoginButtonColor
+                                dept = ""
                             },
                         border = BorderStroke(1.dp, PlaceholderColor),
                         shape = CircleShape,
-                        color = backgroundColor
+                        color = if (!isOrganizationNull) backgroundColor else LoginButtonColor
                     ) { }
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(text = "없음", modifier = Modifier.padding(3.dp), fontSize = 12.sp)
@@ -676,9 +758,14 @@ private fun RegisterPage(
                                 it.data?.code == 200 -> {
                                     showLongToastMessage(context, "${it.data?.message}")
                                     loginedUserId = "$emailHead@$emailTail"
-                                    navController.navigate(SecomiScreens.LoginScreen.name) {
-                                        launchSingleTop
+
+                                    loginRegisterViewModel.getLogin(
+                                        loginedUserId, passwordSecond
+                                    ).let { loginResult ->
+                                        accessToken = loginResult.data!!.data.accessToken
                                     }
+
+                                    onRegisterButtonClick(false)
                                 }
                                 it.data?.code != 200 -> {
                                     showLongToastMessage(context, "${it.data?.message}")
@@ -686,9 +773,6 @@ private fun RegisterPage(
                             }
                         }
                     }
-
-//                    onClick(!test)
-
                 },
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -701,8 +785,6 @@ private fun RegisterPage(
             ) {
                 Text(text = "회원가입")
             }
-
-
         }
     }
 }
@@ -896,7 +978,12 @@ private fun LoginScaffold(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column {
-            InputLoginInformation(userId, isUserIdFocus, isPasswordFocus, userPassword){ idFocus, passwordFocus ->
+            InputLoginInformation(
+                userId,
+                isUserIdFocus,
+                isPasswordFocus,
+                userPassword
+            ) { idFocus, passwordFocus ->
                 isUserIdFocus = idFocus
                 isPasswordFocus = passwordFocus
             }
@@ -933,9 +1020,14 @@ private fun LoginScaffold(
                                     loginPassword = userPassword.value
                                 )
 
-                            if (loginRegisterViewModel.dataStore.value?.uuid == null){
-                                loginRegisterViewModel.updateUUID(uuid = UUID.randomUUID().toString())
-                                Log.d("LoginScreen", "LoginScaffold: UUID = ${loginRegisterViewModel.dataStore.value?.uuid}")
+                            if (loginRegisterViewModel.dataStore.value?.uuid == null) {
+                                loginRegisterViewModel.updateUUID(
+                                    uuid = UUID.randomUUID().toString()
+                                )
+                                Log.d(
+                                    "LoginScreen",
+                                    "LoginScaffold: UUID = ${loginRegisterViewModel.dataStore.value?.uuid}"
+                                )
                             }
 
                             loginedUserId = userId.value
@@ -1186,14 +1278,5 @@ fun SocialLoginCard(
         ) {
             Text(buttonText, fontSize = 13.sp, fontWeight = FontWeight.Normal)
         }
-    }
-}
-
-
-@Composable
-fun BasicInformText() {
-    Row {
-        Text(text = "＊", color = Color.Red)
-        Text(text = "기본정보", color = Color.DarkGray)
     }
 }
