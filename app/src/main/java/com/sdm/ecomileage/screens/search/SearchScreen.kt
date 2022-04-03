@@ -87,8 +87,8 @@ private fun SearchScaffold(
             }
 
             SearchFilterRow(
-                searchViewModel.selectedZone,
-                searchViewModel.selectedFilter,
+                searchViewModel.getOnSelectedZone(),
+                searchViewModel.getOnSelectedFilter(),
                 onSelectZone = { searchViewModel.onSelectedZone(it) },
                 onSelectFilter = { searchViewModel.onSelectedFilter(it) }
             )

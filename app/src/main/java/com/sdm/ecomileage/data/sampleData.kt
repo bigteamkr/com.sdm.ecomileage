@@ -2,11 +2,8 @@ package com.sdm.ecomileage.data
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import com.sdm.ecomileage.R
-import com.sdm.ecomileage.navigation.SecomiScreens
-import com.sdm.ecomileage.ui.theme.LikeColor
 
 data class SampleHomeRow(val image: String, val name: String)
 data class SampleHomeColumn(val image: String, val name: String, val data: Int, val content: String)
@@ -224,4 +221,15 @@ val CardSampleImage = listOf(
     "https://pbs.twimg.com/profile_images/1374979417915547648/vKspl9Et_400x400.jpg",
     "https://us.123rf.com/450wm/yod67/yod671603/yod67160300036/55619539-흰색-배경에-고양이-얼굴-디자인의-벡터-이미지입니다-.jpg?ver=6",
     "https://ww.namu.la/s/4d74824f000826e6e0339e4f8984314ed2bc04a135255dc7b2332e2ca451705c0928eb21fa7724cb072f5c182dfe5bd6bcbce1602aa55656f706b4d5555ac7e619f8a092f5ebbb74d020f6472b6c06be"
+)
+
+val ChallengeList = listOf(
+    R.drawable.image_empty_dish,
+    R.drawable.image_public_transport,
+    R.drawable.image_thermos,
+    R.drawable.image_label_detach,
+    R.drawable.image_basket,
+    R.drawable.image_pull_a_plug,
+    R.drawable.image_empty_bottle,
+    R.drawable.image_upcycling
 )

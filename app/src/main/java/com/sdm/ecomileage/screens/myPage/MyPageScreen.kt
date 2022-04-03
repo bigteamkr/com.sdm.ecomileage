@@ -4,6 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -12,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -25,6 +29,7 @@ import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.ProfileImage
 import com.sdm.ecomileage.components.SecomiBottomBar
 import com.sdm.ecomileage.components.SecomiMainFloatingActionButton
+import com.sdm.ecomileage.data.ChallengeList
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 
@@ -69,6 +74,81 @@ fun MyPageScreen(navController: NavController, systemUiController: SystemUiContr
                     Divider()
                 }
             }
+            if (selectedButton == "내 챌린지") {
+                Column() {
+                    Text(
+                        text = "항목 당 일일 1회씩만 도전 가능합니다.",
+                        modifier = Modifier.padding(start = 10.dp, top = 10.dp, bottom = 5.dp),
+                        color = IndicationColor
+                    )
+
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(minSize = 180.dp),
+                        contentPadding = PaddingValues(bottom = 70.dp)
+                    ) {
+                        items(ChallengeList) { photo ->
+                            var text = when (photo) {
+                                R.drawable.image_empty_dish -> "빈그릇 챌린지"
+                                R.drawable.image_public_transport -> "대중교통 챌린지"
+                                R.drawable.image_thermos -> "개인 텀블러 챌린지"
+                                R.drawable.image_label_detach -> "라벨지 떼기 챌린지"
+                                R.drawable.image_basket -> "장바구니 챌린지"
+                                R.drawable.image_pull_a_plug -> "코드뽑기 챌린지"
+                                R.drawable.image_empty_bottle -> "용기내 챌린지"
+                                R.drawable.image_upcycling -> "업사이클링 챌린지"
+                                else -> "챌린지"
+                            }
+                            val pointString = AnnotatedString(
+                                "5 ",
+                                spanStyle = SpanStyle(
+                                    color = Color.White,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            val epString = AnnotatedString(
+                                "EP",
+                                spanStyle = SpanStyle(
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Normal
+                                )
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .fillMaxSize()
+                                    .clickable {  },
+                                contentAlignment = Alignment.BottomStart
+                            ) {
+                                Image(
+                                    painter = painterResource(id = photo),
+                                    contentDescription = "",
+                                    modifier =
+                                    Modifier
+                                        .fillMaxSize()
+                                )
+                                Column(
+                                    modifier = Modifier.padding(start = 15.dp, bottom = 10.dp)
+                                ) {
+                                    Text(
+                                        text = text,
+                                        color = Color.White,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = pointString + epString,
+                                        modifier = Modifier.padding(top = 1.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
         }
     }
 }
@@ -80,7 +160,8 @@ private fun MyPageFilterButton(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(top = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -90,6 +171,7 @@ private fun MyPageFilterButton(
             },
             modifier = Modifier
                 .width(170.dp)
+                .height(32.dp)
                 .padding(start = 5.dp),
             shape = RoundedCornerShape(50),
             colors = ButtonDefaults.buttonColors(backgroundColor = if (selectedButton == "내 게시물") PointColor else UnselectedButtonColor)
@@ -105,6 +187,7 @@ private fun MyPageFilterButton(
             },
             modifier = Modifier
                 .width(170.dp)
+                .height(32.dp)
                 .padding(end = 5.dp),
             shape = RoundedCornerShape(50),
             colors = ButtonDefaults.buttonColors(backgroundColor = if (selectedButton == "내 챌린지") PointColor else UnselectedButtonColor)

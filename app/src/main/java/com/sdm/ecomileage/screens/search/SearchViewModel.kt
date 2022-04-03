@@ -88,4 +88,7 @@ class SearchViewModel @Inject constructor(private val repository: SearchReposito
         _selectedFilter.value = selectedFilter
     }
 
+    fun getOnSelectedZone() = _selectedZone.value
+    fun getOnSelectedFilter() = _selectedFilter.value
+
 }

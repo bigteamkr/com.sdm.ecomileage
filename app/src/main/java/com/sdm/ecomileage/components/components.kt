@@ -1012,7 +1012,7 @@ fun CustomReportDialog(
         Surface(
             modifier = Modifier
                 .width((configuration.screenWidthDp * 0.85).dp)
-                .height((configuration.screenHeightDp * 0.45).dp),
+                .height((configuration.screenHeightDp * 0.5).dp),
             shape = RoundedCornerShape(5),
             elevation = 1.dp
         ) {
@@ -1097,7 +1097,8 @@ fun CustomReportDialog(
                         ContentInputField(
                             inputComment = reportDetailDescription,
                             keyboardAction = { keyboardController?.hide() },
-                            placeholderText = "상세사유(선택사항)"
+                            placeholderText = "상세사유(선택사항)",
+                            modifier = Modifier.height(60.dp)
                         )
                     }
                 }
