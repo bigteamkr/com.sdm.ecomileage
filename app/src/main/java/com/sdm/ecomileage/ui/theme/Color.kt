@@ -47,6 +47,9 @@ val indicatorSelectedColor = Color(0xFF3F7845)
 val indicatorUnSelectedColor = Color(0xFFC8E2CB)
 val PlaceholderColor = Color(0xFF9F9F9F)
 val ButtonColor = Color(0xFF3FDB74)
+val BeforeUploadTint = Color(0xFFC8CFDA)
+val BeforeUploadTextColor = Color(0xFF6B788B)
+val UnableUploadButtonColor = Color(0xFF8D8D8D)
 
 
 // Login Register Color

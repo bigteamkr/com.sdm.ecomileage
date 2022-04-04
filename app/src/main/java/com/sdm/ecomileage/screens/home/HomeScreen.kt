@@ -31,7 +31,7 @@ import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.LikeColor
 import com.sdm.ecomileage.ui.theme.StatusBarGreenColor
 import com.sdm.ecomileage.ui.theme.TopBarColor
-import com.sdm.ecomileage.utils.Constants
+import com.sdm.ecomileage.utils.MainFeedReportOptions
 import kotlinx.coroutines.launch
 
 @Composable
@@ -137,6 +137,7 @@ private fun HomeMainContent(
                 contentImageList = data.imageList,
                 contentText = data.feedcontent,
                 profileImage = data.profileimg,
+                profileId = data.userid,
                 profileName = data.userName,
                 reactionIcon = listOf(
                     R.drawable.ic_like_off,
@@ -168,7 +169,7 @@ private fun HomeMainContent(
                     reportListValue = homeViewModel.getReportingFeedNoValueFromKey(data.feedsno)
                     Log.d("HomeRepo", "HomeMainContent: $reportListValue")
 
-                    if (reportListValue != null){
+                    if (reportListValue != null) {
                         scope.launch {
                             homeViewModel.postReport(
                                 data.feedsno,
@@ -192,26 +193,28 @@ private fun HomeMainContent(
 
     if (reportDialogVisible && reportTargetFeedNo != null) {
         CustomReportDialog(
+            reportOptions = MainFeedReportOptions,
             reportAction = { selectedOptionCode, reportDescription ->
-                homeViewModel.reportingFeedAdd(reportTargetFeedNo!!, selectedOptionCode)
+                if (selectedOptionCode == "00") showShortToastMessage(context, "신고 사유를 선택해주세요.")
+                else {
+                    homeViewModel.reportingFeedAdd(reportTargetFeedNo!!, selectedOptionCode)
+                    scope.launch {
+                        homeViewModel.postReport(
+                            feedsNo = reportTargetFeedNo!!,
+                            reportType = selectedOptionCode,
+                            reportContent = reportDescription,
+                            reportYN = true
+                        )
+                        reportTargetFeedNo = null
+                    }
 
-                scope.launch {
-                    homeViewModel.postReport(
-                        feedsNo = reportTargetFeedNo!!,
-                        reportType = selectedOptionCode,
-                        reportContent = reportDescription,
-                        reportYN = true
-                    )
-                    reportTargetFeedNo = null
+                    reportDialogVisible = false
                 }
-
-                reportDialogVisible = false
             },
             dismissAction = {
                 reportDialogVisible = false
                 reportTargetFeedNo = null
             }
-
         )
     }
     Spacer(modifier = Modifier.height(56.dp))
@@ -242,9 +245,11 @@ private fun HomeUserFeedRow(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         ProfileImage(
+                            data.userid,
                             data.profileimg,
                             Modifier,
-                            borderStroke = borderStroke
+                            borderStroke = borderStroke,
+                            navController
                         )
                         ProfileName(
                             name = data.nickname,

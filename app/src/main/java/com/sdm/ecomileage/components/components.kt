@@ -1,7 +1,6 @@
 package com.sdm.ecomileage.components
 
 import android.content.Context
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
@@ -179,76 +178,76 @@ fun SecomiTopAppBar(
                         .fillMaxHeight(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        actionIconsList?.forEach { (key, painter) ->
-                            when (key) {
-                                "search" -> {
-                                    Surface(
-                                        shape = CircleShape,
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .padding(5.dp)
-                                            .clickable {
-                                                navController.navigate(SecomiScreens.SearchScreen.name) {
-                                                    popUpTo(SecomiScreens.HomeScreen.name)
-                                                }
-                                            },
-                                        color = Color.Transparent
-                                    ) {
-                                        Icon(
-                                            painter = painter,
-                                            contentDescription = "Search icon",
-                                            tint = contentColor,
-                                            modifier = Modifier.fillMaxSize()
-                                        )
-                                    }
+
+                    actionIconsList?.forEach { (key, painter) ->
+                        when (key) {
+                            "search" -> {
+                                Surface(
+                                    shape = CircleShape,
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .padding(5.dp)
+                                        .clickable {
+                                            navController.navigate(SecomiScreens.SearchScreen.name) {
+                                                popUpTo(SecomiScreens.HomeScreen.name)
+                                            }
+                                        },
+                                    color = Color.Transparent
+                                ) {
+                                    Icon(
+                                        painter = painter,
+                                        contentDescription = "Search icon",
+                                        tint = contentColor,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
                                 }
-                                "ranking" -> {
-                                    Surface(
-                                        shape = CircleShape,
+                            }
+                            "ranking" -> {
+                                Surface(
+                                    shape = CircleShape,
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .padding(5.dp)
+                                        .clickable {
+                                            navController.navigate(SecomiScreens.RankingScreen.name) {
+                                                popUpTo(SecomiScreens.HomeScreen.name)
+                                            }
+                                        },
+                                    color = Color.Transparent
+                                ) {
+                                    Icon(
+                                        painter = painter,
+                                        contentDescription = "Ranking icon",
+                                        tint = contentColor,
                                         modifier = Modifier
-                                            .size(40.dp)
-                                            .padding(5.dp)
-                                            .clickable {
-                                                navController.navigate(SecomiScreens.RankingScreen.name) {
-                                                    popUpTo(SecomiScreens.HomeScreen.name)
-                                                }
-                                            },
-                                        color = Color.Transparent
-                                    ) {
-                                        Icon(
-                                            painter = painter,
-                                            contentDescription = "Ranking icon",
-                                            tint = contentColor,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                        )
-                                    }
+                                            .fillMaxSize()
+                                    )
                                 }
-                                "push" -> {
-                                    Surface(
-                                        shape = CircleShape,
+                            }
+                            "push" -> {
+                                Surface(
+                                    shape = CircleShape,
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .padding(5.dp)
+                                        .clickable {
+                                            navController.navigate(SecomiScreens.NoticeScreen.name) {
+                                                popUpTo(SecomiScreens.HomeScreen.name)
+                                            }
+                                        },
+                                    color = Color.Transparent
+                                ) {
+                                    Image(
+                                        painter = painter,
+                                        contentDescription = "Push icon",
                                         modifier = Modifier
-                                            .size(40.dp)
-                                            .padding(5.dp)
-                                            .clickable {
-                                                navController.navigate(SecomiScreens.NoticeScreen.name) {
-                                                    popUpTo(SecomiScreens.HomeScreen.name)
-                                                }
-                                            },
-                                        color = Color.Transparent
-                                    ) {
-                                        Image(
-                                            painter = painter,
-                                            contentDescription = "Push icon",
-                                            modifier = Modifier
-                                                .fillMaxSize(),
-                                            contentScale = ContentScale.FillBounds
-                                        )
-                                    }
+                                            .fillMaxSize(),
+                                        contentScale = ContentScale.FillBounds
+                                    )
                                 }
                             }
                         }
+
                     }
                 }
             }
@@ -295,6 +294,7 @@ fun SecomiMainFloatingActionButton(navController: NavController) {
 @Composable
 fun CustomReaction(
     modifier: Modifier = Modifier,
+    textPadding: Dp = 45.dp,
     iconResourceList: List<Int>,
     reactionData: Int,
     onClickReaction: (Boolean) -> Unit,
@@ -310,7 +310,6 @@ fun CustomReaction(
     val isReactionEnable = iconResourceList.size > 1
 
     Box(
-        modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
         IconToggleButton(
@@ -323,7 +322,7 @@ fun CustomReaction(
                 onClickReaction(isChecked)
                 _reactionData = if (isChecked) _reactionData + 1 else _reactionData - 1
             },
-            modifier = Modifier.size(24.dp),
+            modifier = modifier,
             enabled = isReactionEnable
         ) {
             Icon(
@@ -336,7 +335,7 @@ fun CustomReaction(
         Text(
             text = "$_reactionData",
             modifier = Modifier
-                .padding(start = 45.dp),
+                .padding(start = textPadding),
             style = MaterialTheme.typography.subtitle2,
             fontWeight = FontWeight.Normal,
             color = tintColor
@@ -400,16 +399,25 @@ fun ProfileName(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ProfileImage(
+    userId: String,
     image: String,
     modifier: Modifier = Modifier,
     borderStroke: BorderStroke = BorderStroke(
         width = 0.dp,
         color = Color.LightGray
-    )
+    ),
+    navController: NavController,
+    isOnEducation: Boolean = false
 ) {
     Surface(
-        onClick = { },
-        modifier = modifier.size(55.dp),
+        onClick = {
+            if (!isOnEducation)
+                navController.navigate(SecomiScreens.MyPageScreen.name + "/$userId") {
+                    launchSingleTop
+                }
+        },
+        modifier = modifier
+            .size(55.dp),
         shape = CircleShape,
         border = borderStroke
     ) {
@@ -426,6 +434,7 @@ fun MainFeedCardStructure(
     contentImageList: List<String>,
     contentText: String,
     profileImage: String,
+    profileId: String,
     profileName: String,
     reactionIcon: List<Int>,
     reactionData: Int,
@@ -441,7 +450,8 @@ fun MainFeedCardStructure(
     reportDialogCallAction: (Boolean) -> Unit,
     reportingCancelAction: (Int) -> Unit,
     currentScreen: String,
-    destinationScreen: String?
+    destinationScreen: String?,
+    showIndicator: Boolean = true
 ) {
     var isReportingCard by remember { mutableStateOf(isCurrentReportingFeedsNo) }
     LaunchedEffect(key1 = isCurrentReportingFeedsNo) {
@@ -459,6 +469,7 @@ fun MainFeedCardStructure(
             MainCardFeed(
                 contentImageList,
                 profileImage,
+                profileId,
                 profileName,
                 null,
                 null,
@@ -475,7 +486,8 @@ fun MainFeedCardStructure(
                 feedNo,
                 contentText,
                 hashtagList,
-                destinationScreen
+                destinationScreen,
+                showIndicator
             )
 
         }
@@ -486,6 +498,7 @@ fun MainFeedCardStructure(
 fun MainCardFeed(
     contentImageList: List<String>,
     profileImage: String,
+    profileId: String,
     profileName: String,
     educationTitle: String?,
     educationTime: String?,
@@ -494,15 +507,17 @@ fun MainCardFeed(
     onReactionClick: ((Boolean) -> Unit)?,
     reactionTint: Color?,
     likeYN: Boolean?,
-    colorIcon: (@Composable () -> Unit)?,
-    otherIcons: (Map<String, Int>)?,
+    colorIcon: @Composable() (() -> Unit)?,
+    otherIcons: Map<String, Int>?,
     navController: NavController,
     reportDialogCallAction: ((Boolean) -> Unit)?,
     currentScreen: String,
     feedNo: Int,
-    contentText: String,
+    contentText: String?,
     hashtagList: List<String>?,
-    destinationScreen: String?
+    destinationScreen: String?,
+    showIndicator: Boolean,
+    isOnEducation: Boolean = false
 ) {
     val heightModifier = if (currentScreen == SecomiScreens.EducationScreen.name) 230.dp else 355.dp
 
@@ -531,10 +546,17 @@ fun MainCardFeed(
                     .fillMaxWidth()
                     .height(heightModifier)
             ) {
-                CardImageRow(contentImageList, educationTitle, educationTime, currentScreen)
+                CardImageRow(
+                    contentImageList,
+                    currentScreen,
+                    educationTitle,
+                    educationTime,
+                    showIndicator = showIndicator
+                )
             }
             CardWriterInformation(
                 profileImage,
+                profileId,
                 profileName,
                 reactionIcon,
                 reactionData,
@@ -546,7 +568,8 @@ fun MainCardFeed(
                 navController,
                 reportDialogCallAction,
                 currentScreen,
-                feedNo
+                feedNo,
+                isOnEducation
             )
             CardContent(contentText, hashtagList)
         }
@@ -556,6 +579,7 @@ fun MainCardFeed(
 @Composable
 fun CardWriterInformation(
     profileImage: String,
+    profileId: String,
     profileName: String,
     reactionIcon: List<Int>?,
     reactionData: Int?,
@@ -564,10 +588,11 @@ fun CardWriterInformation(
     likeYN: Boolean?,
     colorIcon: (@Composable () -> Unit)?,
     otherIcons: (Map<String, Int>)?,
-    navController: NavController?,
+    navController: NavController,
     reportDialogCallAction: ((Boolean) -> Unit)?,
     currentScreen: String,
-    feedNo: Int?
+    feedNo: Int?,
+    isOnEducation: Boolean = false
 ) {
     Row(
         modifier = Modifier
@@ -582,10 +607,13 @@ fun CardWriterInformation(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ProfileImage(
+                userId = profileId,
                 image = profileImage,
                 modifier = Modifier
                     .size(35.dp)
-                    .padding(start = 5.dp)
+                    .padding(start = 5.dp),
+                navController = navController,
+                isOnEducation = isOnEducation
             )
             ProfileName(
                 name = profileName,
@@ -601,7 +629,7 @@ fun CardWriterInformation(
         ) {
             if (onReactionClick != null && reactionIcon != null && reactionData != null && reactionTint != null && likeYN != null)
                 CustomReaction(
-                    modifier = Modifier,
+                    modifier = Modifier.size(24.dp),
                     iconResourceList = reactionIcon,
                     reactionData = reactionData,
                     onClickReaction = { onReactionClick(it) },
@@ -651,25 +679,26 @@ fun CardWriterInformation(
 
 @Composable
 private fun CardContent(
-    contentText: String,
+    contentText: String?,
     hashtagList: List<String>?
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start
     ) {
-        Text(
-            text = contentText,
-            modifier = Modifier.padding(
-                start = 12.dp,
-                end = 10.dp,
-                top = 7.dp
-            ),
-            style = MaterialTheme.typography.body2,
-            fontSize = 14.sp,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
+        if (contentText != null)
+            Text(
+                text = contentText,
+                modifier = Modifier.padding(
+                    start = 12.dp,
+                    end = 10.dp,
+                    top = 7.dp
+                ),
+                style = MaterialTheme.typography.body2,
+                fontSize = 14.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
 
         if (!hashtagList.isNullOrEmpty()) {
             Row(Modifier.padding(start = 12.dp, end = 10.dp, top = 7.dp)) {
@@ -693,11 +722,14 @@ private fun CardContent(
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-private fun CardImageRow(
+fun CardImageRow(
     imageList: List<String>,
-    educationTitle: String?,
-    educationTime: String?,
-    currentScreen: String
+    currentScreen: String,
+    educationTitle: String? = null,
+    educationTime: String? = null,
+    indicatorSurfaceSize: Dp? = null,
+    indicatorTextSize: TextUnit? = null,
+    showIndicator: Boolean = true,
 ) {
     val pagerState = rememberPagerState()
     Box(
@@ -721,7 +753,7 @@ private fun CardImageRow(
                 ) {
                     Image(
                         painter = rememberImagePainter(imageList[page]),
-                        contentDescription = "HomeFeed",
+                        contentDescription = "FeedImageList",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
@@ -739,7 +771,7 @@ private fun CardImageRow(
             }
         }
 
-        if (currentScreen != SecomiScreens.EducationScreen.name)
+        if (showIndicator)
             Surface(
                 modifier = Modifier
                     .padding(2.dp)
@@ -755,6 +787,7 @@ private fun CardImageRow(
                         top = 7.dp,
                         bottom = 7.dp
                     ),
+                    fontSize = indicatorTextSize ?: TextUnit.Unspecified,
                     color = Color.White,
                     style = MaterialTheme.typography.caption
                 )
@@ -804,7 +837,7 @@ fun SecomiBottomBar(navController: NavController, currentScreen: String) {
                 labelModifier,
                 letterSpacing,
                 labelStyle,
-                currentScreenButton = SecomiScreens.HomeScreen.name,
+                currentBottomButton = SecomiScreens.HomeScreen.name,
                 iconResource = homeIcon,
                 label = "HOME",
                 description = "Home Navigate Button"
@@ -815,14 +848,17 @@ fun SecomiBottomBar(navController: NavController, currentScreen: String) {
                 navController,
                 iconModifier,
                 labelModifier,
-                letterSpacing,
+                0.sp,
                 labelStyle,
-                currentScreenButton = SecomiScreens.EducationScreen.name,
+                currentBottomButton = SecomiScreens.EducationScreen.name,
                 iconResource = educationIcon,
                 label = "EDUCATION",
                 description = "Education Navigate Button"
             )
-            Spacer(modifier = Modifier.width(35.dp))
+
+
+            Spacer(modifier = Modifier.width(70.dp))
+
 
             BottomBarItem(
                 selectedIconName,
@@ -831,12 +867,13 @@ fun SecomiBottomBar(navController: NavController, currentScreen: String) {
                 labelModifier,
                 letterSpacing,
                 labelStyle,
-                currentScreenButton = SecomiScreens.EventScreen.name,
+                currentBottomButton = SecomiScreens.EventScreen.name,
                 iconResource = eventIcon,
                 label = "EVENT",
                 description = "Event Navigate Button"
             )
 
+
             BottomBarItem(
                 selectedIconName,
                 navController,
@@ -844,7 +881,7 @@ fun SecomiBottomBar(navController: NavController, currentScreen: String) {
                 labelModifier,
                 letterSpacing,
                 labelStyle,
-                currentScreenButton = SecomiScreens.MyPageScreen.name,
+                currentBottomButton = SecomiScreens.MyPageScreen.name,
                 iconResource = myPageIcon,
                 label = "MY PAGE",
                 description = "My Page Navigate Button"
@@ -855,24 +892,28 @@ fun SecomiBottomBar(navController: NavController, currentScreen: String) {
 
 @Composable
 private fun RowScope.BottomBarItem(
-    selectedIconName: MutableState<String>,
+    currentScreen: MutableState<String>,
     navController: NavController,
     iconModifier: Modifier,
     labelModifier: Modifier,
     letterSpacing: TextUnit,
     labelStyle: TextStyle,
-    currentScreenButton: String,
+    currentBottomButton: String,
     iconResource: MutableState<Int>,
     label: String,
     description: String
 ) {
+    val route =
+        if (currentBottomButton == SecomiScreens.MyPageScreen.name) "$currentBottomButton/myPage"
+        else currentBottomButton
     BottomNavigationItem(
-        selected = selectedIconName.value == currentScreenButton,
+        selected = currentScreen.value == currentBottomButton,
         onClick = {
-            selectedIconName.value = currentScreenButton
-            navController.navigate(currentScreenButton) {
+            navController.navigate(route) {
                 launchSingleTop
+                popUpTo(currentScreen.value) { inclusive = true }
             }
+            currentScreen.value = currentBottomButton
         },
         icon = {
             Icon(
@@ -987,11 +1028,10 @@ fun CustomLoginInputTextField(
 @Composable
 fun CustomReportDialog(
     reportAction: (String, String?) -> Unit,
-    dismissAction: (Boolean) -> Unit
+    dismissAction: (Boolean) -> Unit,
+    reportOptions: List<String>
 ) {
     val configuration = LocalConfiguration.current
-    val reportOptions =
-        listOf("음란성 게시물", "폭력적 또는 불쾌한 게시물", "스팸 게시물", "사생활 침해/개인정보 유출 게시물", "불법적인 게시물")
     var selectedOption by remember {
         mutableStateOf("")
     }

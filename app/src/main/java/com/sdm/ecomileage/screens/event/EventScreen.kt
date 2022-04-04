@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -14,19 +15,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.compose.rememberImagePainter
-import com.sdm.ecomileage.components.SecomiBottomBar
-import com.sdm.ecomileage.components.SecomiMainFloatingActionButton
-import com.sdm.ecomileage.data.EventCurrentSampleData
-import com.sdm.ecomileage.navigation.SecomiScreens
-import com.sdm.ecomileage.ui.theme.SelectedTabColor
-import com.sdm.ecomileage.ui.theme.UnSelectedTabColor
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.systemuicontroller.SystemUiController
+import com.sdm.ecomileage.components.SecomiBottomBar
+import com.sdm.ecomileage.components.SecomiMainFloatingActionButton
+import com.sdm.ecomileage.navigation.SecomiScreens
+import com.sdm.ecomileage.ui.theme.SelectedTabColor
+import com.sdm.ecomileage.ui.theme.UnSelectedTabColor
 import kotlinx.coroutines.launch
 
 
@@ -102,22 +103,22 @@ private fun EventAttendScaffold(navController: NavController) {
     }
     val pagerState = rememberPagerState()
 
-    val sampleCurrentEventItems = EventCurrentSampleData
-
     Scaffold(
         modifier = Modifier.fillMaxSize()
     ) {
 
         HorizontalPager(
-            count = sampleCurrentEventItems.size,
+            count = 1,
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
             Image(
-                painter = rememberImagePainter(sampleCurrentEventItems[page]),
+                painter = painterResource(id = com.sdm.ecomileage.R.drawable.image_event_sample),
                 contentDescription = "",
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier.fillMaxSize()
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .padding(vertical = 60.dp)
+                    .fillMaxSize()
             )
         }
 
@@ -135,8 +136,10 @@ private fun QuizChallengeScaffold(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = rememberImagePainter("https://cdn.pixabay.com/photo/2020/12/25/09/11/quiz-5858940_960_720.jpg"),
+                painterResource(id = com.sdm.ecomileage.R.drawable.image_quiz_sample),
                 contentDescription = "Sample",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.padding(vertical = 60.dp)
             )
         }
     }

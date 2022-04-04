@@ -83,8 +83,14 @@ fun SdmNavigation() {
         }
 
 
-        composable(SecomiScreens.MyPageScreen.name) {
-            MyPageScreen(navController, systemUiController)
+        composable("${SecomiScreens.MyPageScreen.name}/{userId}", arguments = listOf(
+            navArgument(name = "userId") {
+                type = NavType.StringType
+            }
+        )) { navBackStackEntry ->
+            navBackStackEntry.arguments?.getString("userId").let { userId ->
+                MyPageScreen(navController, systemUiController, userId)
+            }
         }
 
         composable(SecomiScreens.RankingScreen.name) {
@@ -104,20 +110,3 @@ fun SdmNavigation() {
 
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

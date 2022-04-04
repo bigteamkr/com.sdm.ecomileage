@@ -2,6 +2,8 @@ package com.sdm.ecomileage.screens.homeDetail
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -9,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -22,7 +25,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -37,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
+import com.sdm.ecomileage.components.CustomReportDialog
 import com.sdm.ecomileage.components.ProfileImage
 import com.sdm.ecomileage.components.ProfileName
 import com.sdm.ecomileage.components.SecomiTopAppBar
@@ -48,7 +54,7 @@ import com.sdm.ecomileage.model.comment.mainFeed.response.MainFeedResponse
 import com.sdm.ecomileage.model.comment.mainFeed.response.PostInfo
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
-import com.sdm.ecomileage.utils.Constants
+import com.sdm.ecomileage.utils.CommentReportOptions
 import com.sdm.ecomileage.utils.loginedUserId
 import com.sdm.ecomileage.utils.uuidSample
 import kotlinx.coroutines.Dispatchers
@@ -139,6 +145,18 @@ private fun HomeDetailScaffold(
         localComment.add(it)
     }
 
+    var reportDialogVisible by remember {
+        mutableStateOf(false)
+    }
+
+    var reportTargetCommentNo by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+    var isCurrentFeedReporting by remember {
+        mutableStateOf(false)
+    }
+    var reportListValue: String?
 
     Scaffold(
         topBar = {
@@ -158,13 +176,14 @@ private fun HomeDetailScaffold(
                         modifier = Modifier
                             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
                     ) {
-                        //Todo : ProfileName 고치기
                         HomeDetailContent(
                             Modifier,
+                            postInfo.userid,
                             postInfo.profileimg,
                             postInfo.userName,
                             postInfo.feedcontent,
-                            postInfo.hashtags
+                            postInfo.hashtags,
+                            navController
                         )
                     }
                 }
@@ -203,39 +222,82 @@ private fun HomeDetailScaffold(
             itemsIndexed(localComment) { index, data ->
                 Row {
                     HomeDetailContent(
+                        userId = data.userId,
                         image = data.profileimg,
                         name = data.userName,
-                        text = data.title
+                        text = data.title,
+                        navController = navController,
+                        isItCommentFeed = true,
+                        onReportVisible = {
+                            reportDialogVisible = true
+                            reportTargetCommentNo = data.commentsno
+                        }
                     )
                 }
                 if (index == homeDetailCommentData.lastIndex)
                     Spacer(modifier = Modifier.height(50.dp))
             }
         }
+        if (reportDialogVisible)
+            CustomReportDialog(
+                reportAction = { selectedOption, reportDescription ->
+                    
+
+                }, dismissAction = {
+                    reportDialogVisible = false
+                }, reportOptions = CommentReportOptions
+            )
     }
 }
 
 @Composable
 private fun HomeDetailContent(
     modifier: Modifier = Modifier,
+    userId: String,
     image: String,
     name: String,
     text: String,
     tag: List<String>? = null,
+    navController: NavController,
+    isItCommentFeed: Boolean = false,
+    onReportVisible: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
             .padding(10.dp),
         verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.Start
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        ProfileImage(
-            image = image,
-            modifier = Modifier.size(45.dp),
-            borderStroke = BorderStroke(0.dp, Color.Transparent)
-        )
-        Spacer(modifier = Modifier.width(5.dp))
-        HomeDetailFormat(name = name, text = text, tagList = tag)
+        Row(
+            modifier = Modifier.fillMaxWidth(0.95f)
+        ) {
+            ProfileImage(
+                userId = userId,
+                image = image,
+                modifier = Modifier.size(45.dp),
+                borderStroke = BorderStroke(0.dp, Color.Transparent),
+                navController = navController
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            HomeDetailFormat(name = name, text = text, tagList = tag)
+        }
+        if (isItCommentFeed)
+            Surface(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable {
+                        if (onReportVisible != null) onReportVisible()
+                    },
+                shape = CircleShape,
+                border = BorderStroke(1.dp, Color.Transparent)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_more),
+                    contentDescription = "내 댓글 수정하기 혹은 남의 글 신고하기 버튼",
+                    contentScale = ContentScale.Crop,
+                    colorFilter = ColorFilter.tint(UnselectedButtonColor)
+                )
+            }
     }
 }
 
@@ -275,6 +337,7 @@ private fun HomeDetailFormat(
         }
     }
 }
+
 
 @OptIn(
     ExperimentalComposeUiApi::class,

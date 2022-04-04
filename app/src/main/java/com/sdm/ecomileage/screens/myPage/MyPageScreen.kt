@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -21,23 +22,50 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
-import com.sdm.ecomileage.components.ProfileImage
-import com.sdm.ecomileage.components.SecomiBottomBar
-import com.sdm.ecomileage.components.SecomiMainFloatingActionButton
+import com.sdm.ecomileage.components.*
 import com.sdm.ecomileage.data.ChallengeList
+import com.sdm.ecomileage.data.DataOrException
+import com.sdm.ecomileage.model.myPage.myFeedInfo.response.MyFeedInfoResponse
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 
 @Composable
-fun MyPageScreen(navController: NavController, systemUiController: SystemUiController) {
+fun MyPageScreen(
+    navController: NavController,
+    systemUiController: SystemUiController,
+    userId: String?,
+    myPageViewModel: MyPageViewModel = hiltViewModel()
+) {
     SideEffect {
         systemUiController.setStatusBarColor(StatusBarGreenColor)
     }
+
+    val myFeedInfo = produceState<DataOrException<MyFeedInfoResponse, Boolean, Exception>>(
+        initialValue = DataOrException(loading = true)
+    ) {
+        value = myPageViewModel.getMyFeedInfo()
+    }.value
+
+    if (myFeedInfo.loading == true)
+        CircularProgressIndicator()
+    else if (myFeedInfo.data?.result != null && userId == "myPage")
+        MyPageScaffold(navController, myFeedInfo)
+    else if (userId != "myPage")
+        Text(text = userId!!)
+}
+
+@Composable
+private fun MyPageScaffold(
+    navController: NavController,
+    myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>,
+) {
     var selectedButton by remember {
         mutableStateOf("내 게시물")
     }
@@ -65,88 +93,96 @@ fun MyPageScreen(navController: NavController, systemUiController: SystemUiContr
             }
 
             if (selectedButton == "내 게시물") {
-                Column() {
+                Column {
                     Text(
                         text = "오늘",
+                        fontSize = 12.sp,
                         modifier = Modifier.padding(start = 10.dp, top = 10.dp, bottom = 5.dp),
                         color = IndicationColor
                     )
                     Divider()
+                    MyFeedList(navController, myFeedInfo)
                 }
             }
             if (selectedButton == "내 챌린지") {
-                Column() {
-                    Text(
-                        text = "항목 당 일일 1회씩만 도전 가능합니다.",
-                        modifier = Modifier.padding(start = 10.dp, top = 10.dp, bottom = 5.dp),
-                        color = IndicationColor
+                MyChallengeLayout()
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun MyChallengeLayout() {
+    Column() {
+        Text(
+            text = "항목 당 일일 1회씩만 도전 가능합니다.",
+            fontSize = 12.sp,
+            modifier = Modifier.padding(start = 10.dp, top = 10.dp, bottom = 5.dp),
+            color = IndicationColor
+        )
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(bottom = 70.dp)
+        ) {
+            items(ChallengeList) { photo ->
+                var text = when (photo) {
+                    R.drawable.image_empty_dish -> "빈그릇 챌린지"
+                    R.drawable.image_public_transport -> "대중교통 챌린지"
+                    R.drawable.image_thermos -> "개인 텀블러 챌린지"
+                    R.drawable.image_label_detach -> "라벨지 떼기 챌린지"
+                    R.drawable.image_basket -> "장바구니 챌린지"
+                    R.drawable.image_pull_a_plug -> "코드뽑기 챌린지"
+                    R.drawable.image_empty_bottle -> "용기내 챌린지"
+                    R.drawable.image_upcycling -> "업사이클링 챌린지"
+                    else -> "챌린지"
+                }
+                val pointString = AnnotatedString(
+                    "5 ",
+                    spanStyle = SpanStyle(
+                        color = Color.White,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
                     )
+                )
+                val epString = AnnotatedString(
+                    "EP",
+                    spanStyle = SpanStyle(
+                        color = Color.White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal
+                    )
+                )
 
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = 180.dp),
-                        contentPadding = PaddingValues(bottom = 70.dp)
+                Box(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxSize()
+                        .clickable { },
+                    contentAlignment = Alignment.BottomStart
+                ) {
+                    Image(
+                        painter = painterResource(id = photo),
+                        contentDescription = "",
+                        modifier =
+                        Modifier
+                            .fillMaxSize()
+                    )
+                    Column(
+                        modifier = Modifier.padding(start = 15.dp, bottom = 10.dp)
                     ) {
-                        items(ChallengeList) { photo ->
-                            var text = when (photo) {
-                                R.drawable.image_empty_dish -> "빈그릇 챌린지"
-                                R.drawable.image_public_transport -> "대중교통 챌린지"
-                                R.drawable.image_thermos -> "개인 텀블러 챌린지"
-                                R.drawable.image_label_detach -> "라벨지 떼기 챌린지"
-                                R.drawable.image_basket -> "장바구니 챌린지"
-                                R.drawable.image_pull_a_plug -> "코드뽑기 챌린지"
-                                R.drawable.image_empty_bottle -> "용기내 챌린지"
-                                R.drawable.image_upcycling -> "업사이클링 챌린지"
-                                else -> "챌린지"
-                            }
-                            val pointString = AnnotatedString(
-                                "5 ",
-                                spanStyle = SpanStyle(
-                                    color = Color.White,
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                            val epString = AnnotatedString(
-                                "EP",
-                                spanStyle = SpanStyle(
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Normal
-                                )
-                            )
-
-                            Box(
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .fillMaxSize()
-                                    .clickable {  },
-                                contentAlignment = Alignment.BottomStart
-                            ) {
-                                Image(
-                                    painter = painterResource(id = photo),
-                                    contentDescription = "",
-                                    modifier =
-                                    Modifier
-                                        .fillMaxSize()
-                                )
-                                Column(
-                                    modifier = Modifier.padding(start = 15.dp, bottom = 10.dp)
-                                ) {
-                                    Text(
-                                        text = text,
-                                        color = Color.White,
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = pointString + epString,
-                                        modifier = Modifier.padding(top = 1.dp)
-                                    )
-                                }
-                            }
-                        }
+                        Text(
+                            text = text,
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = pointString + epString,
+                            modifier = Modifier.padding(top = 1.dp)
+                        )
                     }
-
                 }
             }
         }
@@ -170,15 +206,17 @@ private fun MyPageFilterButton(
                 onClick("내 게시물")
             },
             modifier = Modifier
-                .width(170.dp)
-                .height(32.dp)
+                .width(175.dp)
+                .height(35.dp)
                 .padding(start = 5.dp),
             shape = RoundedCornerShape(50),
             colors = ButtonDefaults.buttonColors(backgroundColor = if (selectedButton == "내 게시물") PointColor else UnselectedButtonColor)
         ) {
             Text(
                 text = "내 게시물",
-                color = if (selectedButton == "내 게시물") Color.White else Color.Black
+                color = if (selectedButton == "내 게시물") Color.White else Color.Black,
+                fontWeight = if (selectedButton == "내 게시물") FontWeight.SemiBold else FontWeight.Normal,
+                textAlign = TextAlign.Center
             )
         }
         Button(
@@ -186,15 +224,17 @@ private fun MyPageFilterButton(
                 onClick("내 챌린지")
             },
             modifier = Modifier
-                .width(170.dp)
-                .height(32.dp)
+                .width(175.dp)
+                .height(35.dp)
                 .padding(end = 5.dp),
             shape = RoundedCornerShape(50),
             colors = ButtonDefaults.buttonColors(backgroundColor = if (selectedButton == "내 챌린지") PointColor else UnselectedButtonColor)
         ) {
             Text(
                 text = "내 챌린지",
-                color = if (selectedButton == "내 챌린지") Color.White else Color.Black
+                color = if (selectedButton == "내 챌린지") Color.White else Color.Black,
+                fontWeight = if (selectedButton == "내 챌린지") FontWeight.SemiBold else FontWeight.Normal,
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -289,10 +329,12 @@ private fun MyPageTopBar(navController: NavController) {
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     ProfileImage(
+                        userId = "myPage",
                         image = "https://blog.yena.io/assets/post-img/171123-nachoi-300.jpg",
                         modifier = Modifier
                             .padding(start = 10.dp, top = 2.dp)
-                            .size(25.dp)
+                            .size(25.dp),
+                        navController = navController
                     )
                     Text(
                         text = "김채영",
@@ -311,6 +353,132 @@ private fun MyPageTopBar(navController: NavController) {
                 Text(
                     pointString, Modifier.padding(end = 15.dp),
                 )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun MyFeedList(
+    navController: NavController,
+    myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>
+) {
+    LazyVerticalGrid(columns = GridCells.Fixed(2)) {
+        itemsIndexed(myFeedInfo.data!!.result.feedList) { index, data ->
+            MyFeedCard(
+                navController = navController,
+                feedNo = data.id,
+                currentScreen = SecomiScreens.MyPageScreen.name,
+                contentImageList = data.imageList,
+                onReactionClick = {},
+                reportDialogCallAction = {},
+                otherIcons = mapOf(
+                    "comment" to R.drawable.ic_comment,
+                    "empty" to 55,
+                    "more" to R.drawable.ic_more
+                ),
+                commentCount = data.commentCount.toString()
+            )
+
+            if (index == myFeedInfo.data!!.result.feedList.lastIndex)
+                Spacer(modifier = Modifier.height(230.dp))
+        }
+    }
+}
+
+
+@Composable
+fun MyFeedCard(
+    navController: NavController,
+    feedNo: Int,
+    heightModifier: Dp = 120.dp,
+    currentScreen: String,
+    contentImageList: List<String>,
+    onReactionClick: ((Boolean) -> Unit),
+    otherIcons: (Map<String, Int>)?,
+    commentCount: String,
+    reportDialogCallAction: ((Boolean) -> Unit)?
+) {
+    Card(
+        modifier = Modifier
+            .padding(5.dp)
+            .padding(vertical = 5.dp)
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        backgroundColor = Color.White
+    ) {
+        Column() {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(heightModifier)
+            ) {
+                CardImageRow(contentImageList, currentScreen, indicatorTextSize = 11.sp, showIndicator = false)
+            }
+
+            Row(
+                modifier = Modifier
+                    .padding(vertical = 5.dp)
+                    .padding(start = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                CustomReaction(
+                    modifier = Modifier.size(18.dp),
+                    textPadding = 30.dp,
+                    iconResourceList = listOf(
+                        R.drawable.ic_like_off,
+                        R.drawable.ic_like_on
+                    ),
+                    reactionData = 3,
+                    onClickReaction = { onReactionClick(it) },
+                    tintColor = LikeColor,
+                    likeYN = false
+                )
+
+                otherIcons?.forEach { (key, icon) ->
+                    when (key) {
+                        "comment" -> {
+                            Icon(
+                                painter = painterResource(icon),
+                                contentDescription = "댓글창으로 이동하기",
+                                modifier = Modifier
+                                    .padding(start = 10.dp)
+                                    .size(18.dp)
+                                    .clickable {
+                                        navController.navigate(SecomiScreens.HomeDetailScreen.name + "/$feedNo") {
+                                            launchSingleTop
+                                            popUpTo(currentScreen)
+                                        }
+                                    },
+                                tint = CardIconsColor
+                            )
+                            Text(
+                                text = commentCount,
+                                modifier = Modifier.padding(start = 5.dp),
+                                color = CardIconsColor
+                            )
+                        }
+                        "empty" -> {
+                            Spacer(modifier = Modifier.width(icon.dp))
+                        }
+                        "more" -> {
+                            Icon(
+                                painter = painterResource(icon),
+                                contentDescription = "설정창 열기",
+                                modifier = Modifier
+                                    .padding(start = 10.dp)
+                                    .size(18.dp)
+                                    .clickable {
+                                        if (reportDialogCallAction != null)
+                                            reportDialogCallAction(true)
+                                    },
+                                tint = CardIconsColor
+                            )
+                        }
+                    }
+                }
             }
         }
     }

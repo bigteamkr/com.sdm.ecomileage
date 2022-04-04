@@ -123,7 +123,9 @@ private fun EducationScaffold(
                 ) {
                     MainCardFeed(
                         contentImageList = listOf(data.thumnailurl),
+                        showIndicator = false,
                         profileImage = data.manageprofile,
+                        profileId = data.manageid,
                         profileName = data.managename,
                         educationTitle = data.title,
                         educationTime = "2:39",
@@ -149,7 +151,8 @@ private fun EducationScaffold(
                         feedNo = data.educationsno,
                         contentText = data.videocontent,
                         hashtagList = null,
-                        destinationScreen = null
+                        destinationScreen = null,
+                        isOnEducation = true
                     )
                 }.let {
                     if (popUpState)
@@ -160,6 +163,7 @@ private fun EducationScaffold(
                             data.educationsno,
                             data.educationyn,
                             data.manageprofile,
+                            data.manageid,
                             data.managename,
                             navController
                         ) {
@@ -235,6 +239,7 @@ private fun CustomEducationVideoDialog(
     educationNo: Int,
     educationYN: Boolean,
     manageProfile: String,
+    manageId: String,
     manageName: String,
     navController: NavController,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
@@ -397,6 +402,7 @@ private fun CustomEducationVideoDialog(
                     Row(modifier = Modifier.padding(end = 4.dp)) {
                         CardWriterInformation(
                             profileImage = manageProfile,
+                            profileId = manageId,
                             profileName = manageName,
                             reactionIcon = null,
                             reactionData = null,
@@ -413,10 +419,11 @@ private fun CustomEducationVideoDialog(
                                 )
                             },
                             otherIcons = mapOf("comment" to R.drawable.ic_comment),
-                            navController = null,
+                            navController = navController,
                             reportDialogCallAction = null,
                             currentScreen = SecomiScreens.EducationScreen.name,
-                            feedNo = null
+                            feedNo = null,
+                            isOnEducation = true
                         )
                     }
                     Text(
@@ -426,7 +433,7 @@ private fun CustomEducationVideoDialog(
                         color = PlaceholderColor
                     )
                     Column(
-                        modifier = Modifier.padding(top = 15.dp)
+                        modifier = Modifier.padding(top = 15.dp, start = 8.dp, end = 8.dp)
                     ) {
                         Button(
                             onClick = {

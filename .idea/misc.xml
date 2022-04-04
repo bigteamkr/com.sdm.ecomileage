@@ -137,6 +137,8 @@
         <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.118" />
         <entry key="app/src/main/res/drawable/ic_mileage.xml" value="0.117" />
         <entry key="app/src/main/res/drawable/ic_out.xml" value="0.117" />
+        <entry key="app/src/main/res/drawable/ic_ranking.xml" value="0.118" />
+        <entry key="app/src/main/res/drawable/ic_ranking_address.xml" value="0.118" />
         <entry key="app/src/main/res/drawable/ic_setting.xml" value="0.118" />
         <entry key="app/src/main/res/drawable/ic_topbar_leaves.xml" value="0.117" />
         <entry key="app/src/main/res/drawable/ic_topbar_leaves_2.xml" value="0.118" />

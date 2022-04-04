@@ -632,7 +632,7 @@ private fun RegisterPage(
                         .height(30.dp),
                     shape = RoundedCornerShape(5),
                     border = BorderStroke(1.dp, PlaceholderColor),
-                    color = if (isOrganizationNull) PlaceholderColor else Color.White
+                    color = if (isOrganizationNull) BottomUnSelectedColor else Color.White
                 ) {
                     CustomLoginInputTextField(
                         modifier = Modifier

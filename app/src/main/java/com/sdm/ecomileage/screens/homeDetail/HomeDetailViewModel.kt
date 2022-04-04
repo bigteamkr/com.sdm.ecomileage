@@ -48,6 +48,9 @@ class HomeDetailViewModel @Inject constructor(private val repository: CommentRep
             )
         )
 
+    private val _reportingCommentList = mutableMapOf<Int, String>()
+    fun getReportingCommentValueFromKey(key: Int) = _reportingCommentList[key]
+
     suspend fun postNewComment(
         uuid: String,
         feedNo: Int,
