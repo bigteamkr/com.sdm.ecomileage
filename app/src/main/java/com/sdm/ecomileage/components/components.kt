@@ -976,7 +976,7 @@ private fun RowScope.BottomBarItem(
             Text(
                 text = label,
                 modifier = labelModifier,
-                fontSize = 9.5.sp,
+                fontSize = if (label == "EDUCATION") 8.5.sp else 9.5.sp,
                 letterSpacing = letterSpacing,
                 style = labelStyle
             )

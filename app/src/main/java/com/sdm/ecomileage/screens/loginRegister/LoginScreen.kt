@@ -399,14 +399,10 @@ private fun RegisterPage(
 
     val appSettings = context.dataStore.data.collectAsState(initial = AppSettings())
 
-    BottomSheetScaffold(
-        scaffoldState = bottomSheetScaffoldState,
-        sheetContent = {
-            Divider(thickness = 3.dp, modifier = Modifier.padding(20.dp))
-            Text(text = "학교검색")
-        }) {
+    Scaffold() {
         Column(
             modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceEvenly
         ) {
             Column(
                 modifier = Modifier.fillMaxHeight(0.6f),
@@ -745,62 +741,59 @@ private fun RegisterPage(
                     }
 
                 }
+            }
 
-                Spacer(Modifier.height(30.dp))
+            Button(
+                onClick = {
+                    if (dept.isEmpty()) dept = "세코미 베타테스터"
+                    if (address.isEmpty()) address = "사랑시 서대문구 행복동"
 
+                    if (passwordFirst != passwordSecond)
+                        showShortToastMessage(context, "비밀번호가 일치하지 않습니다.")
+                    else if (userName.isEmpty() || emailHead.isEmpty() || emailTail.isEmpty() || passwordFirst.isEmpty() || passwordSecond.isEmpty())
+                        showShortToastMessage(context, "필수 입력정보가 부족합니다.")
+                    else if (userName.length > 14)
+                        showShortToastMessage(context, "성함은 14자 이내로 작성해주세요.")
+                    else scope.launch {
+                        loginRegisterViewModel.postRegister(
+                            userName = userName,
+                            email = "$emailHead@$emailTail",
+                            userPwd = passwordSecond,
+                            userDept = dept,
+                            userAddress = address,
+                        ).let {
+                            when {
+                                it.data?.code == 200 -> {
+                                    showLongToastMessage(context, "${it.data?.message}")
+                                    loginedUserId = "$emailHead@$emailTail"
+                                    currentUUID = appSettings.value.uuid
 
-
-                Button(
-                    onClick = {
-                        if (dept.isEmpty()) dept = "세코미 베타테스터"
-                        if (address.isEmpty()) address = "사랑시 서대문구 행복동"
-
-                        if (passwordFirst != passwordSecond)
-                            showShortToastMessage(context, "비밀번호가 일치하지 않습니다.")
-                        else if (userName.isEmpty() || emailHead.isEmpty() || emailTail.isEmpty() || passwordFirst.isEmpty() || passwordSecond.isEmpty())
-                            showShortToastMessage(context, "필수 입력정보가 부족합니다.")
-                        else if (userName.length > 14)
-                            showShortToastMessage(context, "성함은 14자 이내로 작성해주세요.")
-                        else scope.launch {
-                            loginRegisterViewModel.postRegister(
-                                userName = userName,
-                                email = "$emailHead@$emailTail",
-                                userPwd = passwordSecond,
-                                userDept = dept,
-                                userAddress = address,
-                            ).let {
-                                when {
-                                    it.data?.code == 200 -> {
-                                        showLongToastMessage(context, "${it.data?.message}")
-                                        loginedUserId = "$emailHead@$emailTail"
-                                        currentUUID = appSettings.value.uuid
-
-                                        loginRegisterViewModel.getLogin(
-                                            loginedUserId, passwordSecond, appSettings.value.uuid
-                                        ).let { loginResult ->
-                                            accessToken = loginResult.data!!.data.accessToken
-                                        }
-
-                                        onRegisterButtonClick(false)
+                                    loginRegisterViewModel.getLogin(
+                                        loginedUserId, passwordSecond, appSettings.value.uuid
+                                    ).let { loginResult ->
+                                        accessToken = loginResult.data!!.data.accessToken
                                     }
-                                    it.data?.code != 200 -> {
-                                        showLongToastMessage(context, "${it.data?.message}")
-                                    }
+
+                                    onRegisterButtonClick(false)
+                                }
+                                it.data?.code != 200 -> {
+                                    showLongToastMessage(context, "${it.data?.message}")
                                 }
                             }
                         }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    enabled = validationCheck,
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = ButtonColor,
-                        contentColor = Color.White,
-                        disabledBackgroundColor = PlaceholderColor
-                    )
-                ) {
-                    Text(text = "회원가입")
-                }
+                    }
+                },
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth(),
+                enabled = validationCheck,
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = ButtonColor,
+                    contentColor = Color.White,
+                    disabledBackgroundColor = PlaceholderColor
+                )
+            ) {
+                Text(text = "회원가입")
             }
         }
     }

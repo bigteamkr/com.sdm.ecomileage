@@ -68,9 +68,11 @@ import com.sdm.ecomileage.model.homeAdd.request.NewActivityInfo
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.bitmapToString
-import com.sdm.ecomileage.utils.loginedUserId
 import com.sdm.ecomileage.utils.currentUUID
+import com.sdm.ecomileage.utils.loginedUserId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -137,6 +139,8 @@ private fun HomeAddScaffold(
         mutableStateOf("")
     }
 
+    val imageData = mutableListOf<Image>()
+
     val focusRequester = remember { FocusRequester() }
     val scope = rememberCoroutineScope()
     var canUploadNetworkStatus by remember { mutableStateOf<Boolean?>(true) }
@@ -159,13 +163,6 @@ private fun HomeAddScaffold(
             )
         }
     ) {
-        if (canUploadNetworkStatus == false)
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
         Column(
             modifier = Modifier
                 .padding(top = 15.dp)
@@ -229,28 +226,34 @@ private fun HomeAddScaffold(
 
             Button(
                 onClick = {
-                    scope.launch {
-                        val imageData = mutableListOf<Image>()
-                        imageList.forEach { image ->
-                            if (image != null)
-                                imageData.add(
-                                    Image(
-                                        status = "I",
-                                        type = "png",
-                                        filename = "${imageData.size}.png",
-                                        filesno = 0,
-                                        filedtlsno = 0,
-                                        image = bitmapToString(image)
-                                    )
+                    imageData.clear()
+                    imageList.forEach { image ->
+                        if (image != null)
+                            imageData.add(
+                                Image(
+                                    status = "I",
+                                    type = "png",
+                                    filename = "${imageData.size}.png",
+                                    filesno = 0,
+                                    filedtlsno = 0,
+                                    image = bitmapToString(image)
                                 )
-                        }
+                            )
+                    }
 
+                    scope.launch(Dispatchers.IO) {
                         if (!isNotEmptyImageList)
-                            showShortToastMessage(context, "사진을 입력해주세요.")
+                            withContext(Dispatchers.Main) {
+                                showShortToastMessage(context, "사진을 입력해주세요.")
+                            }
                         else if (selectedCategory.value == "카테고리 선택")
-                            showShortToastMessage(context, "카테고리를 선택해주세요.")
+                            withContext(Dispatchers.Main) {
+                                showShortToastMessage(context, "카테고리를 선택해주세요.")
+                            }
                         else if (inputComment.value.length < 10)
-                            showShortToastMessage(context, "내용은 10자 이상 작성해주세요.")
+                            withContext(Dispatchers.Main) {
+                                showShortToastMessage(context, "내용은 10자 이상 작성해주세요.")
+                            }
                         else if (canUploadNetworkStatus == true) {
                             if (selectedCategory.value == "일상생활")
                                 viewModel.postHomeFeedInfo(
@@ -272,21 +275,27 @@ private fun HomeAddScaffold(
                                         it.loading == true -> canUploadNetworkStatus = false
                                         it.data?.code != 200 -> {
                                             canUploadNetworkStatus = true
-                                            Log.d("HomeAdd", "HomeAddScaffold: ${it.data?.message}")
-                                            showShortToastMessage(context, "오류가 발생했습니다.")
+                                            Log.d(
+                                                "HomeAdd",
+                                                "HomeAddScaffold: ${it.data?.message}"
+                                            )
+                                            withContext(Dispatchers.Main) {
+                                                showShortToastMessage(context, "오류가 발생했습니다.")
+                                            }
                                         }
                                         it.data?.code == 200 -> {
-                                            navController.navigate(SecomiScreens.HomeScreen.name) {
-                                                launchSingleTop
-                                                popUpTo(SecomiScreens.HomeAddScreen.name) {
-                                                    inclusive = true
+                                            withContext(Dispatchers.Main) {
+                                                navController.navigate(SecomiScreens.HomeScreen.name) {
+                                                    launchSingleTop
+                                                    popUpTo(SecomiScreens.HomeAddScreen.name) {
+                                                        inclusive = true
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
-                            else {
-                                val categoryNum = when(selectedCategory.value){
+                                } else {
+                                val categoryNum = when (selectedCategory.value) {
                                     "빈그릇 챌린지" -> 1
                                     "대중교통 챌린지" -> 2
                                     "개인 텀블러 챌린지" -> 3
@@ -317,21 +326,27 @@ private fun HomeAddScaffold(
                                         it.loading == true -> canUploadNetworkStatus = false
                                         it.data?.code != 200 -> {
                                             canUploadNetworkStatus = true
-                                            Log.d("HomeAdd", "HomeAddScaffold: ${it.data?.message}")
-                                            showShortToastMessage(context, "오류가 발생했습니다.")
+                                            Log.d(
+                                                "HomeAdd",
+                                                "HomeAddScaffold: ${it.data?.message}"
+                                            )
+                                            withContext(Dispatchers.Main) {
+                                                showShortToastMessage(context, "오류가 발생했습니다.")
+                                            }
                                         }
                                         it.data?.code == 200 -> {
-                                            navController.navigate(SecomiScreens.HomeScreen.name) {
-                                                launchSingleTop
-                                                popUpTo(SecomiScreens.HomeAddScreen.name) {
-                                                    inclusive = true
+                                            withContext(Dispatchers.Main) {
+                                                navController.navigate(SecomiScreens.HomeScreen.name) {
+                                                    launchSingleTop
+                                                    popUpTo(SecomiScreens.HomeAddScreen.name) {
+                                                        inclusive = true
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
-
                         }
                     }
                 },
