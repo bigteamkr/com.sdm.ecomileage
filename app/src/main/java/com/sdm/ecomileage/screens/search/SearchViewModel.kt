@@ -7,7 +7,7 @@ import com.sdm.ecomileage.model.search.request.SearchFeedRequest
 import com.sdm.ecomileage.model.search.response.SearchFeedResponse
 import com.sdm.ecomileage.repository.searchRepository.SearchRepository
 import com.sdm.ecomileage.utils.accessToken
-import com.sdm.ecomileage.utils.uuidSample
+import com.sdm.ecomileage.utils.currentUUID
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
@@ -24,7 +24,7 @@ class SearchViewModel @Inject constructor(private val repository: SearchReposito
                 listOf(
                     SearchFeedInfo(
                         lang = "ko",
-                        uuid = uuidSample,
+                        uuid = currentUUID,
                         searchkeyword = searchText,
                         category = _category.value,
                         page = "1",

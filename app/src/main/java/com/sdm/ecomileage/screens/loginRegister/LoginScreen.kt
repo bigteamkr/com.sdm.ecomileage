@@ -49,11 +49,11 @@ import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.CustomLoginInputTextField
 import com.sdm.ecomileage.components.showLongToastMessage
 import com.sdm.ecomileage.components.showShortToastMessage
+import com.sdm.ecomileage.data.AppSettings
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.*
 import kotlinx.coroutines.launch
-import java.util.*
 
 @Composable
 fun LoginScreen(
@@ -66,6 +66,8 @@ fun LoginScreen(
             color = Color.White
         )
     }
+
+    Log.d("UUID", "LoginScreen: before login uuidSample : $currentUUID")
 
     var tabIndex by remember { mutableStateOf(0) }
     val tabTitles = listOf("로그인", "회원가입")
@@ -310,7 +312,7 @@ private fun ProfileSubmitPage(
             }
             Button(
                 onClick = {
-                    navController.navigate(SecomiScreens.LoginScreen.name){
+                    navController.navigate(SecomiScreens.LoginScreen.name) {
                         launchSingleTop
                     }
                 },
@@ -325,6 +327,7 @@ private fun ProfileSubmitPage(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun RegisterPage(
     loginRegisterViewModel: LoginRegisterViewModel,
@@ -390,400 +393,414 @@ private fun RegisterPage(
 
     val focusRequester = remember { FocusRequester() }
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxHeight(0.6f),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(40.dp))
-            Text(
-                text = AnnotatedString(
-                    "*",
-                    spanStyle = SpanStyle(
-                        fontSize = 14.sp,
-                        color = Color.Red
-                    )
-                ) + AnnotatedString(
-                    "기본정보",
-                    spanStyle = SpanStyle(
-                        color = PlaceholderColor
-                    )
-                )
-            )
-            Spacer(modifier = Modifier.height(25.dp))
-            CustomLoginInputTextField(
-                modifier = Modifier
-                    .padding(start = 25.dp, end = 25.dp)
-                    .focusRequester(focusRequester)
-                    .clickable {
-                        focusRequester.requestFocus()
-                    },
-                inputEvent = {
-                    userName = it
-                    scope.launch {
-                        validationCheck =
-                            userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
-                                    passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
-                    }
-                },
-                focusState = isNameInputFocus,
-                label = "성함",
-                isFocus = {
-                    isNameInputFocus = true
-                    isEmailInputFocus = false
-                    isPasswordFirstInputFocus = false
-                    isPasswordSecondInputFocus = false
-                    isPhoneNumberInputFocus = false
-                    isAddressFocus = false
-                    isDeptFocus = false
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
-            )
-            Spacer(modifier = Modifier.height(25.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 25.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(modifier = Modifier.fillMaxWidth(0.4f)) {
-                    CustomLoginInputTextField(
-                        modifier = Modifier
-                            .padding(start = 25.dp)
-                            .focusRequester(focusRequester)
-                            .clickable {
-                                focusRequester.requestFocus()
-                            },
-                        inputEvent = {
-                            emailHead = it
-                            scope.launch {
-                                validationCheck =
-                                    userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
-                                            passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
-                            }
-                        },
-                        focusState = isEmailInputFocus,
-                        label = "이메일",
-                        isFocus = {
-                            isNameInputFocus = false
-                            isEmailInputFocus = true
-                            isPasswordFirstInputFocus = false
-                            isPasswordSecondInputFocus = false
-                            isPhoneNumberInputFocus = false
-                            isAddressFocus = false
-                            isDeptFocus = false
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-                    )
-                }
-                Text(text = "@")
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth(0.42f)
-                        .height(30.dp)
-                        .padding(bottom = 2.dp),
-                    shape = RoundedCornerShape(5),
-                    border = BorderStroke(1.dp, PlaceholderColor)
-                ) {
-                    CustomLoginInputTextField(
-                        modifier = Modifier
-                            .padding(top = 3.2.dp, start = 2.dp)
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                            .clickable {
-                                focusRequester.requestFocus()
-                            },
-                        inputEvent = {
-                            emailTail = it
-                            scope.launch {
-                                validationCheck =
-                                    userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
-                                            passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
-                            }
-                        },
-                        focusState = false,
-                        color = BorderColor,
-                        label = "",
-                        isFocus = {},
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-                    )
-                }
-                Button(
-                    onClick = { /*TODO*/ },
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = PlaceholderColor,
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(text = "메일인증")
-                }
-            }
-            Spacer(modifier = Modifier.height(25.dp))
-            CustomLoginInputTextField(
-                modifier = Modifier
-                    .padding(start = 25.dp, end = 25.dp)
-                    .focusRequester(focusRequester)
-                    .clickable {
-                        focusRequester.requestFocus()
-                    },
-                inputEvent = {
-                    passwordFirst = it
-                    scope.launch {
-                        validationCheck =
-                            userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
-                                    passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
-                    }
-                },
-                focusState = isPasswordFirstInputFocus,
-                label = "비밀번호",
-                isFocus = {
-                    isNameInputFocus = false
-                    isEmailInputFocus = false
-                    isPasswordFirstInputFocus = true
-                    isPasswordSecondInputFocus = false
-                    isPhoneNumberInputFocus = false
-                    isAddressFocus = false
-                    isDeptFocus = false
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-            )
-            Spacer(modifier = Modifier.height(25.dp))
-            CustomLoginInputTextField(
-                modifier = Modifier
-                    .padding(start = 25.dp, end = 25.dp)
-                    .focusRequester(focusRequester)
-                    .clickable {
-                        focusRequester.requestFocus()
-                    },
-                inputEvent = {
-                    passwordSecond = it
-                    scope.launch {
-                        validationCheck =
-                            userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
-                                    passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
-                    }
-                },
-                focusState = isPasswordSecondInputFocus,
-                label = "비밀번호 확인",
-                isFocus = {
-                    isNameInputFocus = false
-                    isEmailInputFocus = false
-                    isPasswordFirstInputFocus = false
-                    isPasswordSecondInputFocus = true
-                    isPhoneNumberInputFocus = false
-                    isAddressFocus = false
-                    isDeptFocus = false
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-            )
-            Spacer(modifier = Modifier.height(25.dp))
-            CustomLoginInputTextField(
-                modifier = Modifier
-                    .padding(start = 25.dp, end = 25.dp)
-                    .focusRequester(focusRequester)
-                    .clickable {
-                        focusRequester.requestFocus()
-                    },
-                inputEvent = { phoneNumber = it },
-                focusState = isPhoneNumberInputFocus,
-                label = "전화번호(숫자만 적으세요)",
-                isFocus = {
-                    isNameInputFocus = false
-                    isEmailInputFocus = false
-                    isPasswordFirstInputFocus = false
-                    isPasswordSecondInputFocus = false
-                    isPhoneNumberInputFocus = true
-                    isAddressFocus = false
-                    isDeptFocus = false
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-        }
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = BottomSheetState(BottomSheetValue.Collapsed)
+    )
 
+    val appSettings = context.dataStore.data.collectAsState(initial = AppSettings())
+
+    BottomSheetScaffold(
+        scaffoldState = bottomSheetScaffoldState,
+        sheetContent = {
+            Divider(thickness = 3.dp, modifier = Modifier.padding(20.dp))
+            Text(text = "학교검색")
+        }) {
         Column(
-            Modifier
-                .padding(start = 25.dp, end = 25.dp)
+            modifier = Modifier.fillMaxSize(),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(text = "추가정보", color = BorderColor, fontSize = 18.sp)
-            }
-            Spacer(modifier = Modifier.height(10.dp))
             Column(
-                horizontalAlignment = Alignment.Start
+                modifier = Modifier.fillMaxHeight(0.6f),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.height(40.dp))
                 Text(
-                    text = "학교 (기관)",
-                    modifier = Modifier.padding(start = 5.dp),
-                    color = PlaceholderColor,
-                    fontSize = 13.sp
+                    text = AnnotatedString(
+                        "*",
+                        spanStyle = SpanStyle(
+                            fontSize = 14.sp,
+                            color = Color.Red
+                        )
+                    ) + AnnotatedString(
+                        "기본정보",
+                        spanStyle = SpanStyle(
+                            color = PlaceholderColor
+                        )
+                    )
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Surface(
+                Spacer(modifier = Modifier.height(25.dp))
+                CustomLoginInputTextField(
+                    modifier = Modifier
+                        .padding(start = 25.dp, end = 25.dp)
+                        .focusRequester(focusRequester)
+                        .clickable {
+                            focusRequester.requestFocus()
+                        },
+                    inputEvent = {
+                        userName = it
+                        scope.launch {
+                            validationCheck =
+                                userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
+                                        passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
+                        }
+                    },
+                    focusState = isNameInputFocus,
+                    label = "성함",
+                    isFocus = {
+                        isNameInputFocus = true
+                        isEmailInputFocus = false
+                        isPasswordFirstInputFocus = false
+                        isPasswordSecondInputFocus = false
+                        isPhoneNumberInputFocus = false
+                        isAddressFocus = false
+                        isDeptFocus = false
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                )
+                Spacer(modifier = Modifier.height(25.dp))
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(0.5.dp)
-                        .height(30.dp),
-                    shape = RoundedCornerShape(5),
-                    border = BorderStroke(1.dp, PlaceholderColor),
-                    color = if (isOrganizationNull) BottomUnSelectedColor else Color.White
+                        .padding(end = 25.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    CustomLoginInputTextField(
-                        modifier = Modifier
-                            .padding(top = 7.dp, start = 5.dp)
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                            .clickable {
-                                focusRequester.requestFocus()
+                    Row(modifier = Modifier.fillMaxWidth(0.4f)) {
+                        CustomLoginInputTextField(
+                            modifier = Modifier
+                                .padding(start = 25.dp)
+                                .focusRequester(focusRequester)
+                                .clickable {
+                                    focusRequester.requestFocus()
+                                },
+                            inputEvent = {
+                                emailHead = it
+                                scope.launch {
+                                    validationCheck =
+                                        userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
+                                                passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
+                                }
                             },
-                        inputEvent = { dept = it },
-                        focusState = isDeptFocus,
-                        color = BorderColor,
-                        enabled = isOrganizationNull,
-                        label = "",
-                        isFocus = {
-                            isNameInputFocus = false
-                            isEmailInputFocus = false
-                            isPasswordFirstInputFocus = false
-                            isPasswordSecondInputFocus = false
-                            isPhoneNumberInputFocus = false
-                            isDeptFocus = true
-                            isAddressFocus = false
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
-                    )
-                }
-                Spacer(modifier = Modifier.height(5.dp))
-
-                var backgroundColor by remember {
-                    mutableStateOf(Color.White)
-                }
-
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                            focusState = isEmailInputFocus,
+                            label = "이메일",
+                            isFocus = {
+                                isNameInputFocus = false
+                                isEmailInputFocus = true
+                                isPasswordFirstInputFocus = false
+                                isPasswordSecondInputFocus = false
+                                isPhoneNumberInputFocus = false
+                                isAddressFocus = false
+                                isDeptFocus = false
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                        )
+                    }
+                    Text(text = "@")
                     Surface(
                         modifier = Modifier
-                            .padding(2.dp)
-                            .size(13.dp)
-                            .clickable {
-                                isOrganizationNull = !isOrganizationNull
-                                dept = ""
-                            },
-                        border = BorderStroke(1.dp, PlaceholderColor),
-                        shape = CircleShape,
-                        color = if (!isOrganizationNull) backgroundColor else LoginButtonColor
-                    ) { }
-                    Spacer(modifier = Modifier.width(2.dp))
-                    Text(text = "없음", modifier = Modifier.padding(3.dp), fontSize = 12.sp)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            Column {
-                Text(
-                    text = "우리 동네 설정",
-                    modifier = Modifier.padding(start = 5.dp),
-                    color = PlaceholderColor,
-                    fontSize = 13.sp
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(0.5.dp)
-                        .height(30.dp),
-                    shape = RoundedCornerShape(5),
-                    border = BorderStroke(1.dp, PlaceholderColor)
-                ) {
-                    CustomLoginInputTextField(
-                        modifier = Modifier
-                            .padding(top = 7.dp, start = 5.dp)
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                            .clickable {
-                                focusRequester.requestFocus()
-                            },
-                        inputEvent = { address = it },
-                        focusState = isAddressFocus,
-                        color = BorderColor,
-                        label = "",
-                        isFocus = {
-                            isNameInputFocus = false
-                            isEmailInputFocus = false
-                            isPasswordFirstInputFocus = false
-                            isPasswordSecondInputFocus = false
-                            isPhoneNumberInputFocus = false
-                            isDeptFocus = false
-                            isAddressFocus = true
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
-                    )
-                }
-
-            }
-
-            Spacer(Modifier.height(30.dp))
-
-
-
-            Button(
-                onClick = {
-                    if (dept.isEmpty()) dept = "세코미 베타테스터"
-                    if (address.isEmpty()) address = "사랑시 서대문구 행복동"
-
-                    if (passwordFirst != passwordSecond)
-                        showShortToastMessage(context, "비밀번호가 일치하지 않습니다.")
-                    else if (userName.isEmpty() || emailHead.isEmpty() || emailTail.isEmpty() || passwordFirst.isEmpty() || passwordSecond.isEmpty())
-                        showShortToastMessage(context, "필수 입력정보가 부족합니다.")
-                    else if (userName.length > 14)
-                        showShortToastMessage(context, "성함은 14자 이내로 작성해주세요.")
-                    else scope.launch {
-                        loginRegisterViewModel.postRegister(
-                            userName = userName,
-                            email = "$emailHead@$emailTail",
-                            userPwd = passwordSecond,
-                            userDept = dept,
-                            userAddress = address,
-                        ).let {
-                            when {
-                                it.data?.code == 200 -> {
-                                    showLongToastMessage(context, "${it.data?.message}")
-                                    loginedUserId = "$emailHead@$emailTail"
-
-                                    loginRegisterViewModel.getLogin(
-                                        loginedUserId, passwordSecond
-                                    ).let { loginResult ->
-                                        accessToken = loginResult.data!!.data.accessToken
-                                    }
-
-                                    onRegisterButtonClick(false)
+                            .fillMaxWidth(0.42f)
+                            .height(30.dp)
+                            .padding(bottom = 2.dp),
+                        shape = RoundedCornerShape(5),
+                        border = BorderStroke(1.dp, PlaceholderColor)
+                    ) {
+                        CustomLoginInputTextField(
+                            modifier = Modifier
+                                .padding(top = 3.2.dp, start = 2.dp)
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester)
+                                .clickable {
+                                    focusRequester.requestFocus()
+                                },
+                            inputEvent = {
+                                emailTail = it
+                                scope.launch {
+                                    validationCheck =
+                                        userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
+                                                passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
                                 }
-                                it.data?.code != 200 -> {
-                                    showLongToastMessage(context, "${it.data?.message}")
+                            },
+                            focusState = false,
+                            color = BorderColor,
+                            label = "",
+                            isFocus = {},
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                        )
+                    }
+                    Button(
+                        onClick = { /*TODO*/ },
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = PlaceholderColor,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(text = "메일인증")
+                    }
+                }
+                Spacer(modifier = Modifier.height(25.dp))
+                CustomLoginInputTextField(
+                    modifier = Modifier
+                        .padding(start = 25.dp, end = 25.dp)
+                        .focusRequester(focusRequester)
+                        .clickable {
+                            focusRequester.requestFocus()
+                        },
+                    inputEvent = {
+                        passwordFirst = it
+                        scope.launch {
+                            validationCheck =
+                                userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
+                                        passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
+                        }
+                    },
+                    focusState = isPasswordFirstInputFocus,
+                    label = "비밀번호",
+                    isFocus = {
+                        isNameInputFocus = false
+                        isEmailInputFocus = false
+                        isPasswordFirstInputFocus = true
+                        isPasswordSecondInputFocus = false
+                        isPhoneNumberInputFocus = false
+                        isAddressFocus = false
+                        isDeptFocus = false
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                )
+                Spacer(modifier = Modifier.height(25.dp))
+                CustomLoginInputTextField(
+                    modifier = Modifier
+                        .padding(start = 25.dp, end = 25.dp)
+                        .focusRequester(focusRequester)
+                        .clickable {
+                            focusRequester.requestFocus()
+                        },
+                    inputEvent = {
+                        passwordSecond = it
+                        scope.launch {
+                            validationCheck =
+                                userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
+                                        passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
+                        }
+                    },
+                    focusState = isPasswordSecondInputFocus,
+                    label = "비밀번호 확인",
+                    isFocus = {
+                        isNameInputFocus = false
+                        isEmailInputFocus = false
+                        isPasswordFirstInputFocus = false
+                        isPasswordSecondInputFocus = true
+                        isPhoneNumberInputFocus = false
+                        isAddressFocus = false
+                        isDeptFocus = false
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                )
+                Spacer(modifier = Modifier.height(25.dp))
+                CustomLoginInputTextField(
+                    modifier = Modifier
+                        .padding(start = 25.dp, end = 25.dp)
+                        .focusRequester(focusRequester)
+                        .clickable {
+                            focusRequester.requestFocus()
+                        },
+                    inputEvent = { phoneNumber = it },
+                    focusState = isPhoneNumberInputFocus,
+                    label = "전화번호(숫자만 적으세요)",
+                    isFocus = {
+                        isNameInputFocus = false
+                        isEmailInputFocus = false
+                        isPasswordFirstInputFocus = false
+                        isPasswordSecondInputFocus = false
+                        isPhoneNumberInputFocus = true
+                        isAddressFocus = false
+                        isDeptFocus = false
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+            }
+
+            Column(
+                Modifier
+                    .padding(start = 25.dp, end = 25.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "추가정보", color = BorderColor, fontSize = 18.sp)
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                Column(
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "학교 (기관)",
+                        modifier = Modifier.padding(start = 5.dp),
+                        color = PlaceholderColor,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(0.5.dp)
+                            .height(30.dp),
+                        shape = RoundedCornerShape(5),
+                        border = BorderStroke(1.dp, PlaceholderColor),
+                        color = if (isOrganizationNull) BottomUnSelectedColor else Color.White
+                    ) {
+                        CustomLoginInputTextField(
+                            modifier = Modifier
+                                .padding(top = 7.dp, start = 5.dp)
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester)
+                                .clickable {
+                                    focusRequester.requestFocus()
+                                },
+                            inputEvent = { dept = it },
+                            focusState = isDeptFocus,
+                            color = BorderColor,
+                            enabled = isOrganizationNull,
+                            label = "",
+                            isFocus = {
+                                isNameInputFocus = false
+                                isEmailInputFocus = false
+                                isPasswordFirstInputFocus = false
+                                isPasswordSecondInputFocus = false
+                                isPhoneNumberInputFocus = false
+                                isDeptFocus = true
+                                isAddressFocus = false
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(5.dp))
+
+                    var backgroundColor by remember {
+                        mutableStateOf(Color.White)
+                    }
+
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            modifier = Modifier
+                                .padding(2.dp)
+                                .size(13.dp)
+                                .clickable {
+                                    isOrganizationNull = !isOrganizationNull
+                                    dept = ""
+                                },
+                            border = BorderStroke(1.dp, PlaceholderColor),
+                            shape = CircleShape,
+                            color = if (!isOrganizationNull) backgroundColor else LoginButtonColor
+                        ) { }
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text(text = "없음", modifier = Modifier.padding(3.dp), fontSize = 12.sp)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(15.dp))
+
+                Column {
+                    Text(
+                        text = "우리 동네 설정",
+                        modifier = Modifier.padding(start = 5.dp),
+                        color = PlaceholderColor,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(0.5.dp)
+                            .height(30.dp),
+                        shape = RoundedCornerShape(5),
+                        border = BorderStroke(1.dp, PlaceholderColor)
+                    ) {
+                        CustomLoginInputTextField(
+                            modifier = Modifier
+                                .padding(top = 7.dp, start = 5.dp)
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester)
+                                .clickable {
+                                    focusRequester.requestFocus()
+                                },
+                            inputEvent = { address = it },
+                            focusState = isAddressFocus,
+                            color = BorderColor,
+                            label = "",
+                            isFocus = {
+                                isNameInputFocus = false
+                                isEmailInputFocus = false
+                                isPasswordFirstInputFocus = false
+                                isPasswordSecondInputFocus = false
+                                isPhoneNumberInputFocus = false
+                                isDeptFocus = false
+                                isAddressFocus = true
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                        )
+                    }
+
+                }
+
+                Spacer(Modifier.height(30.dp))
+
+
+
+                Button(
+                    onClick = {
+                        if (dept.isEmpty()) dept = "세코미 베타테스터"
+                        if (address.isEmpty()) address = "사랑시 서대문구 행복동"
+
+                        if (passwordFirst != passwordSecond)
+                            showShortToastMessage(context, "비밀번호가 일치하지 않습니다.")
+                        else if (userName.isEmpty() || emailHead.isEmpty() || emailTail.isEmpty() || passwordFirst.isEmpty() || passwordSecond.isEmpty())
+                            showShortToastMessage(context, "필수 입력정보가 부족합니다.")
+                        else if (userName.length > 14)
+                            showShortToastMessage(context, "성함은 14자 이내로 작성해주세요.")
+                        else scope.launch {
+                            loginRegisterViewModel.postRegister(
+                                userName = userName,
+                                email = "$emailHead@$emailTail",
+                                userPwd = passwordSecond,
+                                userDept = dept,
+                                userAddress = address,
+                            ).let {
+                                when {
+                                    it.data?.code == 200 -> {
+                                        showLongToastMessage(context, "${it.data?.message}")
+                                        loginedUserId = "$emailHead@$emailTail"
+                                        currentUUID = appSettings.value.uuid
+
+                                        loginRegisterViewModel.getLogin(
+                                            loginedUserId, passwordSecond, appSettings.value.uuid
+                                        ).let { loginResult ->
+                                            accessToken = loginResult.data!!.data.accessToken
+                                        }
+
+                                        onRegisterButtonClick(false)
+                                    }
+                                    it.data?.code != 200 -> {
+                                        showLongToastMessage(context, "${it.data?.message}")
+                                    }
                                 }
                             }
                         }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth(),
-                enabled = validationCheck,
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = ButtonColor,
-                    contentColor = Color.White,
-                    disabledBackgroundColor = PlaceholderColor
-                )
-            ) {
-                Text(text = "회원가입")
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    enabled = validationCheck,
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = ButtonColor,
+                        contentColor = Color.White,
+                        disabledBackgroundColor = PlaceholderColor
+                    )
+                ) {
+                    Text(text = "회원가입")
+                }
             }
         }
     }
@@ -944,32 +961,42 @@ private fun LoginScaffold(
     loginRegisterViewModel: LoginRegisterViewModel,
     navController: NavController
 ) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val appSettings = context.dataStore.data.collectAsState(initial = AppSettings()).value
+
     val focusRequester = remember { FocusRequester() }
 
+
     val userId = remember {
-        mutableStateOf(loginRegisterViewModel.dataStore.value?.lastId ?: "")
+        mutableStateOf("")
     }
     var isUserIdFocus by remember {
         mutableStateOf(false)
     }
     val userPassword = remember {
-        mutableStateOf(loginRegisterViewModel.dataStore.value?.lastPassword ?: "")
+        mutableStateOf("")
     }
     var isPasswordFocus by remember {
         mutableStateOf(false)
     }
-    val context = LocalContext.current
     var message by remember {
         mutableStateOf("")
     }
     var isSaveId by remember {
-        mutableStateOf(false)
+        mutableStateOf(appSettings.isSaveId)
     }
     var isAutoLogin by remember {
-        mutableStateOf(false)
+        mutableStateOf(appSettings.isAutoLogin)
     }
 
+    LaunchedEffect(key1 = appSettings.isAutoLogin) {
+        isAutoLogin = appSettings.isAutoLogin
+    }
+    LaunchedEffect(key1 = appSettings.isAutoLogin, key2 = appSettings.lastLoginId) {
+        userId.value = appSettings.lastLoginId
+        isSaveId = appSettings.isSaveId
+    }
 
     Column(
         modifier = Modifier
@@ -982,7 +1009,7 @@ private fun LoginScaffold(
                 userId,
                 isUserIdFocus,
                 isPasswordFocus,
-                userPassword
+                userPassword,
             ) { idFocus, passwordFocus ->
                 isUserIdFocus = idFocus
                 isPasswordFocus = passwordFocus
@@ -1007,28 +1034,28 @@ private fun LoginScaffold(
                     loginRegisterViewModel.getLogin(
                         userId.value,
                         userPassword.value,
+                        appSettings.uuid
                     ).let {
                         if (it.data?.code == 200) {
                             accessToken = it.data!!.data.accessToken
                             loginedUserId = userId.value
+                            currentUUID = appSettings.uuid
+                            setRefreshToken(it.data!!.data.refreshToken)
 
-                            if (isSaveId)
-                                loginRegisterViewModel.updateId(loginId = userId.value)
-                            if (isAutoLogin)
-                                loginRegisterViewModel.updateAutoLogin(
-                                    loginId = userId.value,
-                                    loginPassword = userPassword.value
-                                )
-
-                            if (loginRegisterViewModel.dataStore.value?.uuid == null) {
-                                loginRegisterViewModel.updateUUID(
-                                    uuid = UUID.randomUUID().toString()
-                                )
-                                Log.d(
-                                    "LoginScreen",
-                                    "LoginScaffold: UUID = ${loginRegisterViewModel.dataStore.value?.uuid}"
-                                )
+                            if (isSaveId) {
+                                scope.launch {
+                                    setIsSaveId(isSaveId, loginedUserId)
+                                }
                             }
+
+                            if (isAutoLogin)
+                                scope.launch {
+                                    setIsAutoLogin(true)
+                                }
+                            else if (!isAutoLogin)
+                                scope.launch {
+                                    setIsAutoLogin(false)
+                                }
 
                             loginedUserId = userId.value
                             navController.navigate(SecomiScreens.HomeScreen.name) {
@@ -1071,7 +1098,8 @@ private fun InputLoginInformation(
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Email,
             imeAction = ImeAction.Done
-        )
+        ),
+        defaultText = userId.value
     )
     Spacer(modifier = Modifier.height(30.dp))
     CustomLoginInputTextField(
@@ -1096,9 +1124,9 @@ fun SaveId(
     isSaveId: Boolean,
     onClick: (Boolean) -> Unit
 ) {
-    Row(
+    Box(
         Modifier.padding(start = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
+        contentAlignment = Alignment.CenterStart
     ) {
         Checkbox(
             checked = isSaveId,
@@ -1110,13 +1138,12 @@ fun SaveId(
         )
         Text(
             "아이디 저장",
-            modifier = Modifier.padding(bottom = 1.dp),
+            modifier = Modifier.padding(bottom = 1.dp, start = 42.dp),
             color = LoginGreyTextColor,
             fontSize = 14.sp,
             textAlign = TextAlign.Start
         )
     }
-
 }
 
 
@@ -1125,9 +1152,9 @@ fun AutoLogin(
     isAutoLogin: Boolean,
     onClick: (Boolean) -> Unit
 ) {
-    Row(
+    Box(
         Modifier.padding(start = 10.dp, top = 35.dp),
-        verticalAlignment = Alignment.CenterVertically
+        contentAlignment = Alignment.CenterStart
     ) {
         Checkbox(
             checked = isAutoLogin,
@@ -1139,7 +1166,7 @@ fun AutoLogin(
         )
         Text(
             "자동 로그인",
-            modifier = Modifier.padding(bottom = 1.dp),
+            modifier = Modifier.padding(bottom = 1.dp, start = 42.dp),
             color = LoginGreyTextColor,
             fontSize = 14.sp,
             textAlign = TextAlign.Start

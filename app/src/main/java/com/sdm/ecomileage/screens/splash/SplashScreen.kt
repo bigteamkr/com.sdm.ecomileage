@@ -1,5 +1,6 @@
 package com.sdm.ecomileage.screens.splash
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -24,12 +26,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
+import com.sdm.ecomileage.data.AppSettings
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.SplashColor
 import com.sdm.ecomileage.ui.theme.SplashTopBarColor
-import com.google.accompanist.systemuicontroller.SystemUiController
+import com.sdm.ecomileage.utils.dataStore
+import com.sdm.ecomileage.utils.setUUID
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun SplashScreen(
@@ -40,6 +46,17 @@ fun SplashScreen(
         systemUiController.setStatusBarColor(
             color = SplashTopBarColor
         )
+    }
+    val context = LocalContext.current
+    val appSettings = context.dataStore.data.collectAsState(initial = AppSettings())
+    var uuidAsyncCount = 0
+
+    LaunchedEffect(key1 = appSettings.value.uuid, key2 = uuidAsyncCount){
+
+        if (appSettings.value.uuid == "0")
+            uuidAsyncCount += 1
+        if (uuidAsyncCount > 1 && appSettings.value.uuid == "0")
+            setUUID()
     }
 
     val gradient = Brush.linearGradient(

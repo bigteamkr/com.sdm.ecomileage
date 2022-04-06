@@ -16,10 +16,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.datastore.dataStore
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
+import com.sdm.ecomileage.SdmEcoMileageApplication
 import com.sdm.ecomileage.components.*
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.data.HomeScrollColumnViewData
@@ -32,6 +34,7 @@ import com.sdm.ecomileage.ui.theme.LikeColor
 import com.sdm.ecomileage.ui.theme.StatusBarGreenColor
 import com.sdm.ecomileage.ui.theme.TopBarColor
 import com.sdm.ecomileage.utils.MainFeedReportOptions
+import com.sdm.ecomileage.utils.dataStore
 import kotlinx.coroutines.launch
 
 @Composable
@@ -40,6 +43,8 @@ fun HomeScreen(
     systemUiController: SystemUiController,
     homeViewModel: HomeViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
+
     val homeInfo = produceState<DataOrException<HomeInfoResponse, Boolean, Exception>>(
         initialValue = DataOrException(loading = true)
     ) {

@@ -57,8 +57,6 @@ private fun SearchScaffold(
         mutableStateOf(false)
     }
     val focusRequester = remember { FocusRequester() }
-
-
     val sampleHistory = listOf("장바구니", "나무", "화초키우기", "분리수거", "라벨분리법")
 
     val scope = rememberCoroutineScope()
@@ -66,6 +64,8 @@ private fun SearchScaffold(
 //        DataOrException(loading = false)
 //
 //    var searchedFeedData: List<Feed>? = searchedFeedResponse.data?.result?.feedList
+
+
 
     Scaffold(
         topBar = {

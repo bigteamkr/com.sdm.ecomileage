@@ -10,7 +10,7 @@ import com.sdm.ecomileage.model.education.educationInfo.request.EducationInfoReq
 import com.sdm.ecomileage.model.education.educationInfo.response.EducationInfoResponse
 import com.sdm.ecomileage.repository.educationRepository.EducationRepository
 import com.sdm.ecomileage.utils.accessToken
-import com.sdm.ecomileage.utils.uuidSample
+import com.sdm.ecomileage.utils.currentUUID
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -29,7 +29,7 @@ class EducationViewModel @Inject constructor(private val repository: EducationRe
             accessToken, EducationInfoRequest(
                 EducationInfo = listOf(
                     EducationInfo(
-                        uuid = uuidSample,
+                        uuid = currentUUID,
                         page = 1,
                         perpage = 100
                     )
@@ -42,7 +42,7 @@ class EducationViewModel @Inject constructor(private val repository: EducationRe
             accessToken, PostDiaryRequest(
                 NewEducationInfo = listOf(
                     NewEducationInfo(
-                        uuid = uuidSample,
+                        uuid = currentUUID,
                         educationsno = educationNo,
                         viewcontent = content,
                         viewstatus = "100"

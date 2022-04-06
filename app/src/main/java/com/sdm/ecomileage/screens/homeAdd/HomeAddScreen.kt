@@ -69,7 +69,7 @@ import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.bitmapToString
 import com.sdm.ecomileage.utils.loginedUserId
-import com.sdm.ecomileage.utils.uuidSample
+import com.sdm.ecomileage.utils.currentUUID
 import kotlinx.coroutines.launch
 
 
@@ -302,7 +302,7 @@ private fun HomeAddScaffold(
                                     NewChallengeInfoRequest(
                                         NewChallengeInfo = listOf(
                                             NewChallengeInfo(
-                                                uuid = uuidSample,
+                                                uuid = currentUUID,
                                                 userid = loginedUserId,
                                                 category = categoryNum.toString(),
                                                 content = inputComment.value,
@@ -386,7 +386,7 @@ private fun TagInputField(
                     textAlign = TextAlign.Start
                 ),
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
+                    keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions {

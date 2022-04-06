@@ -2,18 +2,21 @@ package com.sdm.ecomileage.screens.homeDetail
 
 import androidx.lifecycle.ViewModel
 import com.sdm.ecomileage.data.DataOrException
-import com.sdm.ecomileage.model.comment.commentInfo.request.CommentInfo
-import com.sdm.ecomileage.model.comment.commentInfo.request.CommentInfoRequest
-import com.sdm.ecomileage.model.comment.commentInfo.response.CommentInfoResponse
-import com.sdm.ecomileage.model.comment.mainFeed.request.ActivityInfo
-import com.sdm.ecomileage.model.comment.mainFeed.request.MainFeedRequest
-import com.sdm.ecomileage.model.comment.mainFeed.response.MainFeedResponse
-import com.sdm.ecomileage.model.comment.newComment.request.NewCommentInfo
-import com.sdm.ecomileage.model.comment.newComment.request.NewCommentRequest
-import com.sdm.ecomileage.model.comment.newComment.response.NewCommentResponse
+import com.sdm.ecomileage.model.homedetail.comment.commentInfo.request.CommentInfo
+import com.sdm.ecomileage.model.homedetail.comment.commentInfo.request.CommentInfoRequest
+import com.sdm.ecomileage.model.homedetail.comment.commentInfo.response.CommentInfoResponse
+import com.sdm.ecomileage.model.homedetail.comment.newComment.request.NewCommentInfo
+import com.sdm.ecomileage.model.homedetail.comment.newComment.request.NewCommentRequest
+import com.sdm.ecomileage.model.homedetail.comment.newComment.response.NewCommentResponse
+import com.sdm.ecomileage.model.homedetail.loginUser.request.AppMemberInfo
+import com.sdm.ecomileage.model.homedetail.loginUser.request.AppMemberInfoRequest
+import com.sdm.ecomileage.model.homedetail.loginUser.response.AppMemberInfoResponse
+import com.sdm.ecomileage.model.homedetail.mainFeed.request.ActivityInfo
+import com.sdm.ecomileage.model.homedetail.mainFeed.request.MainFeedRequest
+import com.sdm.ecomileage.model.homedetail.mainFeed.response.MainFeedResponse
 import com.sdm.ecomileage.repository.commentRepository.CommentRepository
 import com.sdm.ecomileage.utils.accessToken
-import com.sdm.ecomileage.utils.uuidSample
+import com.sdm.ecomileage.utils.currentUUID
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -39,7 +42,7 @@ class HomeDetailViewModel @Inject constructor(private val repository: CommentRep
                 CommentInfo = listOf(
                     CommentInfo(
                         lang = "ko",
-                        uuid = uuidSample,
+                        uuid = currentUUID,
                         userid = userid,
                         feedsno = feedNo,
                         commentsno = 0
@@ -48,8 +51,9 @@ class HomeDetailViewModel @Inject constructor(private val repository: CommentRep
             )
         )
 
-    private val _reportingCommentList = mutableMapOf<Int, String>()
-    fun getReportingCommentValueFromKey(key: Int) = _reportingCommentList[key]
+    private val _reportingCommentList = mutableListOf<Int>()
+    fun getReportingCommentValueFromKey(key: Int) = _reportingCommentList.contains(key)
+    fun addReportingComment(reportCommentNo: Int) = _reportingCommentList.add(reportCommentNo)
 
     suspend fun postNewComment(
         uuid: String,
@@ -68,6 +72,18 @@ class HomeDetailViewModel @Inject constructor(private val repository: CommentRep
                         commentcontent = commentContent,
                         commenthashtag = null
                     )
+                )
+            )
+        )
+
+    suspend fun getLoginUserInfo(
+        uuid: String
+    ): DataOrException<AppMemberInfoResponse, Boolean, Exception> =
+        repository.getLoginUserInfo(
+            accessToken,
+            AppMemberInfoRequest(
+                AppMemberInfo = listOf(
+                    AppMemberInfo(uuid = uuid)
                 )
             )
         )

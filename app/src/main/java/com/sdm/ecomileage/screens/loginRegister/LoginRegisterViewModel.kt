@@ -1,24 +1,8 @@
 package com.sdm.ecomileage.screens.loginRegister
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
-import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.*
-import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
-import com.canhub.cropper.CropImageContract
-import com.canhub.cropper.CropImageContractOptions
-import com.canhub.cropper.CropImageOptions
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.SdmEcoMileageApplication
 import com.sdm.ecomileage.data.DataOrException
@@ -33,10 +17,8 @@ import com.sdm.ecomileage.model.register.response.RegisterResponse
 import com.sdm.ecomileage.repository.loginRegisterFindRepository.LoginRegisterFindRepository
 import com.sdm.ecomileage.utils.accessToken
 import com.sdm.ecomileage.utils.bitmapToString
-import com.sdm.ecomileage.utils.uuidSample
+import com.sdm.ecomileage.utils.currentUUID
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,13 +27,14 @@ class LoginRegisterViewModel @Inject constructor(private val repository: LoginRe
 
     suspend fun getLogin(
         id: String,
-        password: String
+        password: String,
+        uuid: String
     ): DataOrException<LoginResponse, Boolean, Exception> =
         repository.getLogin(
             LoginRequest(
                 id = id,
                 password = password,
-                uuid = "59a1e164-8f55-4486-b8f9-6362892a94f4"
+                uuid = uuid
             )
         )
 
@@ -103,7 +86,7 @@ class LoginRegisterViewModel @Inject constructor(private val repository: LoginRe
             accessToken, MemberUpdateRequest(
                 listOf(
                     AppMemberUpdate(
-                        uuid = uuidSample,
+                        uuid = currentUUID,
                         userName = userName,
                         userPhone = userPhone,
                         userDept = userDept,
@@ -120,39 +103,5 @@ class LoginRegisterViewModel @Inject constructor(private val repository: LoginRe
                 )
             )
         )
-
-    private var _profileBitmap: Bitmap? = null
-    fun getProfileBitmap() = _profileBitmap
-
-//    @Composable
-//    fun imagePicker(context: Context): ManagedActivityResultLauncher<String, Uri?> {
-//
-//
-//        return imagePickerLauncher
-//    }
-
-
-    var dataStore = repository.readProto.asLiveData()
-
-
-    suspend fun updateUUID(
-        uuid: String? = null
-    ) = viewModelScope.launch(Dispatchers.IO) {
-        repository.updateValue(uuid, null, null)
-    }
-
-    suspend fun updateId(
-        loginId: String
-    ) = viewModelScope.launch(Dispatchers.IO) {
-        repository.updateValue(null, loginId, null)
-    }
-
-    suspend fun updateAutoLogin(
-        loginId: String,
-        loginPassword: String
-    ) = viewModelScope.launch(Dispatchers.IO) {
-        repository.updateValue(null, loginId, loginPassword)
-    }
-
 
 }

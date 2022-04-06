@@ -1,16 +1,51 @@
 package com.sdm.ecomileage.utils
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
+import androidx.compose.runtime.Composable
+import androidx.datastore.dataStore
+import com.sdm.ecomileage.SdmEcoMileageApplication
+import com.sdm.ecomileage.data.AppSettingsSerializer
 import java.io.ByteArrayOutputStream
+import java.util.*
 
-//Todo : Data Store 이전 고려
-var accessToken: String =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwibmlja25hbWUiOiLstZzqsr3tm4giLCJleHAiOjE2NDc1OTQyODYsInVzZXJpZCI6ImlhbkBiaWd0ZWFtLmNvLmtyIiwiZW1haWwiOiJpYW5AYmlndGVhbS5jby5rciJ9.jEKoFbuEoP2aCiZVjSiN3tFMTpDX-PgEpo0FtSkqSoM"
+var accessToken: String = ""
 var loginedUserId: String = ""
-var uuidSample = "59a1e164-8f55-4486-b8f9-6362892a94f4"
-val kakaoNativeAppKey ="fb7903a5b79c6fb3d7172024332e682d"
+var currentUUID = ""
+
+val kakaoNativeAppKey = "fb7903a5b79c6fb3d7172024332e682d"
+
+val Context.dataStore by dataStore("app-settings.json", AppSettingsSerializer)
+suspend fun setIsAutoLogin(isAutoLogin: Boolean) {
+    SdmEcoMileageApplication.ApplicationContext().dataStore.updateData {
+        it.copy(isAutoLogin = isAutoLogin)
+    }
+}
+
+suspend fun setIsSaveId(isSaveId: Boolean, saveId: String) {
+    SdmEcoMileageApplication.ApplicationContext().dataStore.updateData {
+        it.copy(lastLoginId = saveId, isSaveId = isSaveId)
+    }
+}
+
+suspend fun setRefreshToken(refreshToken: String) {
+    SdmEcoMileageApplication.ApplicationContext().dataStore.updateData {
+        it.copy(refreshToken = refreshToken)
+    }
+}
+
+suspend fun setUUID(){
+    SdmEcoMileageApplication.ApplicationContext().dataStore.updateData {
+        it.copy(uuid = UUID.randomUUID().toString())
+    }
+}
+
+@Composable
+fun AppInit(refreshToken: String){
+
+}
 
 
 fun bitmapToString(bitmap: Bitmap): String {
@@ -516,5 +551,7 @@ val termsThird = "- 만 14세 미만의 어린이는 법률에 의거하여 보�
         "\n" +
         "-  만 14세 미만 아동의 개인정보 수집·이용에 대한 보호자(법정대리인) 동의"
 
-val MainFeedReportOptions = listOf("음란성 게시물", "폭력적 또는 불쾌한 게시물", "스팸 게시물", "사생활 침해/개인정보 유출 게시물", "불법적인 게시물")
-val CommentReportOptions = listOf("음란성 댓글", "욕설, 비방, 명예훼손 댓글", "스팸 댓글", "사생활 침해, 개인정보 유출 게시물", "불법적인 댓글")
+val MainFeedReportOptions =
+    listOf("음란성 게시물", "폭력적 또는 불쾌한 게시물", "스팸 게시물", "사생활 침해/개인정보 유출 게시물", "불법적인 게시물")
+val CommentReportOptions =
+    listOf("음란성 댓글", "욕설, 비방, 명예훼손 댓글", "스팸 댓글", "사생활 침해, 개인정보 유출 게시물", "불법적인 댓글")

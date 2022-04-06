@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -42,21 +43,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
-import com.sdm.ecomileage.components.CustomReportDialog
-import com.sdm.ecomileage.components.ProfileImage
-import com.sdm.ecomileage.components.ProfileName
-import com.sdm.ecomileage.components.SecomiTopAppBar
+import com.sdm.ecomileage.components.*
+import com.sdm.ecomileage.data.AppSettings
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.data.HomeDetailCommentData
-import com.sdm.ecomileage.model.comment.commentInfo.response.CommentInfoResponse
-import com.sdm.ecomileage.model.comment.commentInfo.response.MainComment
-import com.sdm.ecomileage.model.comment.mainFeed.response.MainFeedResponse
-import com.sdm.ecomileage.model.comment.mainFeed.response.PostInfo
+import com.sdm.ecomileage.model.homedetail.comment.commentInfo.response.CommentInfoResponse
+import com.sdm.ecomileage.model.homedetail.comment.commentInfo.response.MainComment
+import com.sdm.ecomileage.model.homedetail.loginUser.response.AppMemberInfoResponse
+import com.sdm.ecomileage.model.homedetail.mainFeed.response.MainFeedResponse
+import com.sdm.ecomileage.model.homedetail.mainFeed.response.PostInfo
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.CommentReportOptions
+import com.sdm.ecomileage.utils.dataStore
 import com.sdm.ecomileage.utils.loginedUserId
-import com.sdm.ecomileage.utils.uuidSample
+import com.sdm.ecomileage.utils.currentUUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -75,6 +76,10 @@ fun HomeDetailScreen(
     }
 
     val scope = rememberCoroutineScope()
+
+    val context = LocalContext.current
+    val appSettings = context.dataStore.data.collectAsState(initial = AppSettings())
+    val uuid = appSettings.value.uuid
 
     val mainFeedData = produceState<DataOrException<MainFeedResponse, Boolean, Exception>>(
         initialValue = DataOrException(loading = true)
@@ -95,6 +100,14 @@ fun HomeDetailScreen(
         }
     }.value
 
+    val loginUserInfoData =
+        produceState<DataOrException<AppMemberInfoResponse, Boolean, Exception>>(
+            initialValue = DataOrException(loading = true)
+        ) {
+            scope.launch(context = Dispatchers.IO) {
+                value = commentViewModel.getLoginUserInfo(uuid)
+            }
+        }.value
 
 
     when {
@@ -102,16 +115,16 @@ fun HomeDetailScreen(
             Text(text = "잘못된 접근입니다.")
         }
 
-        mainFeedData.loading == true || commentInfoData.loading == true -> CircularProgressIndicator()
-        mainFeedData.data?.result?.postInfo != null && commentInfoData.data?.result?.mainComment != null
+        mainFeedData.loading == true || commentInfoData.loading == true || loginUserInfoData.loading == true -> CircularProgressIndicator()
+        mainFeedData.data?.result?.postInfo != null && commentInfoData.data?.result?.mainComment != null && loginUserInfoData.data?.result != null
         ->
             HomeDetailScaffold(
                 navController,
                 feedNo,
-                commentViewModel,
                 mainFeedData.data!!.result.postInfo,
                 commentInfoData.data!!.result.mainComment,
-                commentInfoData
+                commentInfoData,
+                loginUserInfoData
             )
         else -> {
             Log.d(
@@ -131,10 +144,11 @@ fun HomeDetailScreen(
 private fun HomeDetailScaffold(
     navController: NavController,
     feedNo: Int,
-    commentViewModel: HomeDetailViewModel,
     postInfo: PostInfo,
     mainComment: List<MainComment>,
-    commentInfoData: DataOrException<CommentInfoResponse, Boolean, Exception>
+    commentInfoData: DataOrException<CommentInfoResponse, Boolean, Exception>,
+    loginUserInfoData: DataOrException<AppMemberInfoResponse, Boolean, Exception>,
+    commentViewModel: HomeDetailViewModel = hiltViewModel(),
 ) {
     val homeDetailCommentData = HomeDetailCommentData
     val scope = rememberCoroutineScope()
@@ -193,23 +207,22 @@ private fun HomeDetailScaffold(
             HomeDetailBottomCommentBar { comment ->
                 scope.launch {
                     commentViewModel.postNewComment(
-                        uuid = uuidSample,
+                        uuid = currentUUID,
                         feedNo = feedNo,
                         commentContent = comment
                     )
                     keyboardController?.hide()
                     commentInfoData.loading = true
 
-                    // Todo : Proto Datastore 적용하면 profileImg, userName 바꾸기
                     localComment.add(
                         MainComment(
                             commentsno = 0,
                             parentcommentsno = 0,
                             photo = "",
-                            profileimg = "https://t1.daumcdn.net/cfile/tistory/24283C3858F778CA2E",
+                            profileimg = loginUserInfoData.data!!.result.userImg,
                             title = comment,
-                            userId = "",
-                            userName = "아이유는뉘집아이유"
+                            userId = loginUserInfoData.data!!.result.userId,
+                            userName = loginUserInfoData.data!!.result.userName
                         )
                     )
                 }
@@ -221,7 +234,9 @@ private fun HomeDetailScaffold(
         ) {
             itemsIndexed(localComment) { index, data ->
                 Row {
-                    HomeDetailContent(
+                    if (commentViewModel.getReportingCommentValueFromKey(index)) {
+
+                    } else HomeDetailContent(
                         userId = data.userId,
                         image = data.profileimg,
                         name = data.userName,
@@ -236,17 +251,20 @@ private fun HomeDetailScaffold(
                 }
                 if (index == homeDetailCommentData.lastIndex)
                     Spacer(modifier = Modifier.height(50.dp))
+
+                if (reportDialogVisible)
+                    CustomReportDialog(
+                        reportAction = { selectedOptionToCode, reportDescription ->
+                            commentViewModel.addReportingComment(index)
+
+
+                        }, dismissAction = {
+                            reportDialogVisible = false
+                        }, reportOptions = CommentReportOptions
+                    )
             }
         }
-        if (reportDialogVisible)
-            CustomReportDialog(
-                reportAction = { selectedOption, reportDescription ->
-                    
 
-                }, dismissAction = {
-                    reportDialogVisible = false
-                }, reportOptions = CommentReportOptions
-            )
     }
 }
 
@@ -260,7 +278,8 @@ private fun HomeDetailContent(
     tag: List<String>? = null,
     navController: NavController,
     isItCommentFeed: Boolean = false,
-    onReportVisible: (() -> Unit)? = null
+    onReportVisible: (() -> Unit)? = null,
+    isThisReported: Boolean = false
 ) {
     Row(
         modifier = Modifier
@@ -271,6 +290,16 @@ private fun HomeDetailContent(
         Row(
             modifier = Modifier.fillMaxWidth(0.95f)
         ) {
+            if (isThisReported) {
+                BlockedProfileImage()
+                Spacer(modifier = Modifier.width(5.dp))
+                HomeDetailFormat(
+                    name = "***",
+                    text = "신고 처리 된 댓글입니다.",
+                    tagList = null,
+                    isThisReported = true
+                )
+            }
             ProfileImage(
                 userId = userId,
                 image = image,
@@ -306,6 +335,7 @@ private fun HomeDetailFormat(
     name: String,
     text: String,
     tagList: List<String>?,
+    isThisReported: Boolean = false
 ) {
     Column(
         horizontalAlignment = Alignment.Start,
@@ -317,15 +347,17 @@ private fun HomeDetailFormat(
             textAlign = TextAlign.Start,
             fontStyle = MaterialTheme.typography.subtitle1,
             fontWeight = FontWeight.Bold,
+            color = if (isThisReported) ReportedContentColor else Color.Black
         )
         Text(
             text = text,
             modifier = Modifier.padding(start = 5.5.dp, top = 3.dp),
-            style = MaterialTheme.typography.body2
+            style = MaterialTheme.typography.body2,
+            color = if (isThisReported) ReportedContentColor else Color.Black
         )
 
         LazyRow {
-            if (tagList != null)
+            if (tagList != null && !isThisReported)
                 items(tagList) { tag ->
                     Text(
                         text = "#$tag",
@@ -335,6 +367,13 @@ private fun HomeDetailFormat(
                     )
                 }
         }
+        if (isThisReported)
+            Text(
+                text = "실행 취소",
+                modifier = Modifier
+                    .padding(start = 30.dp)
+                    .clickable { }, color = LoginButtonColor
+            )
     }
 }
 

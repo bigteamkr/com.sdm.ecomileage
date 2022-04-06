@@ -1,5 +1,6 @@
 package com.sdm.ecomileage.screens.myPage
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -25,6 +27,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.SystemUiController
@@ -33,8 +37,13 @@ import com.sdm.ecomileage.components.*
 import com.sdm.ecomileage.data.ChallengeList
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.myPage.myFeedInfo.response.MyFeedInfoResponse
+import com.sdm.ecomileage.model.myPage.userFeedInfo.response.UserFeedInfoResponse
 import com.sdm.ecomileage.navigation.SecomiScreens
+import com.sdm.ecomileage.screens.home.HomeViewModel
+import com.sdm.ecomileage.screens.homeDetail.HomeDetailViewModel
 import com.sdm.ecomileage.ui.theme.*
+import com.sdm.ecomileage.utils.currentUUID
+import kotlinx.coroutines.launch
 
 @Composable
 fun MyPageScreen(
@@ -46,33 +55,54 @@ fun MyPageScreen(
     SideEffect {
         systemUiController.setStatusBarColor(StatusBarGreenColor)
     }
+    val myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>
+    val userFeedInfo: DataOrException<UserFeedInfoResponse, Boolean, Exception>
 
-    val myFeedInfo = produceState<DataOrException<MyFeedInfoResponse, Boolean, Exception>>(
-        initialValue = DataOrException(loading = true)
-    ) {
-        value = myPageViewModel.getMyFeedInfo()
-    }.value
+    if (userId == "myPage") {
+        myFeedInfo = produceState<DataOrException<MyFeedInfoResponse, Boolean, Exception>>(
+            initialValue = DataOrException(loading = true)
+        ) {
+            value = myPageViewModel.getMyFeedInfo()
+        }.value
 
-    if (myFeedInfo.loading == true)
-        CircularProgressIndicator()
-    else if (myFeedInfo.data?.result != null && userId == "myPage")
-        MyPageScaffold(navController, myFeedInfo)
-    else if (userId != "myPage")
-        Text(text = userId!!)
+        if (myFeedInfo.loading == true)
+            CircularProgressIndicator()
+        else if (myFeedInfo.data?.result != null)
+            MyPageScaffold(navController, userId, myFeedInfo)
+
+    } else {
+        userFeedInfo = produceState<DataOrException<UserFeedInfoResponse, Boolean, Exception>>(
+            initialValue = DataOrException(loading = true)
+        ) {
+            value = myPageViewModel.getUserFeedInfo(userId!!)
+        }.value
+
+        if (userFeedInfo.loading == true)
+            CircularProgressIndicator()
+        else if (userFeedInfo.data?.result != null)
+            MyPageScaffold(navController, userId!!, userFeedInfo = userFeedInfo)
+    }
 }
 
 @Composable
 private fun MyPageScaffold(
     navController: NavController,
-    myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>,
+    userId: String,
+    myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>? = null,
+    userFeedInfo: DataOrException<UserFeedInfoResponse, Boolean, Exception>? = null,
 ) {
-    var selectedButton by remember {
-        mutableStateOf("내 게시물")
-    }
-
     Scaffold(
         topBar = {
-            MyPageTopBar(navController)
+            if (myFeedInfo != null) MyPageTopBar(
+                navController,
+                myFeedInfo
+            ) else if (userFeedInfo != null) SecomiTopAppBar(
+                title = "",
+                currentScreen = SecomiScreens.MyPageScreen.name,
+                navController = navController,
+                navigationIcon = painterResource(id = R.drawable.ic_back_arrow),
+                actionIconsList = mapOf("more" to painterResource(id = R.drawable.ic_more))
+            )
         },
         bottomBar = {
             SecomiBottomBar(
@@ -84,30 +114,123 @@ private fun MyPageScaffold(
         isFloatingActionButtonDocked = true,
         floatingActionButtonPosition = FabPosition.Center
     ) {
+        if (userId == "myPage")
+            MyPageLayout(navController, myFeedInfo)
+        else
+            UserFeedLayout(navController, userFeedInfo!!)
+    }
+}
+
+@Composable
+private fun MyPageLayout(
+    navController: NavController,
+    myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>?
+) {
+    var selectedButton by remember {
+        mutableStateOf("내 게시물")
+    }
+
+    Column(
+        modifier = Modifier.padding(top = 5.dp, start = 15.dp, end = 15.dp)
+    ) {
+
+        MyPageFilterButton(selectedButton) {
+            selectedButton = it
+        }
+
+        if (selectedButton == "내 게시물") {
+            MyFeedLayout(navController, myFeedInfo!!)
+        }
+        if (selectedButton == "내 챌린지") {
+            MyChallengeLayout()
+        }
+    }
+}
+
+@Composable
+private fun UserFeedLayout(
+    navController: NavController,
+    userFeedInfo: DataOrException<UserFeedInfoResponse, Boolean, Exception>,
+    myPageViewModel: MyPageViewModel = hiltViewModel()
+) {
+    val scope = rememberCoroutineScope()
+
+    var isFollow by remember {
+        mutableStateOf(userFeedInfo.data!!.result.followyn)
+    }
+
+
+    Column {
         Column(
-            modifier = Modifier.padding(top = 5.dp, start = 15.dp, end = 15.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp, bottom = 30.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            ProfileImage(
+                userId = userFeedInfo.data!!.result.userid,
+                image = userFeedInfo.data!!.result.feedList[0].profileimg,
+                modifier = Modifier.size(80.dp),
+                navController = navController,
+                isNonClickable = true
+            )
+            ProfileName(
+                name = userFeedInfo.data!!.result.username,
+                modifier = Modifier.padding(top = 20.dp, bottom = 10.dp),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Button(
+                onClick = {
+                    isFollow = !isFollow
+                    scope.launch {
+                        myPageViewModel.putNewFollowInfo(
+                            currentUUID,
+                            userFeedInfo.data!!.result.userid,
+                            isFollow
+                        )
+                    }
 
-            MyPageFilterButton(selectedButton) {
-                selectedButton = it
-            }
-
-            if (selectedButton == "내 게시물") {
-                Column {
-                    Text(
-                        text = "오늘",
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(start = 10.dp, top = 10.dp, bottom = 5.dp),
-                        color = IndicationColor
-                    )
-                    Divider()
-                    MyFeedList(navController, myFeedInfo)
-                }
-            }
-            if (selectedButton == "내 챌린지") {
-                MyChallengeLayout()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = if (isFollow) LoginButtonColor else PlaceholderColor
+                )
+            ) {
+                Text(
+                    text = if (isFollow) "팔로우 중" else "팔로우하기",
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
             }
         }
+
+        Text(
+            text = "오늘",
+            fontSize = 14.sp,
+            modifier = Modifier.padding(start = 10.dp, top = 10.dp, bottom = 5.dp),
+            color = IndicationColor
+        )
+        Divider()
+        UserFeedList(navController, userFeedInfo)
+    }
+}
+
+@Composable
+private fun MyFeedLayout(
+    navController: NavController,
+    myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>
+) {
+    Column {
+        Text(
+            text = "오늘",
+            fontSize = 12.sp,
+            modifier = Modifier.padding(start = 10.dp, top = 10.dp, bottom = 5.dp),
+            color = IndicationColor
+        )
+        Divider()
+        MyFeedList(navController, myFeedInfo)
     }
 }
 
@@ -117,7 +240,7 @@ private fun MyChallengeLayout() {
     Column() {
         Text(
             text = "항목 당 일일 1회씩만 도전 가능합니다.",
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             modifier = Modifier.padding(start = 10.dp, top = 10.dp, bottom = 5.dp),
             color = IndicationColor
         )
@@ -241,7 +364,10 @@ private fun MyPageFilterButton(
 }
 
 @Composable
-private fun MyPageTopBar(navController: NavController) {
+private fun MyPageTopBar(
+    navController: NavController,
+    myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>
+) {
     val pointString = buildAnnotatedString {
         withStyle(
             style = SpanStyle(
@@ -250,7 +376,7 @@ private fun MyPageTopBar(navController: NavController) {
                 fontSize = 21.sp
             )
         ) {
-            append("32,000 ")
+            append("${myFeedInfo.data!!.result.point} ")
         }
         withStyle(
             style = SpanStyle(
@@ -329,15 +455,15 @@ private fun MyPageTopBar(navController: NavController) {
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     ProfileImage(
-                        userId = "myPage",
-                        image = "https://blog.yena.io/assets/post-img/171123-nachoi-300.jpg",
+                        userId = myFeedInfo.data!!.result.userid,
+                        image = myFeedInfo.data!!.result.feedList[0].profileimg,
                         modifier = Modifier
                             .padding(start = 10.dp, top = 2.dp)
                             .size(25.dp),
                         navController = navController
                     )
                     Text(
-                        text = "김채영",
+                        text = myFeedInfo.data!!.result.username,
                         modifier = Modifier.padding(start = 10.dp),
                         fontSize = 17.sp,
                         fontWeight = FontWeight.SemiBold
@@ -359,30 +485,209 @@ private fun MyPageTopBar(navController: NavController) {
 }
 
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MyFeedList(
     navController: NavController,
-    myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>
+    myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>,
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    homeDetailViewModel: HomeDetailViewModel = hiltViewModel()
 ) {
+    val scope = rememberCoroutineScope()
+
     LazyVerticalGrid(columns = GridCells.Fixed(2)) {
         itemsIndexed(myFeedInfo.data!!.result.feedList) { index, data ->
+            var likeYN by remember {
+                mutableStateOf(data.likeyn)
+            }
+            var isShowingFeedPopUp by remember {
+                mutableStateOf(false)
+            }
+
             MyFeedCard(
                 navController = navController,
-                feedNo = data.id,
+                feedNo = data.feedsno,
                 currentScreen = SecomiScreens.MyPageScreen.name,
                 contentImageList = data.imageList,
-                onReactionClick = {},
+                onClick = {
+                    isShowingFeedPopUp = true
+                },
+                onReactionClick = {
+                    likeYN = it
+                    scope.launch {
+                        homeViewModel.postFeedLike(data.feedsno, likeYN).let {
+                            Log.d(
+                                "myPage myList postLike",
+                                "MyFeedCard: ${it.data?.message}"
+                            )
+                        }
+                    }
+                },
+                reportDialogCallAction = {},
+                otherIcons = mapOf(
+                    "comment" to R.drawable.ic_comment,
+                    "empty" to 70,
+                    "more" to R.drawable.ic_more
+                ),
+                likeYN = likeYN,
+                likeCount = data.likeCount,
+                commentCount = data.commentCount.toString()
+            )
+
+            if (index == myFeedInfo.data!!.result.feedList.lastIndex)
+                Spacer(modifier = Modifier.height(230.dp))
+            if (isShowingFeedPopUp) {
+                Dialog(
+                    onDismissRequest = { isShowingFeedPopUp = false },
+                    properties = DialogProperties(
+                        dismissOnBackPress = true,
+                        dismissOnClickOutside = true,
+                        usePlatformDefaultWidth = false
+                    )
+                ) {
+                    MainCardFeed(
+                        contentImageList = data.imageList,
+                        profileImage = data.profileimg,
+                        profileId = data.userid,
+                        profileName = data.userName,
+                        reactionIcon = listOf(
+                            R.drawable.ic_like_off,
+                            R.drawable.ic_like_on
+                        ),
+                        reactionData = data.likeCount,
+                        onReactionClick = {
+                            scope.launch {
+                                homeViewModel.postFeedLike(data.feedsno, likeYN).let {
+                                    Log.d(
+                                        "myPage myList postLike",
+                                        "MyFeedCard: ${it.data?.message}"
+                                    )
+                                }
+                            }
+                        },
+                        reactionTint = LikeColor,
+                        likeYN = data.likeyn,
+                        colorIcon = null,
+                        otherIcons = mapOf(
+                            "comment" to R.drawable.ic_comment,
+                            "more" to R.drawable.ic_more
+                        ),
+                        navController = navController,
+                        reportDialogCallAction = {},
+                        currentScreen = SecomiScreens.MyPageScreen.name,
+                        feedNo = data.feedsno,
+                        contentText = data.feedcontent,
+                        hashtagList = data.hashtags,
+                        destinationScreen = null,
+                        showIndicator = true,
+                        sizeModifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .fillMaxHeight(0.65f)
+                    )
+                }
+            }
+
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun UserFeedList(
+    navController: NavController,
+    userFeedInfo: DataOrException<UserFeedInfoResponse, Boolean, Exception>,
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    homeDetailViewModel: HomeDetailViewModel = hiltViewModel()
+) {
+    val scope = rememberCoroutineScope()
+
+    LazyVerticalGrid(columns = GridCells.Fixed(2)) {
+        itemsIndexed(userFeedInfo.data!!.result.feedList) { index, data ->
+            var likeYN by remember {
+                mutableStateOf(data.likeyn)
+            }
+            var isShowingFeedPopUp by remember {
+                mutableStateOf(false)
+            }
+
+            MyFeedCard(
+                navController = navController,
+                feedNo = data.feedsno,
+                onClick = { isShowingFeedPopUp = true },
+                currentScreen = SecomiScreens.MyPageScreen.name,
+                contentImageList = data.imageList,
+                onReactionClick = {
+                    likeYN = it
+                    scope.launch {
+                        homeViewModel.postFeedLike(data.feedsno, !likeYN).let {
+                            Log.d("myPage myList postLike", "MyFeedCard: ${it.data?.message}")
+                        }
+                    }
+                },
                 reportDialogCallAction = {},
                 otherIcons = mapOf(
                     "comment" to R.drawable.ic_comment,
                     "empty" to 55,
                     "more" to R.drawable.ic_more
                 ),
+                likeYN = likeYN,
+                likeCount = data.likeCount,
                 commentCount = data.commentCount.toString()
             )
 
-            if (index == myFeedInfo.data!!.result.feedList.lastIndex)
+            if (index == userFeedInfo.data!!.result.feedList.lastIndex)
                 Spacer(modifier = Modifier.height(230.dp))
+
+            if (isShowingFeedPopUp) {
+                Dialog(
+                    onDismissRequest = { isShowingFeedPopUp = false },
+                    properties = DialogProperties(
+                        dismissOnBackPress = true,
+                        dismissOnClickOutside = true,
+                        usePlatformDefaultWidth = false
+                    )
+                ) {
+                    MainCardFeed(
+                        contentImageList = data.imageList,
+                        profileImage = data.profileimg,
+                        profileId = data.userid,
+                        profileName = data.userName,
+                        reactionIcon = listOf(
+                            R.drawable.ic_like_off,
+                            R.drawable.ic_like_on
+                        ),
+                        reactionData = data.likeCount,
+                        onReactionClick = {
+                            scope.launch {
+                                homeViewModel.postFeedLike(data.feedsno, !likeYN).let {
+                                    Log.d(
+                                        "myPage myList postLike",
+                                        "MyFeedCard: ${it.data?.message}"
+                                    )
+                                }
+                            }
+                        },
+                        reactionTint = LikeColor,
+                        likeYN = data.likeyn,
+                        colorIcon = null,
+                        otherIcons = mapOf(
+                            "comment" to R.drawable.ic_comment,
+                            "more" to R.drawable.ic_more
+                        ),
+                        navController = navController,
+                        reportDialogCallAction = {},
+                        currentScreen = SecomiScreens.MyPageScreen.name,
+                        feedNo = data.feedsno,
+                        contentText = data.feedcontent,
+                        hashtagList = data.hashtags,
+                        destinationScreen = null,
+                        showIndicator = true,
+                        sizeModifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .fillMaxHeight(0.65f)
+                    )
+                }
+            }
         }
     }
 }
@@ -392,19 +697,28 @@ fun MyFeedList(
 fun MyFeedCard(
     navController: NavController,
     feedNo: Int,
+    onClick: () -> Unit,
     heightModifier: Dp = 120.dp,
     currentScreen: String,
     contentImageList: List<String>,
     onReactionClick: ((Boolean) -> Unit),
     otherIcons: (Map<String, Int>)?,
+    likeYN: Boolean,
+    likeCount: Int,
     commentCount: String,
-    reportDialogCallAction: ((Boolean) -> Unit)?
+    reportDialogCallAction: ((Boolean) -> Unit)?,
+    homeViewModel: HomeViewModel = hiltViewModel()
 ) {
+    val scope = rememberCoroutineScope()
+
     Card(
         modifier = Modifier
             .padding(5.dp)
             .padding(vertical = 5.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable {
+                onClick()
+            },
         shape = RoundedCornerShape(10.dp),
         backgroundColor = Color.White
     ) {
@@ -414,7 +728,11 @@ fun MyFeedCard(
                     .fillMaxWidth()
                     .height(heightModifier)
             ) {
-                CardImageRow(contentImageList, currentScreen, indicatorTextSize = 11.sp, showIndicator = false)
+                CardImageRow(
+                    contentImageList,
+                    currentScreen,
+                    showIndicator = false
+                )
             }
 
             Row(
@@ -431,10 +749,15 @@ fun MyFeedCard(
                         R.drawable.ic_like_off,
                         R.drawable.ic_like_on
                     ),
-                    reactionData = 3,
-                    onClickReaction = { onReactionClick(it) },
+                    reactionData = likeCount,
+                    onClickReaction = {
+                        onReactionClick(!likeYN)
+                        scope.launch {
+                            homeViewModel.postFeedLike(feedsNo = feedNo, !likeYN)
+                        }
+                    },
                     tintColor = LikeColor,
-                    likeYN = false
+                    likeYN = likeYN
                 )
 
                 otherIcons?.forEach { (key, icon) ->
@@ -456,7 +779,9 @@ fun MyFeedCard(
                             )
                             Text(
                                 text = commentCount,
+                                fontSize = 14.sp,
                                 modifier = Modifier.padding(start = 5.dp),
+                                style = MaterialTheme.typography.subtitle2,
                                 color = CardIconsColor
                             )
                         }

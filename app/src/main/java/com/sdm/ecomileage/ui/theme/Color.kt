@@ -50,7 +50,7 @@ val ButtonColor = Color(0xFF3FDB74)
 val BeforeUploadTint = Color(0xFFC8CFDA)
 val BeforeUploadTextColor = Color(0xFF6B788B)
 val UnableUploadButtonColor = Color(0xFF8D8D8D)
-
+val ReportedContentColor = Color(0xFF838383)
 
 // Login Register Color
 val LoginEmailInputColor = Color(0xFF006F33)

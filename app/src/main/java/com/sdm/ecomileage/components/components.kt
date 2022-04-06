@@ -209,9 +209,9 @@ fun SecomiTopAppBar(
                                         .size(40.dp)
                                         .padding(5.dp)
                                         .clickable {
-                                            navController.navigate(SecomiScreens.RankingScreen.name) {
-                                                popUpTo(SecomiScreens.HomeScreen.name)
-                                            }
+//                                            navController.navigate(SecomiScreens.RankingScreen.name) {
+//                                                popUpTo(SecomiScreens.HomeScreen.name)
+//                                            }
                                         },
                                     color = Color.Transparent
                                 ) {
@@ -231,9 +231,9 @@ fun SecomiTopAppBar(
                                         .size(40.dp)
                                         .padding(5.dp)
                                         .clickable {
-                                            navController.navigate(SecomiScreens.NoticeScreen.name) {
-                                                popUpTo(SecomiScreens.HomeScreen.name)
-                                            }
+//                                            navController.navigate(SecomiScreens.NoticeScreen.name) {
+//                                                popUpTo(SecomiScreens.HomeScreen.name)
+//                                            }
                                         },
                                     color = Color.Transparent
                                 ) {
@@ -243,6 +243,26 @@ fun SecomiTopAppBar(
                                         modifier = Modifier
                                             .fillMaxSize(),
                                         contentScale = ContentScale.FillBounds
+                                    )
+                                }
+                            }
+                            "more" -> {
+                                Surface(
+                                    shape = CircleShape,
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .padding(5.dp)
+                                        .clickable {
+
+                                        },
+                                    color = Color.Transparent
+                                ) {
+                                    Icon(
+                                        painter = painter,
+                                        contentDescription = "more icon",
+                                        tint = contentColor,
+                                        modifier = Modifier
+                                            .fillMaxSize(),
                                     )
                                 }
                             }
@@ -380,8 +400,9 @@ fun ProfileName(
     modifier: Modifier = Modifier,
     fontSize: TextUnit = TextUnit.Unspecified,
     textAlign: TextAlign = TextAlign.Center,
-    fontStyle: TextStyle,
+    fontStyle: TextStyle = TextStyle.Default,
     fontWeight: FontWeight = FontWeight.Normal,
+    color: Color = Color.Black
 ) {
     Text(
         text = name ?: "세코미",
@@ -392,7 +413,8 @@ fun ProfileName(
         fontWeight = fontWeight,
         textAlign = textAlign,
         maxLines = 1,
-        overflow = TextOverflow.Ellipsis
+        overflow = TextOverflow.Ellipsis,
+        color = color
     )
 }
 
@@ -407,11 +429,11 @@ fun ProfileImage(
         color = Color.LightGray
     ),
     navController: NavController,
-    isOnEducation: Boolean = false
+    isNonClickable: Boolean = false
 ) {
     Surface(
         onClick = {
-            if (!isOnEducation)
+            if (!isNonClickable)
                 navController.navigate(SecomiScreens.MyPageScreen.name + "/$userId") {
                     launchSingleTop
                 }
@@ -423,6 +445,31 @@ fun ProfileImage(
     ) {
         Image(
             painter = rememberImagePainter(image),
+            contentDescription = "Profile",
+            contentScale = ContentScale.Crop
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun BlockedProfileImage(
+    modifier: Modifier = Modifier,
+    borderStroke: BorderStroke = BorderStroke(
+        width = 0.dp,
+        color = Color.LightGray
+    )
+) {
+    Surface(
+        onClick = {},
+        modifier = modifier
+            .size(55.dp)
+            .then(modifier),
+        shape = CircleShape,
+        border = borderStroke
+    ) {
+        Image(
+            painter = painterResource(R.drawable.ic_blocked_account),
             contentDescription = "Profile",
             contentScale = ContentScale.Crop
         )
@@ -500,8 +547,8 @@ fun MainCardFeed(
     profileImage: String,
     profileId: String,
     profileName: String,
-    educationTitle: String?,
-    educationTime: String?,
+    educationTitle: String? = null,
+    educationTime: String? = null,
     reactionIcon: List<Int>?,
     reactionData: Int?,
     onReactionClick: ((Boolean) -> Unit)?,
@@ -517,7 +564,8 @@ fun MainCardFeed(
     hashtagList: List<String>?,
     destinationScreen: String?,
     showIndicator: Boolean,
-    isOnEducation: Boolean = false
+    isOnEducation: Boolean = false,
+    sizeModifier: Modifier = Modifier
 ) {
     val heightModifier = if (currentScreen == SecomiScreens.EducationScreen.name) 230.dp else 355.dp
 
@@ -533,7 +581,8 @@ fun MainCardFeed(
             .padding(5.dp)
             .padding(start = 5.dp, end = 5.dp)
             .fillMaxWidth()
-            .then(navigatingModifier),
+            .then(navigatingModifier)
+            .then(sizeModifier),
         shape = RoundedCornerShape(10.dp),
         backgroundColor = Color.White
     ) {
@@ -613,7 +662,7 @@ fun CardWriterInformation(
                     .size(35.dp)
                     .padding(start = 5.dp),
                 navController = navController,
-                isOnEducation = isOnEducation
+                isNonClickable = isOnEducation
             )
             ProfileName(
                 name = profileName,
@@ -949,11 +998,16 @@ fun CustomLoginInputTextField(
     enabled: Boolean = true,
     label: String,
     isFocus: () -> Unit,
-    keyboardOptions: KeyboardOptions
+    keyboardOptions: KeyboardOptions,
+    defaultText: String? = null
 ) {
     var text by remember {
         mutableStateOf("")
     }
+    LaunchedEffect(key1 = defaultText) {
+        text = defaultText ?: ""
+    }
+
     var labelPositionX by remember {
         mutableStateOf(0.dp)
     }
@@ -1092,6 +1146,7 @@ fun CustomReportDialog(
                                 reportOptions[2] -> selectedOptionToCode = "30"
                                 reportOptions[3] -> selectedOptionToCode = "40"
                                 reportOptions[4] -> selectedOptionToCode = "50"
+                                reportOptions[5] -> selectedOptionToCode = "60"
                             }
                             reportAction(selectedOptionToCode, reportDetailDescription.value)
                         },

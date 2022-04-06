@@ -14,7 +14,7 @@ import com.sdm.ecomileage.model.report.response.ReportResponse
 import com.sdm.ecomileage.repository.homeRepository.HomeRepository
 import com.sdm.ecomileage.utils.accessToken
 import com.sdm.ecomileage.utils.loginedUserId
-import com.sdm.ecomileage.utils.uuidSample
+import com.sdm.ecomileage.utils.currentUUID
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -53,7 +53,7 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
             ReportRequest(
                 NewReportInfo = listOf(
                     NewReportInfo(
-                        uuid = uuidSample,
+                        uuid = currentUUID,
                         feedsno = feedsNo,
                         reporttype = reportType,
                         reportcontent = reportContent,
@@ -73,7 +73,7 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
                 FeedLikes = listOf(
                     FeedLike(
                         lang = "ko",
-                        uuid = uuidSample,
+                        uuid = currentUUID,
                         feedsno = feedsNo,
                         likeyn = likeYN
                     )

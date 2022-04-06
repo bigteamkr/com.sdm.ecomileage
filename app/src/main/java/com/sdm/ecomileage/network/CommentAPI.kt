@@ -1,11 +1,13 @@
 package com.sdm.ecomileage.network
 
-import com.sdm.ecomileage.model.comment.commentInfo.request.CommentInfoRequest
-import com.sdm.ecomileage.model.comment.commentInfo.response.CommentInfoResponse
-import com.sdm.ecomileage.model.comment.mainFeed.request.MainFeedRequest
-import com.sdm.ecomileage.model.comment.mainFeed.response.MainFeedResponse
-import com.sdm.ecomileage.model.comment.newComment.request.NewCommentRequest
-import com.sdm.ecomileage.model.comment.newComment.response.NewCommentResponse
+import com.sdm.ecomileage.model.homedetail.comment.commentInfo.request.CommentInfoRequest
+import com.sdm.ecomileage.model.homedetail.comment.commentInfo.response.CommentInfoResponse
+import com.sdm.ecomileage.model.homedetail.mainFeed.request.MainFeedRequest
+import com.sdm.ecomileage.model.homedetail.mainFeed.response.MainFeedResponse
+import com.sdm.ecomileage.model.homedetail.comment.newComment.request.NewCommentRequest
+import com.sdm.ecomileage.model.homedetail.comment.newComment.response.NewCommentResponse
+import com.sdm.ecomileage.model.homedetail.loginUser.request.AppMemberInfoRequest
+import com.sdm.ecomileage.model.homedetail.loginUser.response.AppMemberInfoResponse
 import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -28,4 +30,10 @@ interface CommentAPI {
         @Header("token") token: String,
         @Body body: NewCommentRequest
     ): NewCommentResponse
+
+    @POST(value = "AppMemberInfo")
+    suspend fun getAppMemberInfo(
+        @Header("token") token: String,
+        @Body body: AppMemberInfoRequest
+    ) : AppMemberInfoResponse
 }
