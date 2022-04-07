@@ -45,6 +45,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
@@ -70,9 +72,11 @@ import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.bitmapToString
 import com.sdm.ecomileage.utils.currentUUID
 import com.sdm.ecomileage.utils.loginedUserId
+import com.sdm.ecomileage.utils.uploadAlarm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.suspendCoroutine
 
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -100,6 +104,7 @@ private fun HomeAddScaffold(
     viewModel: HomeAddViewModel
 ) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
     // Todo : selectedCategory should be in ViewModel
     var selectedCategory = rememberSaveable {
         mutableStateOf("카테고리 선택")
@@ -146,6 +151,9 @@ private fun HomeAddScaffold(
     var canUploadNetworkStatus by remember { mutableStateOf<Boolean?>(true) }
     var isClickedImage by remember { mutableStateOf(false) }
     var isNotEmptyImageList by remember { mutableStateOf(imageList[0] != null) }
+    var isAlarm by remember {
+        mutableStateOf(false)
+    }
 
     LaunchedEffect(key1 = isClickedImage) {
         isNotEmptyImageList = imageList[0] != null
@@ -226,126 +234,30 @@ private fun HomeAddScaffold(
 
             Button(
                 onClick = {
-                    imageData.clear()
-                    imageList.forEach { image ->
-                        if (image != null)
-                            imageData.add(
-                                Image(
-                                    status = "I",
-                                    type = "png",
-                                    filename = "${imageData.size}.png",
-                                    filesno = 0,
-                                    filedtlsno = 0,
-                                    image = bitmapToString(image)
-                                )
-                            )
-                    }
+                    if (!isNotEmptyImageList)
+                        showShortToastMessage(context, "사진을 입력해주세요.")
+                    else if (selectedCategory.value == "카테고리 선택")
+                        showShortToastMessage(context, "카테고리를 선택해주세요.")
+                    else if (inputComment.value.length < 10)
+                        showShortToastMessage(context, "내용은 10자 이상 작성해주세요.")
+                    else{
+                        isAlarm = true
 
-                    scope.launch(Dispatchers.IO) {
-                        if (!isNotEmptyImageList)
-                            withContext(Dispatchers.Main) {
-                                showShortToastMessage(context, "사진을 입력해주세요.")
-                            }
-                        else if (selectedCategory.value == "카테고리 선택")
-                            withContext(Dispatchers.Main) {
-                                showShortToastMessage(context, "카테고리를 선택해주세요.")
-                            }
-                        else if (inputComment.value.length < 10)
-                            withContext(Dispatchers.Main) {
-                                showShortToastMessage(context, "내용은 10자 이상 작성해주세요.")
-                            }
-                        else if (canUploadNetworkStatus == true) {
-                            if (selectedCategory.value == "일상생활")
-                                viewModel.postHomeFeedInfo(
-                                    HomeAddRequest(
-                                        NewActivityInfo = listOf(
-                                            NewActivityInfo(
-                                                userid = loginedUserId,
-                                                title = "",
-                                                content = inputComment.value,
-                                                category = "1",
-                                                hashtag = tagList.toList(),
-                                                feedsno = 0,
-                                                imageList = imageData.toList(),
-                                            )
+                        //Todo: 이거 원래 버튼에 있었음
+                        suspend {
+                            imageData.clear()
+                            imageList.forEach { image ->
+                                if (image != null)
+                                    imageData.add(
+                                        Image(
+                                            status = "I",
+                                            type = "png",
+                                            filename = "${imageData.size}.png",
+                                            filesno = 0,
+                                            filedtlsno = 0,
+                                            image = bitmapToString(image)
                                         )
                                     )
-                                ).let {
-                                    when {
-                                        it.loading == true -> canUploadNetworkStatus = false
-                                        it.data?.code != 200 -> {
-                                            canUploadNetworkStatus = true
-                                            Log.d(
-                                                "HomeAdd",
-                                                "HomeAddScaffold: ${it.data?.message}"
-                                            )
-                                            withContext(Dispatchers.Main) {
-                                                showShortToastMessage(context, "오류가 발생했습니다.")
-                                            }
-                                        }
-                                        it.data?.code == 200 -> {
-                                            withContext(Dispatchers.Main) {
-                                                navController.navigate(SecomiScreens.HomeScreen.name) {
-                                                    launchSingleTop
-                                                    popUpTo(SecomiScreens.HomeAddScreen.name) {
-                                                        inclusive = true
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                } else {
-                                val categoryNum = when (selectedCategory.value) {
-                                    "빈그릇 챌린지" -> 1
-                                    "대중교통 챌린지" -> 2
-                                    "개인 텀블러 챌린지" -> 3
-                                    "라벨 떼기 챌린지" -> 4
-                                    "장바구니 챌린지" -> 5
-                                    "코드 뽑기 챌린지" -> 6
-                                    "용기내 챌린지" -> 7
-                                    "업사이클링 챌린지" -> 8
-                                    else -> 0
-                                }
-
-                                viewModel.postNewChallengeInfo(
-                                    NewChallengeInfoRequest(
-                                        NewChallengeInfo = listOf(
-                                            NewChallengeInfo(
-                                                uuid = currentUUID,
-                                                userid = loginedUserId,
-                                                category = categoryNum.toString(),
-                                                content = inputComment.value,
-                                                hashtag = tagList.toList(),
-                                                imageList = imageData.toList(),
-                                                challengesno = categoryNum
-                                            )
-                                        )
-                                    )
-                                ).let {
-                                    when {
-                                        it.loading == true -> canUploadNetworkStatus = false
-                                        it.data?.code != 200 -> {
-                                            canUploadNetworkStatus = true
-                                            Log.d(
-                                                "HomeAdd",
-                                                "HomeAddScaffold: ${it.data?.message}"
-                                            )
-                                            withContext(Dispatchers.Main) {
-                                                showShortToastMessage(context, "오류가 발생했습니다.")
-                                            }
-                                        }
-                                        it.data?.code == 200 -> {
-                                            withContext(Dispatchers.Main) {
-                                                navController.navigate(SecomiScreens.HomeScreen.name) {
-                                                    launchSingleTop
-                                                    popUpTo(SecomiScreens.HomeAddScreen.name) {
-                                                        inclusive = true
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
                             }
                         }
                     }
@@ -361,9 +273,182 @@ private fun HomeAddScaffold(
             ) {
                 Text(text = "업로드하기", fontSize = 17.sp)
             }
-
         }
     }
+
+    if (isAlarm) {
+        Dialog(
+            onDismissRequest = { isAlarm = false },
+            properties = DialogProperties(
+                dismissOnBackPress = false,
+                dismissOnClickOutside = false,
+                usePlatformDefaultWidth = false
+            )
+        ) {
+            Surface(
+                modifier = Modifier
+                    .width((configuration.screenWidthDp * 0.75).dp)
+                    .height((configuration.screenHeightDp * 0.25).dp),
+                shape = RoundedCornerShape(5)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "알림",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.subtitle1
+                    )
+                    Text(
+                        text = uploadAlarm,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(10.dp),
+                        style = MaterialTheme.typography.subtitle1
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Button(
+                            onClick = { isAlarm = false },
+                            modifier = Modifier.width(140.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = UnableUploadButtonColor,
+                            )
+                        ) {
+                            Text(
+                                text = "등록취소",
+                                fontWeight = FontWeight.SemiBold,
+                                style = MaterialTheme.typography.caption,
+                                color = Color.White
+                            )
+                        }
+                        Button(
+                            onClick = {
+                                scope.launch(Dispatchers.IO) {
+                                    if (selectedCategory.value == "일상생활")
+                                        viewModel.postHomeFeedInfo(
+                                            HomeAddRequest(
+                                                NewActivityInfo = listOf(
+                                                    NewActivityInfo(
+                                                        userid = loginedUserId,
+                                                        title = "",
+                                                        content = inputComment.value,
+                                                        category = "1",
+                                                        hashtag = tagList.toList(),
+                                                        feedsno = 0,
+                                                        imageList = imageData.toList(),
+                                                    )
+                                                )
+                                            )
+                                        ).let {
+                                            when {
+                                                it.loading == true -> canUploadNetworkStatus =
+                                                    false
+                                                it.data?.code != 200 -> {
+                                                    canUploadNetworkStatus = true
+                                                    Log.d(
+                                                        "HomeAdd",
+                                                        "HomeAddScaffold: ${it.data?.message}"
+                                                    )
+                                                    withContext(Dispatchers.Main) {
+                                                        showShortToastMessage(
+                                                            context,
+                                                            "오류가 발생했습니다."
+                                                        )
+                                                    }
+                                                }
+                                                it.data?.code == 200 -> {
+                                                    withContext(Dispatchers.Main) {
+                                                        navController.navigate(SecomiScreens.HomeScreen.name) {
+                                                            launchSingleTop
+                                                            popUpTo(SecomiScreens.HomeAddScreen.name) {
+                                                                inclusive = true
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                        val categoryNum = when (selectedCategory.value) {
+                                            "빈그릇 챌린지" -> 1
+                                            "대중교통 챌린지" -> 2
+                                            "개인 텀블러 챌린지" -> 3
+                                            "라벨 떼기 챌린지" -> 4
+                                            "장바구니 챌린지" -> 5
+                                            "코드 뽑기 챌린지" -> 6
+                                            "용기내 챌린지" -> 7
+                                            "업사이클링 챌린지" -> 8
+                                            else -> 0
+                                        }
+
+                                        viewModel.postNewChallengeInfo(
+                                            NewChallengeInfoRequest(
+                                                NewChallengeInfo = listOf(
+                                                    NewChallengeInfo(
+                                                        uuid = currentUUID,
+                                                        userid = loginedUserId,
+                                                        category = categoryNum.toString(),
+                                                        content = inputComment.value,
+                                                        hashtag = tagList.toList(),
+                                                        imageList = imageData.toList(),
+                                                        challengesno = categoryNum
+                                                    )
+                                                )
+                                            )
+                                        ).let {
+                                            when {
+                                                it.loading == true -> canUploadNetworkStatus =
+                                                    false
+                                                it.data?.code != 200 -> {
+                                                    canUploadNetworkStatus = true
+                                                    Log.d(
+                                                        "HomeAdd",
+                                                        "HomeAddScaffold: ${it.data?.message}"
+                                                    )
+                                                    withContext(Dispatchers.Main) {
+                                                        showShortToastMessage(
+                                                            context,
+                                                            "오류가 발생했습니다."
+                                                        )
+                                                    }
+                                                }
+                                                it.data?.code == 200 -> {
+                                                    withContext(Dispatchers.Main) {
+                                                        navController.navigate(SecomiScreens.HomeScreen.name) {
+                                                            launchSingleTop
+                                                            popUpTo(SecomiScreens.HomeAddScreen.name) {
+                                                                inclusive = true
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            modifier = Modifier.width(140.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = LoginButtonColor
+                            )
+                        ) {
+                            Text(
+                                text = "확인",
+                                fontWeight = FontWeight.SemiBold,
+                                style = MaterialTheme.typography.caption,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 @OptIn(ExperimentalComposeUiApi::class)

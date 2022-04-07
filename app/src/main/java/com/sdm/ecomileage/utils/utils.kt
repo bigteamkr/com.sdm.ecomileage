@@ -1,10 +1,14 @@
 package com.sdm.ecomileage.utils
 
 import android.content.Context
+import android.content.ContextWrapper
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.dataStore
 import com.sdm.ecomileage.SdmEcoMileageApplication
 import com.sdm.ecomileage.data.AppSettingsSerializer
@@ -47,11 +51,31 @@ fun AppInit(refreshToken: String){
 
 }
 
+@Composable
+fun LockScreenOrientation(orientation: Int) {
+    val context = LocalContext.current
+    DisposableEffect(Unit) {
+        val activity = context.findActivity() ?: return@DisposableEffect onDispose {}
+        val originalOrientation = activity.requestedOrientation
+        activity.requestedOrientation = orientation
+        onDispose {
+            // restore original orientation when view disappears
+            activity.requestedOrientation = originalOrientation
+        }
+    }
+}
+
+fun Context.findActivity(): AppCompatActivity? = when (this) {
+    is AppCompatActivity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
 
 fun bitmapToString(bitmap: Bitmap): String {
 
     val byteArrayOutputStream = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+    bitmap.compress(Bitmap.CompressFormat.PNG, 30, byteArrayOutputStream)
     val byteArray = byteArrayOutputStream.toByteArray()
 
     return Base64.encodeToString(byteArray, Base64.NO_WRAP)
@@ -550,6 +574,8 @@ val termsThird = "- 만 14세 미만의 어린이는 법률에 의거하여 보�
         "-  휴대폰 인증 시 신용평가 기관을 통하여 실명확인을 진행하며, 실명 확인 용도 외 별도 저장되지 않습니다.\n" +
         "\n" +
         "-  만 14세 미만 아동의 개인정보 수집·이용에 대한 보호자(법정대리인) 동의"
+
+val uploadAlarm = "본인이 직접 촬영하거나\n제작한 게시물이 아닐 경우,\n마일리지 환수 등 불이익을 받을 수 있습니다."
 
 val MainFeedReportOptions =
     listOf("음란성 게시물", "폭력적 또는 불쾌한 게시물", "스팸 게시물", "사생활 침해/개인정보 유출 게시물", "불법적인 게시물")

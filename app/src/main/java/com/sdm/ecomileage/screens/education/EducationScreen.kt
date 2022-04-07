@@ -1,5 +1,7 @@
 package com.sdm.ecomileage.screens.education
 
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,6 +41,7 @@ import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.home.HomeViewModel
 import com.sdm.ecomileage.ui.theme.*
+import com.sdm.ecomileage.utils.LockScreenOrientation
 
 @Composable
 fun EducationScreen(
@@ -259,7 +262,10 @@ private fun CustomEducationVideoDialog(
     var isBuffering by remember {
         mutableStateOf(false)
     }
-    var isEnded by remember{
+    var isEnded by remember {
+        mutableStateOf(false)
+    }
+    var isFullScreen by remember {
         mutableStateOf(false)
     }
 
@@ -304,6 +310,7 @@ private fun CustomEducationVideoDialog(
         }
     }
 
+
     exoPlayer.addListener(object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
             when (playbackState) {
@@ -332,7 +339,67 @@ private fun CustomEducationVideoDialog(
         }
     })
 
+//    if (isFullScreen) {
+//        FullScreen {
+//            LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
+//
+//            Column() {
+//                AndroidView(
+//                    factory = {
+//                        styledPlayerView
+//                    },
+//                    modifier = Modifier
+//                        .padding(20.dp)
+//                        .fillMaxSize()
+//                        .clickable {
+//                            if (styledPlayerView.player!!.isPlaying) styledPlayerView.player!!.pause() else styledPlayerView.player!!.play()
+//                        }
+//                )
+//                Text(text = "돌아가기", modifier = Modifier.clickable { isFullScreen = false })
+//            }
+//        }
+//    } else {
+    LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+    EducationDialog(
+        configuration,
+        dismissEvent,
+        exoPlayer,
+        styledPlayerView,
+        { isFullScreen = true },
+        manageProfile,
+        manageId,
+        manageName,
+        mileagePoint,
+        navController,
+        educationNo,
+        educationYN,
+        isEnded,
+        currentPlayTime,
+        { currentPlayTime = it }
+    )
 
+
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun EducationDialog(
+    configuration: Configuration,
+    dismissEvent: (Unit) -> Unit,
+    exoPlayer: ExoPlayer,
+    styledPlayerView: StyledPlayerView,
+    onClickFullScreen: () -> Unit,
+    manageProfile: String,
+    manageId: String,
+    manageName: String,
+    mileagePoint: Int,
+    navController: NavController,
+    educationNo: Int,
+    educationYN: Boolean,
+    isEnded: Boolean,
+    currentPlayTime: Long,
+    onClickCurrentPlayTime: (Long) -> Unit
+) {
     Dialog(
         onDismissRequest = { },
         properties = DialogProperties(
@@ -389,10 +456,20 @@ private fun CustomEducationVideoDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text("영상 길이", color = Color.White, style = MaterialTheme.typography.caption)
-                        Text(text = "전체화면 아이콘", color = Color.White, style = MaterialTheme.typography.caption)
+                        Text(
+                            text = "전체화면 아이콘",
+                            modifier = Modifier.clickable {
+                                onClickFullScreen()
+                                exoPlayer.pause()
+                                onClickCurrentPlayTime(exoPlayer.currentPosition)
+                            },
+                            color = Color.White,
+                            style = MaterialTheme.typography.caption
+                        )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
+
 
                 Column(
                     modifier = Modifier.padding(horizontal = 10.dp),
@@ -455,7 +532,7 @@ private fun CustomEducationVideoDialog(
                         }
                         Button(
                             onClick = {
-                                currentPlayTime = 0L
+                                onClickCurrentPlayTime(0L)
                                 exoPlayer.seekTo(currentPlayTime)
                                 exoPlayer.play()
                             },
