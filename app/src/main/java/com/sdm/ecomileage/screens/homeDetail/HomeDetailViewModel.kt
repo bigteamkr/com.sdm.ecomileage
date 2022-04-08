@@ -8,6 +8,9 @@ import com.sdm.ecomileage.model.homedetail.comment.commentInfo.response.CommentI
 import com.sdm.ecomileage.model.homedetail.comment.newComment.request.NewCommentInfo
 import com.sdm.ecomileage.model.homedetail.comment.newComment.request.NewCommentRequest
 import com.sdm.ecomileage.model.homedetail.comment.newComment.response.NewCommentResponse
+import com.sdm.ecomileage.model.homedetail.comment.report.request.NewReportComment
+import com.sdm.ecomileage.model.homedetail.comment.report.request.NewReportCommentRequest
+import com.sdm.ecomileage.model.homedetail.comment.report.response.NewReportCommentResponse
 import com.sdm.ecomileage.model.homedetail.loginUser.request.AppMemberInfo
 import com.sdm.ecomileage.model.homedetail.loginUser.request.AppMemberInfoRequest
 import com.sdm.ecomileage.model.homedetail.loginUser.response.AppMemberInfoResponse
@@ -54,6 +57,7 @@ class HomeDetailViewModel @Inject constructor(private val repository: CommentRep
     private val _reportingCommentList = mutableListOf<Int>()
     fun getReportingCommentValueFromKey(key: Int) = _reportingCommentList.contains(key)
     fun addReportingComment(reportCommentNo: Int) = _reportingCommentList.add(reportCommentNo)
+    fun deleteReportingComment(reportCommentNo: Int) = _reportingCommentList.remove(reportCommentNo)
 
     suspend fun postNewComment(
         uuid: String,
@@ -84,6 +88,29 @@ class HomeDetailViewModel @Inject constructor(private val repository: CommentRep
             AppMemberInfoRequest(
                 AppMemberInfo = listOf(
                     AppMemberInfo(uuid = uuid)
+                )
+            )
+        )
+
+    suspend fun postNewReportComment(
+        feedsno: Int,
+        commentsno: Int,
+        reportType: String,
+        reportContent: String,
+        reportyn: Boolean
+    ): DataOrException<NewReportCommentResponse, Boolean, Exception> =
+        repository.postNewReportComment(
+            accessToken,
+            NewReportCommentRequest(
+                NewReportComment = listOf(
+                    NewReportComment(
+                        uuid = currentUUID,
+                        feedsno = feedsno,
+                        commentsno = commentsno,
+                        reporttype = reportType,
+                        reportcontent = reportContent,
+                        reportyn = reportyn
+                    )
                 )
             )
         )

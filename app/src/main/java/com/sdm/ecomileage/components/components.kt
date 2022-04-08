@@ -457,13 +457,13 @@ fun BlockedProfileImage(
     modifier: Modifier = Modifier,
     borderStroke: BorderStroke = BorderStroke(
         width = 0.dp,
-        color = Color.LightGray
+        color = Color.Transparent
     )
 ) {
     Surface(
         onClick = {},
         modifier = modifier
-            .size(55.dp)
+            .size(45.dp)
             .then(modifier),
         shape = CircleShape,
         border = borderStroke
@@ -471,6 +471,9 @@ fun BlockedProfileImage(
         Image(
             painter = painterResource(R.drawable.ic_blocked_account),
             contentDescription = "Profile",
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxSize(),
             contentScale = ContentScale.Crop
         )
     }

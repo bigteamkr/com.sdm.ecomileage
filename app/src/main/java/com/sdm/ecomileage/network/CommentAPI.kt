@@ -6,6 +6,8 @@ import com.sdm.ecomileage.model.homedetail.mainFeed.request.MainFeedRequest
 import com.sdm.ecomileage.model.homedetail.mainFeed.response.MainFeedResponse
 import com.sdm.ecomileage.model.homedetail.comment.newComment.request.NewCommentRequest
 import com.sdm.ecomileage.model.homedetail.comment.newComment.response.NewCommentResponse
+import com.sdm.ecomileage.model.homedetail.comment.report.request.NewReportCommentRequest
+import com.sdm.ecomileage.model.homedetail.comment.report.response.NewReportCommentResponse
 import com.sdm.ecomileage.model.homedetail.loginUser.request.AppMemberInfoRequest
 import com.sdm.ecomileage.model.homedetail.loginUser.response.AppMemberInfoResponse
 import retrofit2.http.Body
@@ -36,4 +38,10 @@ interface CommentAPI {
         @Header("token") token: String,
         @Body body: AppMemberInfoRequest
     ) : AppMemberInfoResponse
+
+    @POST(value = "NewReportComment")
+    suspend fun postNewReportComment(
+        @Header("token") token: String,
+        @Body body: NewReportCommentRequest
+    ) : NewReportCommentResponse
 }

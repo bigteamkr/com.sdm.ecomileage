@@ -1,5 +1,6 @@
 package com.sdm.ecomileage.screens.homeDetail
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -55,11 +56,12 @@ import com.sdm.ecomileage.model.homedetail.mainFeed.response.PostInfo
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.CommentReportOptions
+import com.sdm.ecomileage.utils.currentUUID
 import com.sdm.ecomileage.utils.dataStore
 import com.sdm.ecomileage.utils.loginedUserId
-import com.sdm.ecomileage.utils.currentUUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun HomeDetailScreen(
@@ -139,6 +141,7 @@ fun HomeDetailScreen(
     }
 }
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun HomeDetailScaffold(
@@ -171,6 +174,9 @@ private fun HomeDetailScaffold(
         mutableStateOf(false)
     }
     var reportListValue: String?
+
+    var reportType = ""
+    var reportContent = ""
 
     Scaffold(
         topBar = {
@@ -206,11 +212,13 @@ private fun HomeDetailScaffold(
         bottomBar = {
             HomeDetailBottomCommentBar { comment ->
                 scope.launch {
-                    commentViewModel.postNewComment(
-                        uuid = currentUUID,
-                        feedNo = feedNo,
-                        commentContent = comment
-                    )
+                    withContext(Dispatchers.IO) {
+                        commentViewModel.postNewComment(
+                            uuid = currentUUID,
+                            feedNo = feedNo,
+                            commentContent = comment
+                        )
+                    }
                     keyboardController?.hide()
                     commentInfoData.loading = true
 
@@ -232,23 +240,39 @@ private fun HomeDetailScaffold(
         LazyColumn(
             modifier = Modifier.padding(10.dp)
         ) {
-            itemsIndexed(localComment) { index, data ->
-                Row {
-                    if (commentViewModel.getReportingCommentValueFromKey(index)) {
 
-                    } else HomeDetailContent(
-                        userId = data.userId,
-                        image = data.profileimg,
-                        name = data.userName,
-                        text = data.title,
-                        navController = navController,
-                        isItCommentFeed = true,
-                        onReportVisible = {
-                            reportDialogVisible = true
-                            reportTargetCommentNo = data.commentsno
+            itemsIndexed(localComment) { index, data ->
+                isCurrentFeedReporting = commentViewModel.getReportingCommentValueFromKey(index)
+
+                HomeDetailContent(
+                    userId = data.userId,
+                    image = data.profileimg,
+                    name = data.userName,
+                    text = data.title,
+                    navController = navController,
+                    cancelReportAction = {
+                        commentViewModel.deleteReportingComment(index)
+                        isCurrentFeedReporting =
+                            commentViewModel.getReportingCommentValueFromKey(index)
+
+                        scope.launch(Dispatchers.IO) {
+                            commentViewModel.postNewReportComment(
+                                feedsno = feedNo,
+                                commentsno = data.commentsno,
+                                reportType = reportType,
+                                reportContent = reportContent,
+                                reportyn = false
+                            )
                         }
-                    )
-                }
+                    },
+                    isItCommentFeed = true,
+                    isThisReported = isCurrentFeedReporting,
+                    onReportVisible = {
+                        reportDialogVisible = true
+                        reportTargetCommentNo = data.commentsno
+                    }
+                )
+
                 if (index == homeDetailCommentData.lastIndex)
                     Spacer(modifier = Modifier.height(50.dp))
 
@@ -256,8 +280,17 @@ private fun HomeDetailScaffold(
                     CustomReportDialog(
                         reportAction = { selectedOptionToCode, reportDescription ->
                             commentViewModel.addReportingComment(index)
-
-
+                            scope.launch(Dispatchers.IO) {
+                                commentViewModel.postNewReportComment(
+                                    feedsno = feedNo,
+                                    commentsno = data.commentsno,
+                                    reportType = selectedOptionToCode,
+                                    reportContent = reportDescription.toString(),
+                                    reportyn = true
+                                )
+                            }
+                            reportType = selectedOptionToCode
+                            reportContent = reportDescription.toString()
                         }, dismissAction = {
                             reportDialogVisible = false
                         }, reportOptions = CommentReportOptions
@@ -277,6 +310,7 @@ private fun HomeDetailContent(
     text: String,
     tag: List<String>? = null,
     navController: NavController,
+    cancelReportAction: () -> Unit = {},
     isItCommentFeed: Boolean = false,
     onReportVisible: (() -> Unit)? = null,
     isThisReported: Boolean = false
@@ -297,23 +331,27 @@ private fun HomeDetailContent(
                     name = "***",
                     text = "신고 처리 된 댓글입니다.",
                     tagList = null,
-                    isThisReported = true
+                    isThisReported = true,
+                    cancelReportAction = cancelReportAction
                 )
+            } else {
+                ProfileImage(
+                    userId = userId,
+                    image = image,
+                    modifier = Modifier.size(45.dp),
+                    borderStroke = BorderStroke(0.dp, Color.Transparent),
+                    navController = navController
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                HomeDetailFormat(name = name, text = text, tagList = tag)
             }
-            ProfileImage(
-                userId = userId,
-                image = image,
-                modifier = Modifier.size(45.dp),
-                borderStroke = BorderStroke(0.dp, Color.Transparent),
-                navController = navController
-            )
-            Spacer(modifier = Modifier.width(5.dp))
-            HomeDetailFormat(name = name, text = text, tagList = tag)
         }
-        if (isItCommentFeed)
+
+        if (isItCommentFeed && !isThisReported)
             Surface(
                 modifier = Modifier
-                    .size(24.dp)
+                    .padding(top = 2.dp)
+                    .size(20.dp)
                     .clickable {
                         if (onReportVisible != null) onReportVisible()
                     },
@@ -335,6 +373,7 @@ private fun HomeDetailFormat(
     name: String,
     text: String,
     tagList: List<String>?,
+    cancelReportAction: () -> Unit = {},
     isThisReported: Boolean = false
 ) {
     Column(
@@ -349,12 +388,25 @@ private fun HomeDetailFormat(
             fontWeight = FontWeight.Bold,
             color = if (isThisReported) ReportedContentColor else Color.Black
         )
-        Text(
-            text = text,
-            modifier = Modifier.padding(start = 5.5.dp, top = 3.dp),
-            style = MaterialTheme.typography.body2,
-            color = if (isThisReported) ReportedContentColor else Color.Black
-        )
+        Row {
+            Text(
+                text = text,
+                modifier = Modifier.padding(start = 5.5.dp, top = 3.dp),
+                style = MaterialTheme.typography.body2,
+                color = if (isThisReported) ReportedContentColor else Color.Black
+            )
+            if (isThisReported)
+                Text(
+                    text = "실행 취소",
+                    modifier = Modifier
+                        .padding(start = 30.dp, top = 1.dp)
+                        .clickable {
+                            cancelReportAction()
+                        },
+                    color = LoginButtonColor,
+                    fontSize = 15.sp
+                )
+        }
 
         LazyRow {
             if (tagList != null && !isThisReported)
@@ -367,13 +419,7 @@ private fun HomeDetailFormat(
                     )
                 }
         }
-        if (isThisReported)
-            Text(
-                text = "실행 취소",
-                modifier = Modifier
-                    .padding(start = 30.dp)
-                    .clickable { }, color = LoginButtonColor
-            )
+
     }
 }
 
