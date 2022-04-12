@@ -8,9 +8,9 @@ import com.sdm.ecomileage.model.homedetail.comment.commentInfo.response.CommentI
 import com.sdm.ecomileage.model.homedetail.comment.newComment.request.NewCommentInfo
 import com.sdm.ecomileage.model.homedetail.comment.newComment.request.NewCommentRequest
 import com.sdm.ecomileage.model.homedetail.comment.newComment.response.NewCommentResponse
-import com.sdm.ecomileage.model.homedetail.comment.report.request.NewReportComment
-import com.sdm.ecomileage.model.homedetail.comment.report.request.NewReportCommentRequest
-import com.sdm.ecomileage.model.homedetail.comment.report.response.NewReportCommentResponse
+import com.sdm.ecomileage.model.report.comment.request.NewReportComment
+import com.sdm.ecomileage.model.report.comment.request.NewReportCommentRequest
+import com.sdm.ecomileage.model.report.comment.response.NewReportCommentResponse
 import com.sdm.ecomileage.model.homedetail.loginUser.request.AppMemberInfo
 import com.sdm.ecomileage.model.homedetail.loginUser.request.AppMemberInfoRequest
 import com.sdm.ecomileage.model.homedetail.loginUser.response.AppMemberInfoResponse
@@ -18,8 +18,8 @@ import com.sdm.ecomileage.model.homedetail.mainFeed.request.ActivityInfo
 import com.sdm.ecomileage.model.homedetail.mainFeed.request.MainFeedRequest
 import com.sdm.ecomileage.model.homedetail.mainFeed.response.MainFeedResponse
 import com.sdm.ecomileage.repository.commentRepository.CommentRepository
-import com.sdm.ecomileage.utils.accessToken
-import com.sdm.ecomileage.utils.currentUUID
+import com.sdm.ecomileage.utils.accessTokenUtil
+import com.sdm.ecomileage.utils.currentUUIDUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -29,7 +29,7 @@ class HomeDetailViewModel @Inject constructor(private val repository: CommentRep
 
     suspend fun getMainFeed(feedNo: Int): DataOrException<MainFeedResponse, Boolean, Exception> =
         repository.getMainFeed(
-            accessToken,
+            accessTokenUtil,
             MainFeedRequest(
                 ActivityInfo = listOf(ActivityInfo(feedNo))
             )
@@ -40,12 +40,12 @@ class HomeDetailViewModel @Inject constructor(private val repository: CommentRep
         feedNo: Int
     ): DataOrException<CommentInfoResponse, Boolean, Exception> =
         repository.getCommentInfo(
-            accessToken,
+            accessTokenUtil,
             CommentInfoRequest(
                 CommentInfo = listOf(
                     CommentInfo(
                         lang = "ko",
-                        uuid = currentUUID,
+                        uuid = currentUUIDUtil,
                         userid = userid,
                         feedsno = feedNo,
                         commentsno = 0
@@ -65,7 +65,7 @@ class HomeDetailViewModel @Inject constructor(private val repository: CommentRep
         commentContent: String
     ): DataOrException<NewCommentResponse, Boolean, Exception> =
         repository.postNewComment(
-            accessToken,
+            accessTokenUtil,
             NewCommentRequest(
                 NewCommentInfo = listOf(
                     NewCommentInfo(
@@ -84,7 +84,7 @@ class HomeDetailViewModel @Inject constructor(private val repository: CommentRep
         uuid: String
     ): DataOrException<AppMemberInfoResponse, Boolean, Exception> =
         repository.getLoginUserInfo(
-            accessToken,
+            accessTokenUtil,
             AppMemberInfoRequest(
                 AppMemberInfo = listOf(
                     AppMemberInfo(uuid = uuid)
@@ -100,11 +100,11 @@ class HomeDetailViewModel @Inject constructor(private val repository: CommentRep
         reportyn: Boolean
     ): DataOrException<NewReportCommentResponse, Boolean, Exception> =
         repository.postNewReportComment(
-            accessToken,
+            accessTokenUtil,
             NewReportCommentRequest(
                 NewReportComment = listOf(
                     NewReportComment(
-                        uuid = currentUUID,
+                        uuid = currentUUIDUtil,
                         feedsno = feedsno,
                         commentsno = commentsno,
                         reporttype = reportType,

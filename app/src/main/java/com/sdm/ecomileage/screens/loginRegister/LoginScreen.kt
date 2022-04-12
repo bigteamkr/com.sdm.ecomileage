@@ -1,5 +1,7 @@
 package com.sdm.ecomileage.screens.loginRegister
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -27,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -53,7 +56,9 @@ import com.sdm.ecomileage.data.AppSettings
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun LoginScreen(
@@ -61,13 +66,22 @@ fun LoginScreen(
     systemUiController: SystemUiController,
     loginRegisterViewModel: LoginRegisterViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
+
     SideEffect {
         systemUiController.setStatusBarColor(
             color = Color.White
         )
     }
 
-    Log.d("UUID", "LoginScreen: before login uuidSample : $currentUUID")
+
+    if (isAutoLoginUtil) {
+        AutoLoginLogic(loginRegisterViewModel, { isLoading = it }, navController, context)
+    }
 
     var tabIndex by remember { mutableStateOf(0) }
     val tabTitles = listOf("로그인", "회원가입")
@@ -103,6 +117,37 @@ fun LoginScreen(
                 loginRegisterViewModel,
                 navController
             )
+        }
+    }
+}
+
+@Composable
+fun AutoLoginLogic(
+    loginRegisterViewModel: LoginRegisterViewModel = hiltViewModel(),
+    isLoading: (Boolean) -> Unit,
+    navController: NavController,
+    context: Context
+) {
+    LaunchedEffect(key1 = true) {
+        loginRegisterViewModel.getAppRequestToken(
+            currentUUIDUtil,
+            refreshTokenUtil
+        ).let {
+            if (it.loading == true) isLoading(true)
+            Log.d("AUTO Login", "LoginScreen: $currentUUIDUtil")
+            Log.d("AUTO Login", "LoginScreen: $refreshTokenUtil")
+
+            it.data?.tokenInfo?.let { response ->
+                accessTokenUtil = response.accessToken
+                setRefreshToken(response.refreshToken)
+                loginedUserIdUtil = lastLoginedUserIdUtil
+
+                navController.navigate(SecomiScreens.HomeScreen.name) {
+                    popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
+                }
+            } ?: withContext(Dispatchers.Main) {
+                showShortToastMessage(context, "로그인을 다시 시도해주세요.")
+            }
         }
     }
 }
@@ -327,7 +372,8 @@ private fun ProfileSubmitPage(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterialApi::class, androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 private fun RegisterPage(
     loginRegisterViewModel: LoginRegisterViewModel,
@@ -390,6 +436,7 @@ private fun RegisterPage(
     val scope = rememberCoroutineScope()
 
     val context = LocalContext.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val focusRequester = remember { FocusRequester() }
 
@@ -765,13 +812,13 @@ private fun RegisterPage(
                             when {
                                 it.data?.code == 200 -> {
                                     showLongToastMessage(context, "${it.data?.message}")
-                                    loginedUserId = "$emailHead@$emailTail"
-                                    currentUUID = appSettings.value.uuid
+                                    loginedUserIdUtil = "$emailHead@$emailTail"
+                                    currentUUIDUtil = appSettings.value.uuid
 
                                     loginRegisterViewModel.getLogin(
-                                        loginedUserId, passwordSecond, appSettings.value.uuid
+                                        loginedUserIdUtil, passwordSecond, appSettings.value.uuid
                                     ).let { loginResult ->
-                                        accessToken = loginResult.data!!.data.accessToken
+                                        accessTokenUtil = loginResult.data!!.data.accessToken
                                     }
 
                                     onRegisterButtonClick(false)
@@ -956,13 +1003,11 @@ private fun LoginScaffold(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val appSettings = context.dataStore.data.collectAsState(initial = AppSettings()).value
 
     val focusRequester = remember { FocusRequester() }
 
-
     val userId = remember {
-        mutableStateOf("")
+        mutableStateOf(if (isSaveIdUtil) lastLoginedUserIdUtil else "")
     }
     var isUserIdFocus by remember {
         mutableStateOf(false)
@@ -977,19 +1022,12 @@ private fun LoginScaffold(
         mutableStateOf("")
     }
     var isSaveId by remember {
-        mutableStateOf(appSettings.isSaveId)
+        mutableStateOf(isSaveIdUtil)
     }
     var isAutoLogin by remember {
-        mutableStateOf(appSettings.isAutoLogin)
+        mutableStateOf(isAutoLoginUtil)
     }
 
-    LaunchedEffect(key1 = appSettings.isAutoLogin) {
-        isAutoLogin = appSettings.isAutoLogin
-    }
-    LaunchedEffect(key1 = appSettings.isAutoLogin, key2 = appSettings.lastLoginId) {
-        userId.value = appSettings.lastLoginId
-        isSaveId = appSettings.isSaveId
-    }
 
     Column(
         modifier = Modifier
@@ -1027,17 +1065,24 @@ private fun LoginScaffold(
                     loginRegisterViewModel.getLogin(
                         userId.value,
                         userPassword.value,
-                        appSettings.uuid
+                        currentUUIDUtil
                     ).let {
                         if (it.data?.code == 200) {
-                            accessToken = it.data!!.data.accessToken
-                            loginedUserId = userId.value
-                            currentUUID = appSettings.uuid
+                            accessTokenUtil = it.data!!.data.accessToken
+                            loginedUserIdUtil = userId.value
                             setRefreshToken(it.data!!.data.refreshToken)
+
+                            if (isThisFirstTime) {
+                                setIsThisFirstTime()
+                                loginRegisterViewModel.postAppInit(
+                                    uuid = currentUUIDUtil,
+                                    refreshToken = refreshTokenUtil
+                                )
+                            }
 
                             if (isSaveId) {
                                 scope.launch {
-                                    setIsSaveId(isSaveId, loginedUserId)
+                                    setIsSaveId(isSaveId, loginedUserIdUtil)
                                 }
                             }
 
@@ -1050,7 +1095,7 @@ private fun LoginScaffold(
                                     setIsAutoLogin(false)
                                 }
 
-                            loginedUserId = userId.value
+                            loginedUserIdUtil = userId.value
                             navController.navigate(SecomiScreens.HomeScreen.name) {
                                 popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
                             }

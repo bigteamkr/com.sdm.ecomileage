@@ -57,7 +57,7 @@ fun SecomiTopAppBar(
     navigationIcon: Painter? = null,
     currentScreen: String,
     backgroundColor: List<Color> = TopBarColor,
-    actionIconsList: Map<String, Painter>? = null,
+    actionIconsList: List<@Composable () -> Unit>? = null,
     navController: NavController,
     contentColor: Color = Color.White
 ) {
@@ -178,103 +178,15 @@ fun SecomiTopAppBar(
                         .fillMaxHeight(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
-                    actionIconsList?.forEach { (key, painter) ->
-                        when (key) {
-                            "search" -> {
-                                Surface(
-                                    shape = CircleShape,
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .padding(5.dp)
-                                        .clickable {
-                                            navController.navigate(SecomiScreens.SearchScreen.name) {
-                                                popUpTo(SecomiScreens.HomeScreen.name)
-                                            }
-                                        },
-                                    color = Color.Transparent
-                                ) {
-                                    Icon(
-                                        painter = painter,
-                                        contentDescription = "Search icon",
-                                        tint = contentColor,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
-                            }
-                            "ranking" -> {
-                                Surface(
-                                    shape = CircleShape,
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .padding(5.dp)
-                                        .clickable {
-//                                            navController.navigate(SecomiScreens.RankingScreen.name) {
-//                                                popUpTo(SecomiScreens.HomeScreen.name)
-//                                            }
-                                        },
-                                    color = Color.Transparent
-                                ) {
-                                    Icon(
-                                        painter = painter,
-                                        contentDescription = "Ranking icon",
-                                        tint = contentColor,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                    )
-                                }
-                            }
-                            "push" -> {
-                                Surface(
-                                    shape = CircleShape,
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .padding(5.dp)
-                                        .clickable {
-//                                            navController.navigate(SecomiScreens.NoticeScreen.name) {
-//                                                popUpTo(SecomiScreens.HomeScreen.name)
-//                                            }
-                                        },
-                                    color = Color.Transparent
-                                ) {
-                                    Image(
-                                        painter = painter,
-                                        contentDescription = "Push icon",
-                                        modifier = Modifier
-                                            .fillMaxSize(),
-                                        contentScale = ContentScale.FillBounds
-                                    )
-                                }
-                            }
-                            "more" -> {
-                                Surface(
-                                    shape = CircleShape,
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .padding(5.dp)
-                                        .clickable {
-
-                                        },
-                                    color = Color.Transparent
-                                ) {
-                                    Icon(
-                                        painter = painter,
-                                        contentDescription = "more icon",
-                                        tint = contentColor,
-                                        modifier = Modifier
-                                            .fillMaxSize(),
-                                    )
-                                }
-                            }
-                        }
-
+                    actionIconsList?.forEach { it ->
+                        it()
+                        Spacer(modifier = Modifier.width(5.dp))
                     }
                 }
             }
         }
     }
 }
-
 
 @Composable
 private fun AppBarTitleText(
@@ -1081,7 +993,8 @@ fun CustomLoginInputTextField(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class, androidx.compose.ui.ExperimentalComposeUiApi::class)
+
+@OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun CustomReportDialog(
     reportAction: (String, String?) -> Unit,
@@ -1240,6 +1153,77 @@ fun ReportedFeed(
         }
     }
 }
+
+
+@Composable
+fun RegisterBottomSheetMain() {
+    var input by remember {
+        mutableStateOf("")
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        shape = RoundedCornerShape(topStartPercent = 10, topEndPercent = 10)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Surface(
+                modifier = Modifier
+                    .width(30.dp)
+                    .height(5.dp),
+                color = BottomSheetDividerColor,
+                shape = RoundedCornerShape(10)
+            ) {}
+
+            Text(text = "학교 검색")
+            Row() {
+                BasicTextField(value = input, onValueChange = { input = it })
+                Button(
+                    onClick = { /*TODO*/ },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = LoginButtonColor
+                    )
+                ) {
+                    Text(text = "검색")
+                }
+            }
+            Column(modifier = Modifier.fillMaxSize()) {
+                RegisterBottomSheetLocationItem()
+            }
+        }
+    }
+}
+
+
+@Composable
+fun RegisterBottomSheetLocationItem() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_option),
+            contentDescription = "위치 아이콘",
+            modifier = Modifier.padding(20.dp),
+            tint = LoginButtonColor
+        )
+        Column(
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(text = "서울강동초등학교")
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = "서울 강동구",
+                color = RegisterGreyColor,
+                style = MaterialTheme.typography.caption
+            )
+        }
+    }
+}
+
 
 fun showShortToastMessage(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()

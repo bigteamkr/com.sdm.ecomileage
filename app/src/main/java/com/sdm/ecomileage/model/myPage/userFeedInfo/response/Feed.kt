@@ -1,6 +1,7 @@
 package com.sdm.ecomileage.model.myPage.userFeedInfo.response
 
 data class Feed(
+    val reportuseryn: Boolean,
     val commentCount: Int,
     val dayflag: String,
     val feedcontent: String,

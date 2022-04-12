@@ -1,4 +1,4 @@
-package com.sdm.ecomileage.model.report.response
+package com.sdm.ecomileage.model.report.feed.response
 
 data class ReportResponse(
     val code: Int,

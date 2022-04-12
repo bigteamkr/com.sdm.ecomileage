@@ -8,6 +8,8 @@ import com.sdm.ecomileage.model.myPage.newFollow.request.NewFollowInfoRequest
 import com.sdm.ecomileage.model.myPage.newFollow.response.NewFollowInfoResponse
 import com.sdm.ecomileage.model.myPage.userFeedInfo.request.UserFeedInfoRequest
 import com.sdm.ecomileage.model.myPage.userFeedInfo.response.UserFeedInfoResponse
+import com.sdm.ecomileage.model.report.user.request.NewUserReportRequest
+import com.sdm.ecomileage.model.report.user.response.NewUserReportResponse
 import com.sdm.ecomileage.network.MyPageAPI
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
@@ -65,4 +67,22 @@ class MyPageRepository @Inject constructor(private val api: MyPageAPI) {
         return DataOrException(response)
     }
 
+    suspend fun postNewUserReport(
+        token: String,
+        body: NewUserReportRequest
+    ): DataOrException<NewUserReportResponse, Boolean, Exception> {
+        val response = try {
+            api.postNewUserReport(
+                token, body
+            )
+        } catch (e: Exception) {
+            if (e is CancellationException)
+                throw e
+
+            Log.d("MyPageRepository", "postNewUserReport: api call in repository didn't work")
+            Log.d("MyPageRepository", "postNewUserReport: exception is $e")
+            return DataOrException(e = e)
+        }
+        return DataOrException(response)
+    }
 }

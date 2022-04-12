@@ -60,8 +60,6 @@ import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.SecomiTopAppBar
 import com.sdm.ecomileage.components.showShortToastMessage
-import com.sdm.ecomileage.data.HomeAddSampleData
-import com.sdm.ecomileage.data.SampleHomeAdd
 import com.sdm.ecomileage.model.challenge.newChallenge.newChallengeRequest.NewChallengeInfo
 import com.sdm.ecomileage.model.challenge.newChallenge.newChallengeRequest.NewChallengeInfoRequest
 import com.sdm.ecomileage.model.homeAdd.request.HomeAddRequest
@@ -70,13 +68,12 @@ import com.sdm.ecomileage.model.homeAdd.request.NewActivityInfo
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.bitmapToString
-import com.sdm.ecomileage.utils.currentUUID
-import com.sdm.ecomileage.utils.loginedUserId
+import com.sdm.ecomileage.utils.currentUUIDUtil
+import com.sdm.ecomileage.utils.loginedUserIdUtil
 import com.sdm.ecomileage.utils.uploadAlarm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.suspendCoroutine
 
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -86,13 +83,12 @@ fun HomeAddScreen(
     systemUiController: SystemUiController,
     viewModel: HomeAddViewModel = hiltViewModel()
 ) {
-    val sample = HomeAddSampleData
     SideEffect {
         systemUiController.setStatusBarColor(
             color = Color.White
         )
     }
-    HomeAddScaffold(navController, sample, viewModel)
+    HomeAddScaffold(navController, viewModel)
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -100,7 +96,6 @@ fun HomeAddScreen(
 @Composable
 private fun HomeAddScaffold(
     navController: NavController,
-    sample: SampleHomeAdd,
     viewModel: HomeAddViewModel
 ) {
     val context = LocalContext.current
@@ -154,10 +149,15 @@ private fun HomeAddScaffold(
     var isAlarm by remember {
         mutableStateOf(false)
     }
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
 
     LaunchedEffect(key1 = isClickedImage) {
         isNotEmptyImageList = imageList[0] != null
     }
+    if (isLoading)
+        CircularProgressIndicator()
 
     Scaffold(
         topBar = {
@@ -240,26 +240,8 @@ private fun HomeAddScaffold(
                         showShortToastMessage(context, "카테고리를 선택해주세요.")
                     else if (inputComment.value.length < 10)
                         showShortToastMessage(context, "내용은 10자 이상 작성해주세요.")
-                    else{
+                    else {
                         isAlarm = true
-
-                        //Todo: 이거 원래 버튼에 있었음
-                        suspend {
-                            imageData.clear()
-                            imageList.forEach { image ->
-                                if (image != null)
-                                    imageData.add(
-                                        Image(
-                                            status = "I",
-                                            type = "png",
-                                            filename = "${imageData.size}.png",
-                                            filesno = 0,
-                                            filedtlsno = 0,
-                                            image = bitmapToString(image)
-                                        )
-                                    )
-                            }
-                        }
                     }
                 },
                 enabled = canUploadNetworkStatus ?: true,
@@ -291,137 +273,160 @@ private fun HomeAddScaffold(
                     .height((configuration.screenHeightDp * 0.25).dp),
                 shape = RoundedCornerShape(5)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.SpaceEvenly,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Box(
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "알림",
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.subtitle1
-                    )
-                    Text(
-                        text = uploadAlarm,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(10.dp),
-                        style = MaterialTheme.typography.subtitle1
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.SpaceEvenly,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Button(
-                            onClick = { isAlarm = false },
-                            modifier = Modifier.width(140.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                backgroundColor = UnableUploadButtonColor,
-                            )
+                        Text(
+                            text = "알림",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.subtitle1
+                        )
+                        Text(
+                            text = uploadAlarm,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(10.dp),
+                            style = MaterialTheme.typography.subtitle1
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            Text(
-                                text = "등록취소",
-                                fontWeight = FontWeight.SemiBold,
-                                style = MaterialTheme.typography.caption,
-                                color = Color.White
-                            )
-                        }
-                        Button(
-                            onClick = {
-                                scope.launch(Dispatchers.IO) {
-                                    if (selectedCategory.value == "일상생활")
-                                        viewModel.postHomeFeedInfo(
-                                            HomeAddRequest(
-                                                NewActivityInfo = listOf(
-                                                    NewActivityInfo(
-                                                        userid = loginedUserId,
-                                                        title = "",
-                                                        content = inputComment.value,
-                                                        category = "1",
-                                                        hashtag = tagList.toList(),
-                                                        feedsno = 0,
-                                                        imageList = imageData.toList(),
+                            Button(
+                                onClick = { isAlarm = false },
+                                modifier = Modifier.width(140.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    backgroundColor = UnableUploadButtonColor,
+                                )
+                            ) {
+                                Text(
+                                    text = "등록취소",
+                                    fontWeight = FontWeight.SemiBold,
+                                    style = MaterialTheme.typography.caption,
+                                    color = Color.White
+                                )
+                            }
+
+                            Button(
+                                onClick = {
+                                    scope.launch(Dispatchers.IO) {
+                                        isLoading = true
+
+                                        imageData.clear()
+                                        imageList.forEach { image ->
+                                            if (image != null)
+                                                imageData.add(
+                                                    Image(
+                                                        status = "I",
+                                                        type = "jpeg",
+                                                        filename = "",
+                                                        filesno = 0,
+                                                        filedtlsno = 0,
+                                                        image = bitmapToString(image)
                                                     )
                                                 )
-                                            )
-                                        ).let {
-                                            when {
-                                                it.loading == true -> canUploadNetworkStatus =
-                                                    false
-                                                it.data?.code != 200 -> {
-                                                    canUploadNetworkStatus = true
-                                                    Log.d(
-                                                        "HomeAdd",
-                                                        "HomeAddScaffold: ${it.data?.message}"
-                                                    )
-                                                    withContext(Dispatchers.Main) {
-                                                        showShortToastMessage(
-                                                            context,
-                                                            "오류가 발생했습니다."
+                                        }.let {
+                                            if (selectedCategory.value == "일상생활")
+                                                viewModel.postHomeFeedInfo(
+                                                    HomeAddRequest(
+                                                        NewActivityInfo = listOf(
+                                                            NewActivityInfo(
+                                                                userid = loginedUserIdUtil,
+                                                                title = "",
+                                                                content = inputComment.value,
+                                                                category = "1",
+                                                                hashtag = tagList.toList(),
+                                                                feedsno = 0,
+                                                                imageList = imageData.toList(),
+                                                            )
                                                         )
-                                                    }
-                                                }
-                                                it.data?.code == 200 -> {
-                                                    withContext(Dispatchers.Main) {
-                                                        navController.navigate(SecomiScreens.HomeScreen.name) {
-                                                            launchSingleTop
-                                                            popUpTo(SecomiScreens.HomeAddScreen.name) {
-                                                                inclusive = true
+                                                    )
+                                                ).let {
+                                                    when {
+                                                        it.loading == true -> canUploadNetworkStatus =
+                                                            false
+                                                        it.data?.code != 200 -> {
+                                                            canUploadNetworkStatus = true
+                                                            Log.d(
+                                                                "HomeAdd",
+                                                                "HomeAddScaffold: ${it.data?.message}"
+                                                            )
+                                                            withContext(Dispatchers.Main) {
+                                                                showShortToastMessage(
+                                                                    context,
+                                                                    "오류가 발생했습니다."
+                                                                )
+                                                            }
+                                                        }
+                                                        it.data?.code == 200 -> {
+                                                            withContext(Dispatchers.Main) {
+                                                                navController.navigate(SecomiScreens.HomeScreen.name) {
+                                                                    launchSingleTop
+                                                                    popUpTo(SecomiScreens.HomeAddScreen.name) {
+                                                                        inclusive = true
+                                                                    }
+                                                                }
                                                             }
                                                         }
                                                     }
+                                                } else {
+                                                val categoryNum = when (selectedCategory.value) {
+                                                    "빈그릇 챌린지" -> 1
+                                                    "대중교통 챌린지" -> 2
+                                                    "개인 텀블러 챌린지" -> 3
+                                                    "라벨 떼기 챌린지" -> 4
+                                                    "장바구니 챌린지" -> 5
+                                                    "코드 뽑기 챌린지" -> 6
+                                                    "용기내 챌린지" -> 7
+                                                    "업사이클링 챌린지" -> 8
+                                                    else -> 0
                                                 }
-                                            }
-                                        } else {
-                                        val categoryNum = when (selectedCategory.value) {
-                                            "빈그릇 챌린지" -> 1
-                                            "대중교통 챌린지" -> 2
-                                            "개인 텀블러 챌린지" -> 3
-                                            "라벨 떼기 챌린지" -> 4
-                                            "장바구니 챌린지" -> 5
-                                            "코드 뽑기 챌린지" -> 6
-                                            "용기내 챌린지" -> 7
-                                            "업사이클링 챌린지" -> 8
-                                            else -> 0
-                                        }
 
-                                        viewModel.postNewChallengeInfo(
-                                            NewChallengeInfoRequest(
-                                                NewChallengeInfo = listOf(
-                                                    NewChallengeInfo(
-                                                        uuid = currentUUID,
-                                                        userid = loginedUserId,
-                                                        category = categoryNum.toString(),
-                                                        content = inputComment.value,
-                                                        hashtag = tagList.toList(),
-                                                        imageList = imageData.toList(),
-                                                        challengesno = categoryNum
-                                                    )
-                                                )
-                                            )
-                                        ).let {
-                                            when {
-                                                it.loading == true -> canUploadNetworkStatus =
-                                                    false
-                                                it.data?.code != 200 -> {
-                                                    canUploadNetworkStatus = true
-                                                    Log.d(
-                                                        "HomeAdd",
-                                                        "HomeAddScaffold: ${it.data?.message}"
-                                                    )
-                                                    withContext(Dispatchers.Main) {
-                                                        showShortToastMessage(
-                                                            context,
-                                                            "오류가 발생했습니다."
+                                                viewModel.postNewChallengeInfo(
+                                                    NewChallengeInfoRequest(
+                                                        NewChallengeInfo = listOf(
+                                                            NewChallengeInfo(
+                                                                uuid = currentUUIDUtil,
+                                                                userid = loginedUserIdUtil,
+                                                                category = categoryNum.toString(),
+                                                                content = inputComment.value,
+                                                                hashtag = tagList.toList(),
+                                                                imageList = imageData.toList(),
+                                                                challengesno = categoryNum
+                                                            )
                                                         )
-                                                    }
-                                                }
-                                                it.data?.code == 200 -> {
-                                                    withContext(Dispatchers.Main) {
-                                                        navController.navigate(SecomiScreens.HomeScreen.name) {
-                                                            launchSingleTop
-                                                            popUpTo(SecomiScreens.HomeAddScreen.name) {
-                                                                inclusive = true
+                                                    )
+                                                ).let {
+                                                    when {
+                                                        it.loading == true -> canUploadNetworkStatus =
+                                                            false
+                                                        it.data?.code != 200 -> {
+                                                            canUploadNetworkStatus = true
+                                                            Log.d(
+                                                                "HomeAdd",
+                                                                "HomeAddScaffold: ${it.data?.message}"
+                                                            )
+                                                            withContext(Dispatchers.Main) {
+                                                                showShortToastMessage(
+                                                                    context,
+                                                                    "오류가 발생했습니다."
+                                                                )
+                                                            }
+                                                            isLoading = false
+                                                        }
+                                                        it.data?.code == 200 -> {
+                                                            withContext(Dispatchers.Main) {
+                                                                navController.navigate(SecomiScreens.HomeScreen.name) {
+                                                                    launchSingleTop
+                                                                    popUpTo(SecomiScreens.HomeAddScreen.name) {
+                                                                        inclusive = true
+                                                                    }
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -429,23 +434,36 @@ private fun HomeAddScaffold(
                                             }
                                         }
                                     }
-                                }
-                            },
-                            modifier = Modifier.width(140.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                backgroundColor = LoginButtonColor
-                            )
-                        ) {
-                            Text(
-                                text = "확인",
-                                fontWeight = FontWeight.SemiBold,
-                                style = MaterialTheme.typography.caption,
-                                color = Color.White
-                            )
+                                },
+                                modifier = Modifier.width(140.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    backgroundColor = LoginButtonColor
+                                )
+                            ) {
+                                Text(
+                                    text = "확인",
+                                    fontWeight = FontWeight.SemiBold,
+                                    style = MaterialTheme.typography.caption,
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
+                    if (isLoading)
+                        Surface(
+                            modifier = Modifier
+                                .padding(top = (configuration.screenHeightDp * 0.25 * 0.25).dp),
+                            color = Color.Transparent
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.background(Color.Transparent),
+                                color = LoginButtonColor
+                            )
+                        }
                 }
+
             }
+
         }
     }
 

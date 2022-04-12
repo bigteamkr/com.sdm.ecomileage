@@ -56,9 +56,9 @@ import com.sdm.ecomileage.model.homedetail.mainFeed.response.PostInfo
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.CommentReportOptions
-import com.sdm.ecomileage.utils.currentUUID
+import com.sdm.ecomileage.utils.currentUUIDUtil
 import com.sdm.ecomileage.utils.dataStore
-import com.sdm.ecomileage.utils.loginedUserId
+import com.sdm.ecomileage.utils.loginedUserIdUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -95,7 +95,7 @@ fun HomeDetailScreen(
         scope.launch(context = Dispatchers.IO) {
             if (feedNo != null) {
                 value = commentViewModel.getCommentInfo(
-                    userid = loginedUserId,
+                    userid = loginedUserIdUtil,
                     feedNo = feedNo
                 )
             }
@@ -214,7 +214,7 @@ private fun HomeDetailScaffold(
                 scope.launch {
                     withContext(Dispatchers.IO) {
                         commentViewModel.postNewComment(
-                            uuid = currentUUID,
+                            uuid = currentUUIDUtil,
                             feedNo = feedNo,
                             commentContent = comment
                         )

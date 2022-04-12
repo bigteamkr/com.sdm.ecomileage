@@ -61,6 +61,8 @@ val LoginTextFieldFocusedColor = Color(0xFF00D749)
 val BorderColor = Color(0xFF717171)
 val ProfileDescriptionColor = Color(0xFF757575)
 val ProfileIconColor = Color(0xFF04A964)
+val RegisterGreyColor = Color(0xFFA4A4A4)
+
 
 // Finding Account Color
 val FindingAccountErrorColor = Color(0xFFE56857)

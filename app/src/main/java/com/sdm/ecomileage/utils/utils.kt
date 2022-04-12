@@ -8,16 +8,23 @@ import android.util.Base64
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.dataStore
 import com.sdm.ecomileage.SdmEcoMileageApplication
+import com.sdm.ecomileage.data.AppSettings
 import com.sdm.ecomileage.data.AppSettingsSerializer
 import java.io.ByteArrayOutputStream
 import java.util.*
 
-var accessToken: String = ""
-var loginedUserId: String = ""
-var currentUUID = ""
+var accessTokenUtil: String = ""
+var loginedUserIdUtil: String = ""
+var lastLoginedUserIdUtil: String = ""
+var currentUUIDUtil = ""
+var isSaveIdUtil = false
+var isAutoLoginUtil = false
+var isThisFirstTime = true
+var refreshTokenUtil: String = ""
 
 val kakaoNativeAppKey = "fb7903a5b79c6fb3d7172024332e682d"
 
@@ -37,19 +44,41 @@ suspend fun setIsSaveId(isSaveId: Boolean, saveId: String) {
 suspend fun setRefreshToken(refreshToken: String) {
     SdmEcoMileageApplication.ApplicationContext().dataStore.updateData {
         it.copy(refreshToken = refreshToken)
+    }.let {
+        refreshTokenUtil = it.refreshToken
     }
+
 }
 
-suspend fun setUUID(){
+suspend fun setUUID() {
     SdmEcoMileageApplication.ApplicationContext().dataStore.updateData {
         it.copy(uuid = UUID.randomUUID().toString())
     }
 }
 
-@Composable
-fun AppInit(refreshToken: String){
-
+suspend fun setIsThisFirstTime() {
+    SdmEcoMileageApplication.ApplicationContext().dataStore.updateData {
+        it.copy(isThisFirstInit = false)
+    }
 }
+
+
+@Composable
+fun AppSettings() {
+    val appSettings =
+        SdmEcoMileageApplication.ApplicationContext().dataStore.data.collectAsState(initial = AppSettings()).value
+
+    currentUUIDUtil = appSettings.uuid
+    isSaveIdUtil = appSettings.isSaveId
+    isAutoLoginUtil = appSettings.isAutoLogin
+    lastLoginedUserIdUtil = appSettings.lastLoginId
+    isThisFirstTime = appSettings.isThisFirstInit
+    refreshTokenUtil = appSettings.refreshToken
+}
+
+
+
+
 
 @Composable
 fun LockScreenOrientation(orientation: Int) {
@@ -72,10 +101,12 @@ fun Context.findActivity(): AppCompatActivity? = when (this) {
 }
 
 
+
 fun bitmapToString(bitmap: Bitmap): String {
+    val currentBitmap = bitmap.copy(Bitmap.Config.RGB_565, true)
 
     val byteArrayOutputStream = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.PNG, 30, byteArrayOutputStream)
+    currentBitmap.compress(Bitmap.CompressFormat.JPEG, 30, byteArrayOutputStream)
     val byteArray = byteArrayOutputStream.toByteArray()
 
     return Base64.encodeToString(byteArray, Base64.NO_WRAP)
@@ -581,3 +612,12 @@ val MainFeedReportOptions =
     listOf("음란성 게시물", "폭력적 또는 불쾌한 게시물", "스팸 게시물", "사생활 침해/개인정보 유출 게시물", "불법적인 게시물")
 val CommentReportOptions =
     listOf("음란성 댓글", "욕설, 비방, 명예훼손 댓글", "스팸 댓글", "사생활 침해, 개인정보 유출 게시물", "불법적인 댓글")
+val UserReportOptions =
+    listOf(
+        "스팸 및 사기",
+        "계정 해킹 의심됨",
+        "개인정보 유출, 사생활 침해",
+        "신고자 본인 혹은 타인을 사칭",
+        "가학적이거나 혐오 콘텐츠 포함된 계정",
+        "기타 이유"
+    )

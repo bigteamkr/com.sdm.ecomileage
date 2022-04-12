@@ -8,8 +8,8 @@ import com.sdm.ecomileage.model.homeAdd.request.HomeAddRequest
 import com.sdm.ecomileage.model.homeAdd.response.HomeAddResponse
 import com.sdm.ecomileage.model.homeInfo.request.HomeInfoRequest
 import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
-import com.sdm.ecomileage.model.report.request.ReportRequest
-import com.sdm.ecomileage.model.report.response.ReportResponse
+import com.sdm.ecomileage.model.report.feed.request.ReportRequest
+import com.sdm.ecomileage.model.report.feed.response.ReportResponse
 import com.sdm.ecomileage.network.HomeInfoAPI
 import java.util.concurrent.CancellationException
 import javax.inject.Inject

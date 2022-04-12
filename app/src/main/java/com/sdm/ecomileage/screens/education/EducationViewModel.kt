@@ -9,8 +9,8 @@ import com.sdm.ecomileage.model.education.educationInfo.request.EducationInfo
 import com.sdm.ecomileage.model.education.educationInfo.request.EducationInfoRequest
 import com.sdm.ecomileage.model.education.educationInfo.response.EducationInfoResponse
 import com.sdm.ecomileage.repository.educationRepository.EducationRepository
-import com.sdm.ecomileage.utils.accessToken
-import com.sdm.ecomileage.utils.currentUUID
+import com.sdm.ecomileage.utils.accessTokenUtil
+import com.sdm.ecomileage.utils.currentUUIDUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -26,10 +26,10 @@ class EducationViewModel @Inject constructor(private val repository: EducationRe
 
     suspend fun getEducationVideoList(): DataOrException<EducationInfoResponse, Boolean, Exception> =
         repository.getEducationVideoList(
-            accessToken, EducationInfoRequest(
+            accessTokenUtil, EducationInfoRequest(
                 EducationInfo = listOf(
                     EducationInfo(
-                        uuid = currentUUID,
+                        uuid = currentUUIDUtil,
                         page = 1,
                         perpage = 100
                     )
@@ -39,10 +39,10 @@ class EducationViewModel @Inject constructor(private val repository: EducationRe
 
     suspend fun postDiary(educationNo: Int, content: String) : DataOrException<PostDiaryResponse, Boolean, Exception> =
         repository.postDiary(
-            accessToken, PostDiaryRequest(
+            accessTokenUtil, PostDiaryRequest(
                 NewEducationInfo = listOf(
                     NewEducationInfo(
-                        uuid = currentUUID,
+                        uuid = currentUUIDUtil,
                         educationsno = educationNo,
                         viewcontent = content,
                         viewstatus = "100"

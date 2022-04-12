@@ -1,6 +1,7 @@
 package com.sdm.ecomileage.screens.home
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.feedLike.request.FeedLike
 import com.sdm.ecomileage.model.feedLike.request.FeedLikeRequest
@@ -8,23 +9,30 @@ import com.sdm.ecomileage.model.feedLike.response.FeedLikeResponse
 import com.sdm.ecomileage.model.homeInfo.request.HomeInfo
 import com.sdm.ecomileage.model.homeInfo.request.HomeInfoRequest
 import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
-import com.sdm.ecomileage.model.report.request.NewReportInfo
-import com.sdm.ecomileage.model.report.request.ReportRequest
-import com.sdm.ecomileage.model.report.response.ReportResponse
+import com.sdm.ecomileage.model.homeInfo.response.Post
+import com.sdm.ecomileage.model.report.feed.request.NewReportInfo
+import com.sdm.ecomileage.model.report.feed.request.ReportRequest
+import com.sdm.ecomileage.model.report.feed.response.ReportResponse
 import com.sdm.ecomileage.repository.homeRepository.HomeRepository
-import com.sdm.ecomileage.utils.accessToken
-import com.sdm.ecomileage.utils.loginedUserId
-import com.sdm.ecomileage.utils.currentUUID
+import com.sdm.ecomileage.utils.accessTokenUtil
+import com.sdm.ecomileage.utils.currentUUIDUtil
+import com.sdm.ecomileage.utils.loginedUserIdUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(private val repository: HomeRepository) : ViewModel() {
     suspend fun getHomeInfo(): DataOrException<HomeInfoResponse, Boolean, Exception> =
         repository.getHomeInfo(
-            accessToken, HomeInfoRequest(
+            accessTokenUtil, HomeInfoRequest(
                 HomeInfo = listOf(
-                    HomeInfo(loginedUserId)
+                    HomeInfo(
+                        loginedUserIdUtil
+                    )
                 )
             )
         )
@@ -42,6 +50,24 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
 
     fun isFeedIncludedReportingList(feedsNo: Int): Boolean = _reportingFeedNoList.contains(feedsNo)
 
+    private val _isRefreshing = MutableStateFlow(false)
+
+    val isRefreshing: StateFlow<Boolean>
+        get() = _isRefreshing.asStateFlow()
+
+    suspend fun refresh(origin: List<Post>): List<Post> {
+        var list = origin
+        viewModelScope.launch {
+            _isRefreshing.emit(true)
+            getHomeInfo().data?.result?.postList?.let {
+                list = it
+                _isRefreshing.emit(false)
+            } ?: _isRefreshing.emit(false)
+        }
+        return list
+    }
+
+
     suspend fun postReport(
         feedsNo: Int,
         reportType: String,
@@ -49,11 +75,11 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
         reportYN: Boolean
     ): DataOrException<ReportResponse, Boolean, Exception> =
         repository.postReport(
-            accessToken,
+            accessTokenUtil,
             ReportRequest(
                 NewReportInfo = listOf(
                     NewReportInfo(
-                        uuid = currentUUID,
+                        uuid = currentUUIDUtil,
                         feedsno = feedsNo,
                         reporttype = reportType,
                         reportcontent = reportContent,
@@ -69,11 +95,11 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
         likeYN: Boolean
     ): DataOrException<FeedLikeResponse, Boolean, Exception> =
         repository.postFeedLike(
-            accessToken, FeedLikeRequest(
+            accessTokenUtil, FeedLikeRequest(
                 FeedLikes = listOf(
                     FeedLike(
                         lang = "ko",
-                        uuid = currentUUID,
+                        uuid = currentUUIDUtil,
                         feedsno = feedsNo,
                         likeyn = likeYN
                     )

@@ -34,6 +34,7 @@ import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.*
+import com.sdm.ecomileage.components.appBarComponents.MoreVertComponent
 import com.sdm.ecomileage.data.ChallengeList
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.myPage.myFeedInfo.response.MyFeedInfoResponse
@@ -42,7 +43,8 @@ import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.home.HomeViewModel
 import com.sdm.ecomileage.screens.homeDetail.HomeDetailViewModel
 import com.sdm.ecomileage.ui.theme.*
-import com.sdm.ecomileage.utils.currentUUID
+import com.sdm.ecomileage.utils.UserReportOptions
+import com.sdm.ecomileage.utils.currentUUIDUtil
 import kotlinx.coroutines.launch
 
 @Composable
@@ -90,7 +92,15 @@ private fun MyPageScaffold(
     userId: String,
     myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>? = null,
     userFeedInfo: DataOrException<UserFeedInfoResponse, Boolean, Exception>? = null,
+    myPageViewModel: MyPageViewModel = hiltViewModel()
 ) {
+    val scope = rememberCoroutineScope()
+
+    var isShowingDialog by remember {
+        mutableStateOf(false)
+    }
+
+
     Scaffold(
         topBar = {
             if (myFeedInfo != null) MyPageTopBar(
@@ -101,7 +111,11 @@ private fun MyPageScaffold(
                 currentScreen = SecomiScreens.MyPageScreen.name,
                 navController = navController,
                 navigationIcon = painterResource(id = R.drawable.ic_back_arrow),
-                actionIconsList = mapOf("more" to painterResource(id = R.drawable.ic_more))
+                actionIconsList = listOf {
+                    MoreVertComponent(navController = navController, options = mapOf(
+                        "계정 신고하기" to { isShowingDialog = true }
+                    ))
+                }
             )
         },
         bottomBar = {
@@ -118,6 +132,23 @@ private fun MyPageScaffold(
             MyPageLayout(navController, myFeedInfo)
         else
             UserFeedLayout(navController, userFeedInfo!!)
+    }
+
+    if (isShowingDialog) {
+        CustomReportDialog(
+            reportAction = { selectedOptionCode, reportDetailDescription ->
+                scope.launch {
+                    myPageViewModel.postNewUserReport(
+                        userId,
+                        selectedOptionCode,
+                        reportDetailDescription.toString(),
+                        !userFeedInfo?.data!!.result.feedList[0].reportuseryn
+                    )
+                }
+            },
+            dismissAction = { isShowingDialog = false },
+            reportOptions = UserReportOptions
+        )
     }
 }
 
@@ -187,7 +218,7 @@ private fun UserFeedLayout(
                     isFollow = !isFollow
                     scope.launch {
                         myPageViewModel.putNewFollowInfo(
-                            currentUUID,
+                            currentUUIDUtil,
                             userFeedInfo.data!!.result.userid,
                             isFollow
                         )
@@ -600,6 +631,9 @@ fun UserFeedList(
     homeDetailViewModel: HomeDetailViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
+    var isShowingReporting by remember {
+        mutableStateOf(false)
+    }
 
     LazyVerticalGrid(columns = GridCells.Fixed(2)) {
         itemsIndexed(userFeedInfo.data!!.result.feedList) { index, data ->
@@ -687,6 +721,18 @@ fun UserFeedList(
                             .fillMaxHeight(0.65f)
                     )
                 }
+            }
+
+            if (isShowingReporting) {
+                CustomReportDialog(
+                    reportAction = { selectedOptionCode, reportDetailDescription ->
+
+                    },
+                    dismissAction = {
+                        isShowingReporting = false
+                    },
+                    reportOptions = UserReportOptions
+                )
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.sdm.ecomileage.model.homedetail.comment.report.response
+package com.sdm.ecomileage.model.report.comment.response
 
 data class NewReportCommentResponse(
     val code: Int,

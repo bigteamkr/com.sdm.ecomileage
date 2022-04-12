@@ -1,4 +1,4 @@
-package com.sdm.ecomileage.model.report.request
+package com.sdm.ecomileage.model.report.feed.request
 
 data class NewReportInfo(
     val feedsno: Any,

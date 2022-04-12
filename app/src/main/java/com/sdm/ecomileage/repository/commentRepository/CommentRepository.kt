@@ -6,8 +6,8 @@ import com.sdm.ecomileage.model.homedetail.comment.commentInfo.request.CommentIn
 import com.sdm.ecomileage.model.homedetail.comment.commentInfo.response.CommentInfoResponse
 import com.sdm.ecomileage.model.homedetail.comment.newComment.request.NewCommentRequest
 import com.sdm.ecomileage.model.homedetail.comment.newComment.response.NewCommentResponse
-import com.sdm.ecomileage.model.homedetail.comment.report.request.NewReportCommentRequest
-import com.sdm.ecomileage.model.homedetail.comment.report.response.NewReportCommentResponse
+import com.sdm.ecomileage.model.report.comment.request.NewReportCommentRequest
+import com.sdm.ecomileage.model.report.comment.response.NewReportCommentResponse
 import com.sdm.ecomileage.model.homedetail.loginUser.request.AppMemberInfoRequest
 import com.sdm.ecomileage.model.homedetail.loginUser.response.AppMemberInfoResponse
 import com.sdm.ecomileage.model.homedetail.mainFeed.request.MainFeedRequest

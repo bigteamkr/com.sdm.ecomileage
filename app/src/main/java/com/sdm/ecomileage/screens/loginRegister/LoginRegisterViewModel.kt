@@ -6,6 +6,12 @@ import androidx.lifecycle.ViewModel
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.SdmEcoMileageApplication
 import com.sdm.ecomileage.data.DataOrException
+import com.sdm.ecomileage.model.appSettings.init.request.AppInit
+import com.sdm.ecomileage.model.appSettings.init.request.AppInitRequest
+import com.sdm.ecomileage.model.appSettings.init.response.AppInitResponse
+import com.sdm.ecomileage.model.appSettings.refresh.request.AppRequestToken
+import com.sdm.ecomileage.model.appSettings.refresh.request.AppRequestTokenRequest
+import com.sdm.ecomileage.model.appSettings.refresh.response.AppRequestTokenResponse
 import com.sdm.ecomileage.model.login.request.LoginRequest
 import com.sdm.ecomileage.model.login.response.LoginResponse
 import com.sdm.ecomileage.model.memberUpdate.request.AppMemberUpdate
@@ -15,15 +21,33 @@ import com.sdm.ecomileage.model.register.request.AppRegister
 import com.sdm.ecomileage.model.register.request.RegisterRequest
 import com.sdm.ecomileage.model.register.response.RegisterResponse
 import com.sdm.ecomileage.repository.loginRegisterFindRepository.LoginRegisterFindRepository
-import com.sdm.ecomileage.utils.accessToken
+import com.sdm.ecomileage.utils.accessTokenUtil
 import com.sdm.ecomileage.utils.bitmapToString
-import com.sdm.ecomileage.utils.currentUUID
+import com.sdm.ecomileage.utils.currentUUIDUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginRegisterViewModel @Inject constructor(private val repository: LoginRegisterFindRepository) :
     ViewModel() {
+
+    suspend fun postAppInit(
+        uuid: String,
+        refreshToken: String
+    ) : DataOrException<AppInitResponse, Boolean, Exception> =
+        repository.postAppInit(
+            AppInitRequest(
+                listOf(
+                    AppInit(
+                        osVersion = "Android",
+                        appVersion = 163,
+                        osType = 2,
+                        uuid = uuid,
+                        refreshToken = refreshToken
+                    )
+                )
+            )
+        )
 
     suspend fun getLogin(
         id: String,
@@ -35,6 +59,21 @@ class LoginRegisterViewModel @Inject constructor(private val repository: LoginRe
                 id = id,
                 password = password,
                 uuid = uuid
+            )
+        )
+
+    suspend fun getAppRequestToken(
+        uuid: String,
+        refreshToken: String
+    ) : DataOrException<AppRequestTokenResponse, Boolean, Exception> =
+        repository.getAppRequestToken(
+            AppRequestTokenRequest(
+                listOf(
+                    AppRequestToken(
+                        uuid = uuid,
+                        refreshToken = refreshToken
+                    )
+                )
             )
         )
 
@@ -83,10 +122,10 @@ class LoginRegisterViewModel @Inject constructor(private val repository: LoginRe
         pointsavetype: String?  = null
     ): DataOrException<MemberUpdateResponse, Boolean, Exception> =
         repository.putMemberUpdate(
-            accessToken, MemberUpdateRequest(
+            accessTokenUtil, MemberUpdateRequest(
                 listOf(
                     AppMemberUpdate(
-                        uuid = currentUUID,
+                        uuid = currentUUIDUtil,
                         userName = userName,
                         userPhone = userPhone,
                         userDept = userDept,

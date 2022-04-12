@@ -10,7 +10,7 @@ import com.sdm.ecomileage.model.homeAdd.request.HomeAddRequest
 import com.sdm.ecomileage.model.homeAdd.response.HomeAddResponse
 import com.sdm.ecomileage.repository.challengeRepository.ChallengeRepository
 import com.sdm.ecomileage.repository.homeRepository.HomeRepository
-import com.sdm.ecomileage.utils.accessToken
+import com.sdm.ecomileage.utils.accessTokenUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -19,8 +19,8 @@ import javax.inject.Inject
 class HomeAddViewModel @Inject constructor(private val homeRepository: HomeRepository, private val challengeRepository: ChallengeRepository) : ViewModel() {
 
     suspend fun postHomeFeedInfo(body: HomeAddRequest) : DataOrException<HomeAddResponse, Boolean, Exception> =
-        homeRepository.postHomeFeed(accessToken, body = body)
+        homeRepository.postHomeFeed(accessTokenUtil, body = body)
 
     suspend fun postNewChallengeInfo(body : NewChallengeInfoRequest) : DataOrException<NewChallengeInfoResponse, Boolean, Exception> =
-        challengeRepository.postNewChallengeInfo(accessToken, body = body)
+        challengeRepository.postNewChallengeInfo(accessTokenUtil, body = body)
 }

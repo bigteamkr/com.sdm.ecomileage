@@ -35,6 +35,7 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.*
+import com.sdm.ecomileage.components.appBarComponents.AlarmComponent
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.education.educationInfo.response.EducationInfoResponse
 import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
@@ -93,9 +94,12 @@ private fun EducationScaffold(
                 navController = navController,
                 currentScreen = SecomiScreens.EducationScreen.name,
                 backgroundColor = TopBarColor,
-                actionIconsList = mapOf(
-                    "push" to painterResource(id = pushIcon)
-                )
+                actionIconsList = listOf {
+                    AlarmComponent(
+                        navController = navController,
+                        currentScreens = SecomiScreens.EducationScreen.name
+                    )
+                }
             )
         },
         bottomBar = {

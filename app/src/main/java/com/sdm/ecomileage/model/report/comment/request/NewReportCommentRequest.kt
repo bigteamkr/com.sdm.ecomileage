@@ -1,4 +1,4 @@
-package com.sdm.ecomileage.model.homedetail.comment.report.request
+package com.sdm.ecomileage.model.report.comment.request
 
 data class NewReportCommentRequest(
     val NewReportComment: List<NewReportComment>
