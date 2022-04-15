@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -68,7 +69,7 @@ fun AlarmComponent(
 @Composable
 fun MoreVertComponent(
     navController: NavController,
-    options: Map<String, () -> Unit>,
+    options: List<@Composable () -> Unit>
 ) {
     var isShowingOptions by remember {
         mutableStateOf(false)
@@ -87,17 +88,11 @@ fun MoreVertComponent(
 
     DropdownMenu(
         expanded = isShowingOptions,
-        onDismissRequest = { isShowingOptions = false }
+        onDismissRequest = { isShowingOptions = false },
+        modifier = Modifier.clickable(enabled = false){}
     ) {
         options.forEach {
-            Text(
-                text = it.key,
-                modifier = Modifier
-                    .padding(horizontal = 20.dp, vertical = 10.dp)
-                    .clickable {
-                        it.value
-                    }
-            )
+            it()
         }
     }
 }

@@ -19,6 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.items
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.accompanist.systemuicontroller.SystemUiController
@@ -34,6 +37,7 @@ import com.sdm.ecomileage.model.homeInfo.response.Post
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.loginRegister.AutoLoginLogic
 import com.sdm.ecomileage.ui.theme.LikeColor
+import com.sdm.ecomileage.ui.theme.LoginButtonColor
 import com.sdm.ecomileage.ui.theme.StatusBarGreenColor
 import com.sdm.ecomileage.ui.theme.TopBarColor
 import com.sdm.ecomileage.utils.MainFeedReportOptions
@@ -132,10 +136,7 @@ private fun HomeScaffold(
     ) {
         Column {
             HomeUserFeedRow(navController, homeInfoResponse.data!!.result.friendList)
-            HomeMainContent(
-                navController,
-                homeInfoResponse.data!!.result.postList
-            )
+            HomeMainContent(navController)
         }
     }
 }
@@ -143,14 +144,12 @@ private fun HomeScaffold(
 @Composable
 private fun HomeMainContent(
     navController: NavController,
-    postListData: List<Post>,
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     var scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    var postList = SnapshotStateList<Post>()
-    postList.addAll(postListData)
+    val pagingData = homeViewModel.pager.collectAsLazyPagingItems()
 
     var reportDialogVisible by remember {
         mutableStateOf(false)
@@ -158,6 +157,10 @@ private fun HomeMainContent(
 
     var reportTargetFeedNo by remember {
         mutableStateOf<Int?>(null)
+    }
+
+    var reportedTargetName by remember {
+        mutableStateOf("")
     }
 
     var isCurrentFeedReporting by remember {
@@ -169,77 +172,120 @@ private fun HomeMainContent(
 
     SwipeRefresh(
         state = rememberSwipeRefreshState(isRefreshing),
-        onRefresh = {
-            scope.launch(Dispatchers.IO) {
-                homeViewModel.refresh(postList).let {
-                    postList = it as SnapshotStateList<Post>
-                    Log.d("Home", "HomeMainContent: ${postList[0].userName}")
-                }
-            }
-        }
+        onRefresh = { }
     ) {
         LazyColumn(
-            modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 5.dp)
+            modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 75.dp)
         ) {
-            itemsIndexed(postList) { index, data ->
-                //Todo : HomeInfo CardContent
-                isCurrentFeedReporting = homeViewModel.isFeedIncludedReportingList(data.feedsno)
-
-                MainFeedCardStructure(
-                    contentImageList = data.imageList,
-                    contentText = data.feedcontent,
-                    profileImage = data.profileimg,
-                    profileId = data.userid,
-                    profileName = data.userName,
-                    reactionIcon = listOf(
-                        R.drawable.ic_like_off,
-                        R.drawable.ic_like_on
-                    ),
-                    reactionData = data.likeCount,
-                    reactionTint = LikeColor,
-                    likeYN = data.likeyn,
-                    onReactionClick = {
-                        scope.launch {
-                            homeViewModel.postFeedLike(data.feedsno, it).let {
-                                Log.d("Home-Like", "HomeMainContent: ${it.data?.code}")
-                                Log.d("Home-Like", "HomeMainContent: ${it.data?.message}")
-                            }
-                        }
-                    },
-                    otherIcons = mapOf(
-                        "comment" to R.drawable.ic_comment,
-                        "more" to R.drawable.ic_more
-                    ),
-                    hashtagList = data.hashtags,
-                    navController = navController,
-                    feedNo = data.feedsno,
-                    reportDialogCallAction = {
-                        reportDialogVisible = it
-                        reportTargetFeedNo = data.feedsno
-                    },
-                    reportingCancelAction = {
-                        reportListValue = homeViewModel.getReportingFeedNoValueFromKey(data.feedsno)
-                        Log.d("HomeRepo", "HomeMainContent: $reportListValue")
-
-                        if (reportListValue != null) {
-                            scope.launch {
-                                homeViewModel.postReport(
-                                    data.feedsno,
-                                    reportListValue!!,
-                                    reportYN = false
+            pagingData.apply {
+                when {
+                    loadState.refresh is LoadState.Loading -> {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(16.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .padding(12.dp)
+                                        .align(Alignment.Center), color = LoginButtonColor
                                 )
-                                Log.d("HomeRepo", "HomeMainContent: 뀽")
                             }
-                            homeViewModel.reportingFeedNoRemove(it)
                         }
-                    },
-                    isCurrentReportingFeedsNo = isCurrentFeedReporting,
-                    reportYN = data.reportyn,
-                    currentScreen = SecomiScreens.HomeDetailScreen.name,
-                    destinationScreen = null
-                )
-                if (index == postListData.lastIndex)
-                    Spacer(modifier = Modifier.height(70.dp))
+                    }
+                    loadState.append is LoadState.Loading -> {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .padding(12.dp)
+                                        .align(Alignment.Center), color = LoginButtonColor
+                                )
+                            }
+                        }
+                    }
+                    loadState.prepend is LoadState.Error -> {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .padding(12.dp)
+                                        .align(Alignment.Center), color = LoginButtonColor
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            items(pagingData) { data ->
+                data?.let {
+                    isCurrentFeedReporting = homeViewModel.isFeedIncludedReportingList(data.feedsno)
+
+                    MainFeedCardStructure(
+                        contentImageList = data.imageList,
+                        contentText = data.feedcontent,
+                        profileImage = data.profileimg,
+                        profileId = data.userid,
+                        profileName = data.userName,
+                        reactionIcon = listOf(
+                            R.drawable.ic_like_off,
+                            R.drawable.ic_like_on
+                        ),
+                        reactionData = data.likeCount,
+                        reactionTint = LikeColor,
+                        likeYN = data.likeyn,
+                        onReactionClick = {
+                            scope.launch {
+                                homeViewModel.postFeedLike(data.feedsno, it).let {
+                                    Log.d("Home-Like", "HomeMainContent: ${it.data?.code}")
+                                    Log.d("Home-Like", "HomeMainContent: ${it.data?.message}")
+                                }
+                            }
+                        },
+                        otherIcons = mapOf(
+                            "comment" to R.drawable.ic_comment,
+                            "more" to R.drawable.ic_more
+                        ),
+                        hashtagList = data.hashtags,
+                        navController = navController,
+                        feedNo = data.feedsno,
+                        reportDialogCallAction = {
+                            reportDialogVisible = it
+                            reportTargetFeedNo = data.feedsno
+                            reportedTargetName = data.userName
+                        },
+                        reportingCancelAction = {
+                            reportListValue = homeViewModel.getReportingFeedNoValueFromKey(data.feedsno)
+                            Log.d("HomeRepo", "HomeMainContent: $reportListValue")
+
+                            if (reportListValue != null) {
+                                scope.launch {
+                                    homeViewModel.postReport(
+                                        data.feedsno,
+                                        reportListValue!!,
+                                        reportYN = false
+                                    )
+                                    Log.d("HomeRepo", "HomeMainContent: 뀽")
+                                }
+                                homeViewModel.reportingFeedNoRemove(it)
+                            }
+                        },
+                        isCurrentReportingFeedsNo = isCurrentFeedReporting,
+                        reportYN = data.reportyn,
+                        currentScreen = SecomiScreens.HomeDetailScreen.name,
+                        destinationScreen = null
+                    )
+                }
             }
         }
 
@@ -247,6 +293,7 @@ private fun HomeMainContent(
 
     if (reportDialogVisible && reportTargetFeedNo != null) {
         CustomReportDialog(
+            title = "${reportedTargetName}님의 게시글을 신고하기",
             reportOptions = MainFeedReportOptions,
             reportAction = { selectedOptionCode, reportDescription ->
                 if (selectedOptionCode == "00") showShortToastMessage(context, "신고 사유를 선택해주세요.")

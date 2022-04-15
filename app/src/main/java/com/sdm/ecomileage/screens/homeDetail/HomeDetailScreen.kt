@@ -55,10 +55,7 @@ import com.sdm.ecomileage.model.homedetail.mainFeed.response.MainFeedResponse
 import com.sdm.ecomileage.model.homedetail.mainFeed.response.PostInfo
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
-import com.sdm.ecomileage.utils.CommentReportOptions
-import com.sdm.ecomileage.utils.currentUUIDUtil
-import com.sdm.ecomileage.utils.dataStore
-import com.sdm.ecomileage.utils.loginedUserIdUtil
+import com.sdm.ecomileage.utils.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -278,6 +275,7 @@ private fun HomeDetailScaffold(
 
                 if (reportDialogVisible)
                     CustomReportDialog(
+                        title = "${data.userName}님의 댓글을 신고",
                         reportAction = { selectedOptionToCode, reportDescription ->
                             commentViewModel.addReportingComment(index)
                             scope.launch(Dispatchers.IO) {
@@ -291,6 +289,7 @@ private fun HomeDetailScaffold(
                             }
                             reportType = selectedOptionToCode
                             reportContent = reportDescription.toString()
+                            reportDialogVisible = false
                         }, dismissAction = {
                             reportDialogVisible = false
                         }, reportOptions = CommentReportOptions

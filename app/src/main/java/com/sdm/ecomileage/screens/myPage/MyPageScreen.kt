@@ -38,6 +38,7 @@ import com.sdm.ecomileage.components.appBarComponents.MoreVertComponent
 import com.sdm.ecomileage.data.ChallengeList
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.myPage.myFeedInfo.response.MyFeedInfoResponse
+import com.sdm.ecomileage.model.myPage.userFeedInfo.request.UserFeedInfo
 import com.sdm.ecomileage.model.myPage.userFeedInfo.response.UserFeedInfoResponse
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.home.HomeViewModel
@@ -112,9 +113,22 @@ private fun MyPageScaffold(
                 navController = navController,
                 navigationIcon = painterResource(id = R.drawable.ic_back_arrow),
                 actionIconsList = listOf {
-                    MoreVertComponent(navController = navController, options = mapOf(
-                        "계정 신고하기" to { isShowingDialog = true }
-                    ))
+                    MoreVertComponent(
+                        navController = navController, options = listOf(
+                            {
+                                DropdownMenuItem(onClick = { isShowingDialog = true }) {
+                                    Text(text = "계정 신고하기")
+                                    Log.d("Report", "MyPageScaffold: Report why?")
+                                }
+                            },
+                            {
+                                DropdownMenuItem(onClick = { isShowingDialog = true }) {
+                                    Text(text = "계정 차단하기")
+                                    Log.d("Report", "MyPageScaffold: Block why?")
+                                }
+                            },
+                        )
+                    )
                 }
             )
         },
@@ -136,6 +150,7 @@ private fun MyPageScaffold(
 
     if (isShowingDialog) {
         CustomReportDialog(
+            title = "${userFeedInfo?.data?.result?.username}님을 신고하기",
             reportAction = { selectedOptionCode, reportDetailDescription ->
                 scope.launch {
                     myPageViewModel.postNewUserReport(
@@ -725,6 +740,7 @@ fun UserFeedList(
 
             if (isShowingReporting) {
                 CustomReportDialog(
+                    title = "${data.userName}님의 게시글 신고하기",
                     reportAction = { selectedOptionCode, reportDetailDescription ->
 
                     },

@@ -2,6 +2,9 @@ package com.sdm.ecomileage.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.cachedIn
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.feedLike.request.FeedLike
 import com.sdm.ecomileage.model.feedLike.request.FeedLikeRequest
@@ -13,7 +16,9 @@ import com.sdm.ecomileage.model.homeInfo.response.Post
 import com.sdm.ecomileage.model.report.feed.request.NewReportInfo
 import com.sdm.ecomileage.model.report.feed.request.ReportRequest
 import com.sdm.ecomileage.model.report.feed.response.ReportResponse
+import com.sdm.ecomileage.network.HomeInfoAPI
 import com.sdm.ecomileage.repository.homeRepository.HomeRepository
+import com.sdm.ecomileage.repository.paging.MainFeedPagingSource
 import com.sdm.ecomileage.utils.accessTokenUtil
 import com.sdm.ecomileage.utils.currentUUIDUtil
 import com.sdm.ecomileage.utils.loginedUserIdUtil
@@ -25,7 +30,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val repository: HomeRepository) : ViewModel() {
+class HomeViewModel @Inject constructor(
+    private val repository: HomeRepository,
+    private val api: HomeInfoAPI
+) : ViewModel() {
+
     suspend fun getHomeInfo(): DataOrException<HomeInfoResponse, Boolean, Exception> =
         repository.getHomeInfo(
             accessTokenUtil, HomeInfoRequest(
@@ -36,6 +45,12 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
                 )
             )
         )
+
+    val pager = Pager(
+        config = PagingConfig(pageSize = 20, prefetchDistance = 5),
+        pagingSourceFactory = { MainFeedPagingSource(api) }
+    ).flow.cachedIn(viewModelScope)
+
 
     private val _reportingFeedNoList = mutableMapOf<Int, String>()
     fun getReportingFeedNoValueFromKey(key: Int) = _reportingFeedNoList[key]
@@ -66,7 +81,6 @@ class HomeViewModel @Inject constructor(private val repository: HomeRepository) 
         }
         return list
     }
-
 
     suspend fun postReport(
         feedsNo: Int,

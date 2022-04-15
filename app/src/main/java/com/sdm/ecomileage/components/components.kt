@@ -997,6 +997,7 @@ fun CustomLoginInputTextField(
 @OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun CustomReportDialog(
+    title: String,
     reportAction: (String, String?) -> Unit,
     dismissAction: (Boolean) -> Unit,
     reportOptions: List<String>
@@ -1047,7 +1048,7 @@ fun CustomReportDialog(
                             .height(20.dp)
                     ) {}
                     Text(
-                        text = "신고하기",
+                        text = title,
                         modifier = Modifier.padding(start = 5.dp),
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
