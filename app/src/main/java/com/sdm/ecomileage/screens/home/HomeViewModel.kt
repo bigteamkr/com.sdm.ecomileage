@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.feedLike.request.FeedLike
 import com.sdm.ecomileage.model.feedLike.request.FeedLikeRequest
@@ -23,6 +24,7 @@ import com.sdm.ecomileage.utils.accessTokenUtil
 import com.sdm.ecomileage.utils.currentUUIDUtil
 import com.sdm.ecomileage.utils.loginedUserIdUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -70,16 +72,13 @@ class HomeViewModel @Inject constructor(
     val isRefreshing: StateFlow<Boolean>
         get() = _isRefreshing.asStateFlow()
 
-    suspend fun refresh(origin: List<Post>): List<Post> {
-        var list = origin
+    suspend fun refresh(refresh:() -> Unit) {
         viewModelScope.launch {
             _isRefreshing.emit(true)
-            getHomeInfo().data?.result?.postList?.let {
-                list = it
-                _isRefreshing.emit(false)
-            } ?: _isRefreshing.emit(false)
+            refresh()
+            delay(1000)
+            _isRefreshing.emit(false)
         }
-        return list
     }
 
     suspend fun postReport(

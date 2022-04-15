@@ -4,11 +4,9 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -50,6 +48,7 @@ import com.sdm.ecomileage.R
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.homeAdd.ContentInputField
 import com.sdm.ecomileage.ui.theme.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun SecomiTopAppBar(
@@ -760,7 +759,7 @@ fun CardImageRow(
 }
 
 @Composable
-fun SecomiBottomBar(navController: NavController, currentScreen: String) {
+fun SecomiBottomBar(navController: NavController, currentScreen: String, scrollState: LazyListState? = null) {
     BottomAppBar(
         backgroundColor = Color.White,
         cutoutShape = CircleShape,
@@ -804,7 +803,8 @@ fun SecomiBottomBar(navController: NavController, currentScreen: String) {
                 currentBottomButton = SecomiScreens.HomeScreen.name,
                 iconResource = homeIcon,
                 label = "HOME",
-                description = "Home Navigate Button"
+                description = "Home Navigate Button",
+                scrollState = scrollState
             )
 
             BottomBarItem(
@@ -865,19 +865,26 @@ private fun RowScope.BottomBarItem(
     currentBottomButton: String,
     iconResource: MutableState<Int>,
     label: String,
-    description: String
+    description: String,
+    scrollState: LazyListState? = null
 ) {
     val route =
         if (currentBottomButton == SecomiScreens.MyPageScreen.name) "$currentBottomButton/myPage"
         else currentBottomButton
+    val scope = rememberCoroutineScope()
+
     BottomNavigationItem(
         selected = currentScreen.value == currentBottomButton,
         onClick = {
-            navController.navigate(route) {
-                launchSingleTop
-                popUpTo(currentScreen.value) { inclusive = true }
+            if (currentScreen.value != currentBottomButton) {
+                navController.navigate(route) {
+                    launchSingleTop
+                    popUpTo(currentScreen.value) { inclusive = true }
+                }
+                currentScreen.value = currentBottomButton
             }
-            currentScreen.value = currentBottomButton
+            else if (currentScreen.value == currentBottomButton)
+                scope.launch { scrollState?.animateScrollToItem(0,1) }
         },
         icon = {
             Icon(

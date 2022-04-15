@@ -32,12 +32,14 @@ class MainFeedPagingSource @Inject constructor(private val api: HomeInfoAPI) :
 
             if (response.code == 200) {
                 val responseBody = response.result.postList
+                Log.d("MainFeedPager", "load: call?")
 
                 LoadResult.Page(
                     data = responseBody,
                     prevKey = if (page == 1) null else page - 1,
                     nextKey = if (responseBody.size < postPerPager) null else page + 1
                 )
+
             } else {
                 Log.d("MainFeedPager", "load: load fail : ${Exception().message}")
                 LoadResult.Error(Exception())

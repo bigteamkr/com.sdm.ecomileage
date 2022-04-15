@@ -2,6 +2,7 @@ package com.sdm.ecomileage.screens.homeDetail
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -72,6 +73,12 @@ fun HomeDetailScreen(
         systemUiController.setStatusBarColor(
             color = StatusBarGreenColor
         )
+    }
+
+    BackHandler() {
+        navController.navigate(SecomiScreens.HomeScreen.name) {
+            popUpTo(SecomiScreens.HomeDetailScreen.name) { inclusive = true }
+        }
     }
 
     val scope = rememberCoroutineScope()

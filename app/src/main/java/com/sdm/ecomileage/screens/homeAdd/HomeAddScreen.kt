@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -88,6 +89,13 @@ fun HomeAddScreen(
             color = Color.White
         )
     }
+
+    BackHandler() {
+        navController.navigate(SecomiScreens.HomeScreen.name) {
+            popUpTo(SecomiScreens.HomeAddScreen.name) { inclusive = true }
+        }
+    }
+
     HomeAddScaffold(navController, viewModel)
 }
 

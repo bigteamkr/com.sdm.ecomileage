@@ -3,6 +3,7 @@ package com.sdm.ecomileage.screens.education
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -67,6 +68,12 @@ fun EducationScreen(
         systemUiController.setStatusBarColor(
             color = StatusBarGreenColor
         )
+    }
+
+    BackHandler() {
+        navController.navigate(SecomiScreens.HomeScreen.name) {
+            popUpTo(SecomiScreens.EducationScreen.name) { inclusive = true }
+        }
     }
 
     if (homeInfo.loading == true || educationInfo.loading == true)

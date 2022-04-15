@@ -1,6 +1,7 @@
 package com.sdm.ecomileage.screens.myPage
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,7 +39,6 @@ import com.sdm.ecomileage.components.appBarComponents.MoreVertComponent
 import com.sdm.ecomileage.data.ChallengeList
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.myPage.myFeedInfo.response.MyFeedInfoResponse
-import com.sdm.ecomileage.model.myPage.userFeedInfo.request.UserFeedInfo
 import com.sdm.ecomileage.model.myPage.userFeedInfo.response.UserFeedInfoResponse
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.home.HomeViewModel
@@ -58,6 +58,13 @@ fun MyPageScreen(
     SideEffect {
         systemUiController.setStatusBarColor(StatusBarGreenColor)
     }
+
+    BackHandler() {
+        navController.navigate(SecomiScreens.HomeScreen.name) {
+            popUpTo(SecomiScreens.MyPageScreen.name) { inclusive = true }
+        }
+    }
+
     val myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>
     val userFeedInfo: DataOrException<UserFeedInfoResponse, Boolean, Exception>
 

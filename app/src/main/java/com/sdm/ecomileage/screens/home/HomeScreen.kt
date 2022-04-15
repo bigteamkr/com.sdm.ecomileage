@@ -1,20 +1,23 @@
 package com.sdm.ecomileage.screens.home
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.util.Log
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -33,7 +36,6 @@ import com.sdm.ecomileage.components.appBarComponents.SearchComponent
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.homeInfo.response.Friend
 import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
-import com.sdm.ecomileage.model.homeInfo.response.Post
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.loginRegister.AutoLoginLogic
 import com.sdm.ecomileage.ui.theme.LikeColor
@@ -41,7 +43,6 @@ import com.sdm.ecomileage.ui.theme.LoginButtonColor
 import com.sdm.ecomileage.ui.theme.StatusBarGreenColor
 import com.sdm.ecomileage.ui.theme.TopBarColor
 import com.sdm.ecomileage.utils.MainFeedReportOptions
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
@@ -51,8 +52,13 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
+
     var isLoading by remember {
         mutableStateOf(false)
+    }
+
+    BackHandler() {
+        (context as Activity).finish()
     }
 
     val homeInfo = produceState<DataOrException<HomeInfoResponse, Boolean, Exception>>(
@@ -83,17 +89,21 @@ fun HomeScreen(
 
         HomeScaffold(navController, homeInfo)
     }
+
+    if (isLoading)
+        CircularProgressIndicator(color = LoginButtonColor)
 }
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 private fun HomeScaffold(
     navController: NavController,
-    homeInfoResponse: DataOrException<HomeInfoResponse, Boolean, Exception>,
+    homeInfoResponse: DataOrException<HomeInfoResponse, Boolean, Exception>
 ) {
     var pushIcon by remember {
         mutableStateOf(R.drawable.ic_push_off)
     }
+    val scrollState = rememberLazyListState()
 
     Scaffold(
         topBar = {
@@ -127,7 +137,8 @@ private fun HomeScaffold(
         bottomBar = {
             SecomiBottomBar(
                 navController = navController,
-                currentScreen = SecomiScreens.HomeScreen.name
+                currentScreen = SecomiScreens.HomeScreen.name,
+                scrollState = scrollState
             )
         },
         floatingActionButton = { SecomiMainFloatingActionButton(navController) },
@@ -136,7 +147,7 @@ private fun HomeScaffold(
     ) {
         Column {
             HomeUserFeedRow(navController, homeInfoResponse.data!!.result.friendList)
-            HomeMainContent(navController)
+            HomeMainContent(navController, scrollState)
         }
     }
 }
@@ -144,6 +155,7 @@ private fun HomeScaffold(
 @Composable
 private fun HomeMainContent(
     navController: NavController,
+    scrollState: LazyListState,
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     var scope = rememberCoroutineScope()
@@ -170,12 +182,20 @@ private fun HomeMainContent(
     var reportListValue: String?
     val isRefreshing by homeViewModel.isRefreshing.collectAsState()
 
+    var visible by remember { mutableStateOf(true) }
+    val density = LocalDensity.current
+
     SwipeRefresh(
         state = rememberSwipeRefreshState(isRefreshing),
-        onRefresh = { }
+        onRefresh = {
+            scope.launch {
+                homeViewModel.refresh { pagingData.refresh() }
+            }
+        }
     ) {
         LazyColumn(
-            modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 75.dp)
+            modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 75.dp),
+            state = scrollState
         ) {
             pagingData.apply {
                 when {
@@ -186,11 +206,7 @@ private fun HomeMainContent(
                                     .fillMaxSize()
                                     .padding(16.dp)
                             ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier
-                                        .padding(12.dp)
-                                        .align(Alignment.Center), color = LoginButtonColor
-                                )
+
                             }
                         }
                     }
@@ -224,71 +240,87 @@ private fun HomeMainContent(
                             }
                         }
                     }
+                    loadState.refresh is LoadState.Loading -> {
+                        visible = false
+                    }
+                    else -> {
+                        visible = true
+                    }
                 }
             }
 
             items(pagingData) { data ->
-                data?.let {
-                    isCurrentFeedReporting = homeViewModel.isFeedIncludedReportingList(data.feedsno)
 
-                    MainFeedCardStructure(
-                        contentImageList = data.imageList,
-                        contentText = data.feedcontent,
-                        profileImage = data.profileimg,
-                        profileId = data.userid,
-                        profileName = data.userName,
-                        reactionIcon = listOf(
-                            R.drawable.ic_like_off,
-                            R.drawable.ic_like_on
-                        ),
-                        reactionData = data.likeCount,
-                        reactionTint = LikeColor,
-                        likeYN = data.likeyn,
-                        onReactionClick = {
-                            scope.launch {
-                                homeViewModel.postFeedLike(data.feedsno, it).let {
-                                    Log.d("Home-Like", "HomeMainContent: ${it.data?.code}")
-                                    Log.d("Home-Like", "HomeMainContent: ${it.data?.message}")
-                                }
-                            }
-                        },
-                        otherIcons = mapOf(
-                            "comment" to R.drawable.ic_comment,
-                            "more" to R.drawable.ic_more
-                        ),
-                        hashtagList = data.hashtags,
-                        navController = navController,
-                        feedNo = data.feedsno,
-                        reportDialogCallAction = {
-                            reportDialogVisible = it
-                            reportTargetFeedNo = data.feedsno
-                            reportedTargetName = data.userName
-                        },
-                        reportingCancelAction = {
-                            reportListValue = homeViewModel.getReportingFeedNoValueFromKey(data.feedsno)
-                            Log.d("HomeRepo", "HomeMainContent: $reportListValue")
+                    data?.let {
+                        isCurrentFeedReporting =
+                            homeViewModel.isFeedIncludedReportingList(data.feedsno)
 
-                            if (reportListValue != null) {
+                        MainFeedCardStructure(
+                            contentImageList = data.imageList,
+                            contentText = data.feedcontent,
+                            profileImage = data.profileimg,
+                            profileId = data.userid,
+                            profileName = data.userName,
+                            reactionIcon = listOf(
+                                R.drawable.ic_like_off,
+                                R.drawable.ic_like_on
+                            ),
+                            reactionData = data.likeCount,
+                            reactionTint = LikeColor,
+                            likeYN = data.likeyn,
+                            onReactionClick = {
                                 scope.launch {
-                                    homeViewModel.postReport(
-                                        data.feedsno,
-                                        reportListValue!!,
-                                        reportYN = false
-                                    )
-                                    Log.d("HomeRepo", "HomeMainContent: 뀽")
+                                    homeViewModel.postFeedLike(data.feedsno, it).let {
+                                        Log.d(
+                                            "Home-Like",
+                                            "HomeMainContent: ${it.data?.code}"
+                                        )
+                                        Log.d(
+                                            "Home-Like",
+                                            "HomeMainContent: ${it.data?.message}"
+                                        )
+                                    }
                                 }
-                                homeViewModel.reportingFeedNoRemove(it)
-                            }
-                        },
-                        isCurrentReportingFeedsNo = isCurrentFeedReporting,
-                        reportYN = data.reportyn,
-                        currentScreen = SecomiScreens.HomeDetailScreen.name,
-                        destinationScreen = null
-                    )
-                }
+                            },
+                            otherIcons = mapOf(
+                                "comment" to R.drawable.ic_comment,
+                                "more" to R.drawable.ic_more
+                            ),
+                            hashtagList = data.hashtags,
+                            navController = navController,
+                            feedNo = data.feedsno,
+                            reportDialogCallAction = {
+                                reportDialogVisible = it
+                                reportTargetFeedNo = data.feedsno
+                                reportedTargetName = data.userName
+                            },
+                            reportingCancelAction = {
+                                reportListValue =
+                                    homeViewModel.getReportingFeedNoValueFromKey(data.feedsno)
+                                Log.d("HomeRepo", "HomeMainContent: $reportListValue")
+
+                                if (reportListValue != null) {
+                                    scope.launch {
+                                        homeViewModel.postReport(
+                                            data.feedsno,
+                                            reportListValue!!,
+                                            reportYN = false
+                                        )
+                                        Log.d("HomeRepo", "HomeMainContent: 뀽")
+                                    }
+                                    homeViewModel.reportingFeedNoRemove(it)
+                                }
+                            },
+                            isCurrentReportingFeedsNo = isCurrentFeedReporting,
+                            reportYN = data.reportyn,
+                            currentScreen = SecomiScreens.HomeDetailScreen.name,
+                            destinationScreen = null
+                        )
+                    }
+
+
             }
         }
-
     }
 
     if (reportDialogVisible && reportTargetFeedNo != null) {

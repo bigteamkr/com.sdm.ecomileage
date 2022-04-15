@@ -1,5 +1,6 @@
 package com.sdm.ecomileage.screens.search
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -31,6 +32,7 @@ import com.sdm.ecomileage.R
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.search.response.Feed
 import com.sdm.ecomileage.model.search.response.SearchFeedResponse
+import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -42,6 +44,12 @@ fun SearchScreen(
 ) {
     SideEffect {
         systemUiController.setStatusBarColor(Color.White)
+    }
+
+    BackHandler() {
+        navController.navigate(SecomiScreens.HomeScreen.name) {
+            popUpTo(SecomiScreens.SearchScreen.name) { inclusive = true }
+        }
     }
 
     SearchScaffold(navController, searchViewModel)
