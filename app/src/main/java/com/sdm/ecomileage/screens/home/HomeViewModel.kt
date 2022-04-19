@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.feedLike.request.FeedLike
 import com.sdm.ecomileage.model.feedLike.request.FeedLikeRequest
@@ -13,7 +12,6 @@ import com.sdm.ecomileage.model.feedLike.response.FeedLikeResponse
 import com.sdm.ecomileage.model.homeInfo.request.HomeInfo
 import com.sdm.ecomileage.model.homeInfo.request.HomeInfoRequest
 import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
-import com.sdm.ecomileage.model.homeInfo.response.Post
 import com.sdm.ecomileage.model.report.feed.request.NewReportInfo
 import com.sdm.ecomileage.model.report.feed.request.ReportRequest
 import com.sdm.ecomileage.model.report.feed.response.ReportResponse
@@ -53,8 +51,10 @@ class HomeViewModel @Inject constructor(
         pagingSourceFactory = { MainFeedPagingSource(api) }
     ).flow.cachedIn(viewModelScope)
 
+    fun invalidateDataSource() =
+        MainFeedPagingSource(api).invalidate()
 
-    private val _reportingFeedNoList = mutableMapOf<Int, String>()
+    val _reportingFeedNoList = mutableMapOf<Int, String>()
     fun getReportingFeedNoValueFromKey(key: Int) = _reportingFeedNoList[key]
 
     fun reportingFeedAdd(feedsNo: Int, reportType: String) {
@@ -72,7 +72,7 @@ class HomeViewModel @Inject constructor(
     val isRefreshing: StateFlow<Boolean>
         get() = _isRefreshing.asStateFlow()
 
-    suspend fun refresh(refresh:() -> Unit) {
+    suspend fun refresh(refresh: () -> Unit) {
         viewModelScope.launch {
             _isRefreshing.emit(true)
             refresh()

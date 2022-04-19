@@ -85,3 +85,4 @@ val UnSelectedTabColor = Color(0xFF616161)
 // MyPage Color
 val UnselectedButtonColor = Color(0xFFE8E8E8)
 val IndicationColor = Color(0xFF676767)
+val ReportedButtonColor = Color(0xFFFF6F6F)

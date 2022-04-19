@@ -33,7 +33,8 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 SecomiApp()
                 KakaoSdk.init(this, kakaoNativeAppKey)
-                // Todo : 주의 !!!!!!!!!!! JWPlayer 를 사용하기 위해서 AppCompat Theme -- values_themes 에서 확인 --  을 사용했음 !! UI 상의 변화는 모두 이때문 !!!!!!!!!!
+
+
             }
         }
     }

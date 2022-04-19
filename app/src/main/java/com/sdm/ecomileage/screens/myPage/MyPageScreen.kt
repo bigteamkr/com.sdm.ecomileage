@@ -46,6 +46,7 @@ import com.sdm.ecomileage.screens.homeDetail.HomeDetailViewModel
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.UserReportOptions
 import com.sdm.ecomileage.utils.currentUUIDUtil
+import com.sdm.ecomileage.utils.loginedUserIdUtil
 import kotlinx.coroutines.launch
 
 @Composable
@@ -59,7 +60,7 @@ fun MyPageScreen(
         systemUiController.setStatusBarColor(StatusBarGreenColor)
     }
 
-    BackHandler() {
+    BackHandler {
         navController.navigate(SecomiScreens.HomeScreen.name) {
             popUpTo(SecomiScreens.MyPageScreen.name) { inclusive = true }
         }
@@ -78,7 +79,7 @@ fun MyPageScreen(
         if (myFeedInfo.loading == true)
             CircularProgressIndicator()
         else if (myFeedInfo.data?.result != null)
-            MyPageScaffold(navController, userId, myFeedInfo)
+            PageScaffold(navController, userId, myFeedInfo)
 
     } else {
         userFeedInfo = produceState<DataOrException<UserFeedInfoResponse, Boolean, Exception>>(
@@ -90,12 +91,12 @@ fun MyPageScreen(
         if (userFeedInfo.loading == true)
             CircularProgressIndicator()
         else if (userFeedInfo.data?.result != null)
-            MyPageScaffold(navController, userId!!, userFeedInfo = userFeedInfo)
+            PageScaffold(navController, userId!!, userFeedInfo = userFeedInfo)
     }
 }
 
 @Composable
-private fun MyPageScaffold(
+private fun PageScaffold(
     navController: NavController,
     userId: String,
     myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>? = null,
@@ -104,7 +105,13 @@ private fun MyPageScaffold(
 ) {
     val scope = rememberCoroutineScope()
 
-    var isShowingDialog by remember {
+    var isShowingReportDialog by remember {
+        mutableStateOf(false)
+    }
+    var isReported by remember {
+        mutableStateOf(userFeedInfo?.data?.result?.feedList?.get(0)?.reportuseryn ?: false)
+    }
+    var isShowingBlockDialog by remember {
         mutableStateOf(false)
     }
 
@@ -123,13 +130,13 @@ private fun MyPageScaffold(
                     MoreVertComponent(
                         navController = navController, options = listOf(
                             {
-                                DropdownMenuItem(onClick = { isShowingDialog = true }) {
+                                DropdownMenuItem(onClick = { isShowingReportDialog = true }) {
                                     Text(text = "계정 신고하기")
                                     Log.d("Report", "MyPageScaffold: Report why?")
                                 }
                             },
                             {
-                                DropdownMenuItem(onClick = { isShowingDialog = true }) {
+                                DropdownMenuItem(onClick = { isShowingReportDialog = true }) {
                                     Text(text = "계정 차단하기")
                                     Log.d("Report", "MyPageScaffold: Block why?")
                                 }
@@ -149,26 +156,31 @@ private fun MyPageScaffold(
         isFloatingActionButtonDocked = true,
         floatingActionButtonPosition = FabPosition.Center
     ) {
-        if (userId == "myPage")
+        if (userId == "myPage" || userId == loginedUserIdUtil)
             MyPageLayout(navController, myFeedInfo)
         else
-            UserFeedLayout(navController, userFeedInfo!!)
+            UserFeedLayout(navController, userFeedInfo!!, isReported)
     }
 
-    if (isShowingDialog) {
+    if (isShowingReportDialog || isShowingBlockDialog) {
         CustomReportDialog(
             title = "${userFeedInfo?.data?.result?.username}님을 신고하기",
             reportAction = { selectedOptionCode, reportDetailDescription ->
                 scope.launch {
-                    myPageViewModel.postNewUserReport(
-                        userId,
-                        selectedOptionCode,
-                        reportDetailDescription.toString(),
-                        !userFeedInfo?.data!!.result.feedList[0].reportuseryn
-                    )
+                    if (isShowingReportDialog){
+                        myPageViewModel.postNewUserReport(
+                            userId,
+                            selectedOptionCode,
+                            reportDetailDescription.toString(),
+                            !userFeedInfo?.data!!.result.feedList[0].reportuseryn
+                        )
+                        isReported = true
+                    }
+
                 }
+                isShowingReportDialog = false
             },
-            dismissAction = { isShowingDialog = false },
+            dismissAction = { isShowingReportDialog = false },
             reportOptions = UserReportOptions
         )
     }
@@ -204,6 +216,7 @@ private fun MyPageLayout(
 private fun UserFeedLayout(
     navController: NavController,
     userFeedInfo: DataOrException<UserFeedInfoResponse, Boolean, Exception>,
+    isReported: Boolean,
     myPageViewModel: MyPageViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
@@ -211,7 +224,6 @@ private fun UserFeedLayout(
     var isFollow by remember {
         mutableStateOf(userFeedInfo.data!!.result.followyn)
     }
-
 
     Column {
         Column(
@@ -245,14 +257,13 @@ private fun UserFeedLayout(
                             isFollow
                         )
                     }
-
                 },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (isFollow) LoginButtonColor else PlaceholderColor
+                    backgroundColor = if (isReported) ReportedButtonColor else if (isFollow) LoginButtonColor else PlaceholderColor
                 )
             ) {
                 Text(
-                    text = if (isFollow) "팔로우 중" else "팔로우하기",
+                    text = if (isReported) "신고됨" else if (isFollow) "팔로우 중" else "팔로우하기",
                     color = Color.White,
                     textAlign = TextAlign.Center
                 )
@@ -266,7 +277,7 @@ private fun UserFeedLayout(
             color = IndicationColor
         )
         Divider()
-        UserFeedList(navController, userFeedInfo)
+        if (!isReported) UserFeedList(navController, userFeedInfo)
     }
 }
 
@@ -509,7 +520,7 @@ private fun MyPageTopBar(
                 ) {
                     ProfileImage(
                         userId = myFeedInfo.data!!.result.userid,
-                        image = myFeedInfo.data!!.result.feedList[0].profileimg,
+                        image = myFeedInfo.data!!.result.profileimg,
                         modifier = Modifier
                             .padding(start = 10.dp, top = 2.dp)
                             .size(25.dp),

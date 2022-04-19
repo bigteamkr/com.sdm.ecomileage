@@ -48,6 +48,7 @@ import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.google.accompanist.systemuicontroller.SystemUiController
+import com.kakao.sdk.user.UserApiClient
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.CustomLoginInputTextField
 import com.sdm.ecomileage.components.showLongToastMessage
@@ -337,7 +338,7 @@ private fun ProfileSubmitPage(
                                 profileImg = bitmapToString(profileImgBitmap!!)
                             ).let {
                                 Log.d("putMemberUpdate", "ProfileSubmitPage: ${it.data?.message}")
-                                navController.navigate(SecomiScreens.LoginScreen.name) {
+                                navController.navigate(SecomiScreens.HomeScreen.name) {
                                     launchSingleTop
                                 }
                             }
@@ -357,7 +358,7 @@ private fun ProfileSubmitPage(
             }
             Button(
                 onClick = {
-                    navController.navigate(SecomiScreens.LoginScreen.name) {
+                    navController.navigate(SecomiScreens.HomeScreen.name) {
                         launchSingleTop
                     }
                 },
@@ -1028,7 +1029,6 @@ private fun LoginScaffold(
         mutableStateOf(isAutoLoginUtil)
     }
 
-
     Column(
         modifier = Modifier
             .background(Color.White)
@@ -1059,6 +1059,7 @@ private fun LoginScaffold(
                 isAutoLogin = it
             }
         }
+
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             LoginButton {
                 scope.launch {
@@ -1256,60 +1257,31 @@ fun SocialLoginList(navController: NavController, loginRegisterViewModel: LoginR
         Column(modifier = Modifier.padding(vertical = 4.dp)) {
             SocialLoginCard(R.drawable.ic_facebook, "Facebook 로그인") {}
             SocialLoginCard(R.drawable.ic_kakaotalk, "Kakao Talk 로그인") {
-//
-//                UserApiClient.instance.loginWithKakaoAccount(context) { token, error ->
-//                    if (error != null) Log.e("Login", "SocialLoginList: 카카오 로그인 실패", error)
-//                    else if (token != null) {
-//                        Log.i("Login", "SocialLoginList: 카카오 로그인 성공 ${token.accessToken}")
-//                        navController.navigate(SecomiScreens.LoginScreen.name)
-//                    }
-//                }
-//
-//                UserApiClient.instance.me { user, error ->
-//                    if (error != null)
-//                        showToastMessage(context, "잠시 후 다시 시도해주세요.")
-//                    if (user != null)
-//                        scope.launch {
-//                            loginRegisterViewModel.postRegister(
-//                                userId = user.kakaoAccount.toString(),
-//                                userName = user.id.toString(),
-//                                userPwd = "1q2w3e4r1a",
-//                                email = user.kakaoAccount.toString(),
-//                                userDept = "기후환경 마일리지 앱 베타 테스터",
-//                                userAddress = "사랑시 서대문구 행복동"
-//                            ).let {
-//
-//                                if (it.data?.code == 200) {
-//                                    loginRegisterViewModel.getLogin(
-//                                        user.kakaoAccount.toString(),
-//                                        "1q2w3e4r1a"
-//                                    )
-//
-//                                    navController.navigate(SecomiScreens.HomeScreen.name) {
-//                                        popUpTo(SecomiScreens.LoginScreen.name) {
-//                                            inclusive = true
-//                                        }
-//                                    }
-//                                } else if (it.data?.code == 401) {
-//                                    loginRegisterViewModel.getLogin(
-//                                        user.kakaoAccount.toString(),
-//                                        "1q2w3e4r1a"
-//                                    )
-//
-//                                    navController.navigate(SecomiScreens.HomeScreen.name) {
-//                                        popUpTo(SecomiScreens.LoginScreen.name) {
-//                                            inclusive = true
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                }
+
+                UserApiClient.instance.loginWithKakaoAccount(context) { token, error ->
+                    if (error != null) Log.e("Kakao", "SocialLoginList: 카카오 로그인 실패", error)
+                    else if (token != null) {
+                        Log.i("Kakao", "SocialLoginList: 카카오 로그인 성공 ${token.accessToken}")
+
+                        UserApiClient.instance.me { user, error1 ->
+                            if (error1 != null)
+                                showShortToastMessage(context, "잠시 후 다시 시도해주세요.")
+                            if (user != null) {
+                                Log.d("Kakao", "SocialLoginList: ${user.id}")
+                                // Todo : SSO login, SSO Register 기다리기
+                                // Todo : SSO login, SSO Register 기다리기
+                                // Todo : SSO login, SSO Register 기다리기
+                            }
+                        }
+                    }
+                }
+
+
             }
-            SocialLoginCard(R.drawable.ic_naver, "Naver 로그인") {}
-            SocialLoginCard(R.drawable.ic_google, "Google 로그인") {}
         }
     }
+    SocialLoginCard(R.drawable.ic_naver, "Naver 로그인") {}
+    SocialLoginCard(R.drawable.ic_google, "Google 로그인") {}
 }
 
 @Composable
@@ -1324,10 +1296,13 @@ fun SocialLoginCard(
             .padding(start = 25.dp, end = 25.dp, top = 5.dp, bottom = 5.dp)
             .fillMaxWidth()
             .height(45.dp)
-            .clickable {
+            .clickable(
+                enabled = buttonText == "Kakao Talk 로그인"
+            ) {
                 loginClick()
             },
-        elevation = 4.dp
+        elevation = 4.dp,
+        backgroundColor = if (buttonText == "Kakao Talk 로그인") Color.White else PlaceholderColor
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.padding(start = 10.dp)) {

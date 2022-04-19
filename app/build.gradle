@@ -14,8 +14,8 @@ android {
         minSdk 24
         multiDexEnabled true
         targetSdk 32
-        versionCode 10
-        versionName "0.7.1"
+        versionCode 12
+        versionName "0.7.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -135,6 +135,11 @@ dependencies {
     // paging
     implementation "androidx.paging:paging-runtime-ktx:3.1.1"
     implementation "androidx.paging:paging-compose:1.0.0-alpha14"
+
+    // googel play - core
+    implementation("com.google.android.play:core:1.10.3")
+    implementation("com.google.android.play:core-ktx:1.8.1")
+
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation "androidx.compose.ui:ui:$compose_version"

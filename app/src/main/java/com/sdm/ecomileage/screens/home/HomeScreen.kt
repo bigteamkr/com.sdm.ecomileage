@@ -4,10 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -189,7 +185,9 @@ private fun HomeMainContent(
         state = rememberSwipeRefreshState(isRefreshing),
         onRefresh = {
             scope.launch {
-                homeViewModel.refresh { pagingData.refresh() }
+                homeViewModel.refresh {
+                    pagingData.refresh().let { homeViewModel.invalidateDataSource() }
+                }
             }
         }
     ) {
@@ -251,72 +249,72 @@ private fun HomeMainContent(
 
             items(pagingData) { data ->
 
-                    data?.let {
-                        isCurrentFeedReporting =
-                            homeViewModel.isFeedIncludedReportingList(data.feedsno)
+                data?.let {
+                    isCurrentFeedReporting =
+                        homeViewModel.isFeedIncludedReportingList(data.feedsno)
 
-                        MainFeedCardStructure(
-                            contentImageList = data.imageList,
-                            contentText = data.feedcontent,
-                            profileImage = data.profileimg,
-                            profileId = data.userid,
-                            profileName = data.userName,
-                            reactionIcon = listOf(
-                                R.drawable.ic_like_off,
-                                R.drawable.ic_like_on
-                            ),
-                            reactionData = data.likeCount,
-                            reactionTint = LikeColor,
-                            likeYN = data.likeyn,
-                            onReactionClick = {
+                    MainFeedCardStructure(
+                        contentImageList = data.imageList,
+                        contentText = data.feedcontent,
+                        profileImage = data.profileimg,
+                        profileId = data.userid,
+                        profileName = data.userName,
+                        reactionIcon = listOf(
+                            R.drawable.ic_like_off,
+                            R.drawable.ic_like_on
+                        ),
+                        reactionData = data.likeCount,
+                        reactionTint = LikeColor,
+                        likeYN = data.likeyn,
+                        onReactionClick = {
+                            scope.launch {
+                                homeViewModel.postFeedLike(data.feedsno, it).let {
+                                    Log.d(
+                                        "Home-Like",
+                                        "HomeMainContent: ${it.data?.code}"
+                                    )
+                                    Log.d(
+                                        "Home-Like",
+                                        "HomeMainContent: ${it.data?.message}"
+                                    )
+                                }
+                            }
+                        },
+                        otherIcons = mapOf(
+                            "comment" to R.drawable.ic_comment,
+                            "more" to R.drawable.ic_more
+                        ),
+                        hashtagList = data.hashtags,
+                        navController = navController,
+                        feedNo = data.feedsno,
+                        reportDialogCallAction = {
+                            reportDialogVisible = it
+                            reportTargetFeedNo = data.feedsno
+                            reportedTargetName = data.userName
+                        },
+                        reportingCancelAction = {
+                            reportListValue =
+                                homeViewModel.getReportingFeedNoValueFromKey(data.feedsno)
+                            Log.d("HomeRepo", "HomeMainContent: $reportListValue")
+
+                            if (reportListValue != null) {
                                 scope.launch {
-                                    homeViewModel.postFeedLike(data.feedsno, it).let {
-                                        Log.d(
-                                            "Home-Like",
-                                            "HomeMainContent: ${it.data?.code}"
-                                        )
-                                        Log.d(
-                                            "Home-Like",
-                                            "HomeMainContent: ${it.data?.message}"
-                                        )
-                                    }
+                                    homeViewModel.postReport(
+                                        data.feedsno,
+                                        reportListValue!!,
+                                        reportYN = false
+                                    )
+                                    Log.d("HomeRepo", "HomeMainContent: 뀽")
                                 }
-                            },
-                            otherIcons = mapOf(
-                                "comment" to R.drawable.ic_comment,
-                                "more" to R.drawable.ic_more
-                            ),
-                            hashtagList = data.hashtags,
-                            navController = navController,
-                            feedNo = data.feedsno,
-                            reportDialogCallAction = {
-                                reportDialogVisible = it
-                                reportTargetFeedNo = data.feedsno
-                                reportedTargetName = data.userName
-                            },
-                            reportingCancelAction = {
-                                reportListValue =
-                                    homeViewModel.getReportingFeedNoValueFromKey(data.feedsno)
-                                Log.d("HomeRepo", "HomeMainContent: $reportListValue")
-
-                                if (reportListValue != null) {
-                                    scope.launch {
-                                        homeViewModel.postReport(
-                                            data.feedsno,
-                                            reportListValue!!,
-                                            reportYN = false
-                                        )
-                                        Log.d("HomeRepo", "HomeMainContent: 뀽")
-                                    }
-                                    homeViewModel.reportingFeedNoRemove(it)
-                                }
-                            },
-                            isCurrentReportingFeedsNo = isCurrentFeedReporting,
-                            reportYN = data.reportyn,
-                            currentScreen = SecomiScreens.HomeDetailScreen.name,
-                            destinationScreen = null
-                        )
-                    }
+                                homeViewModel.reportingFeedNoRemove(it)
+                            }
+                        },
+                        isCurrentReportingFeedsNo = isCurrentFeedReporting,
+                        reportYN = data.reportyn,
+                        currentScreen = SecomiScreens.HomeDetailScreen.name,
+                        destinationScreen = null
+                    )
+                }
 
 
             }
