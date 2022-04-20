@@ -70,7 +70,7 @@ fun HomeScreen(
     }
 
     if (homeInfo.loading == true)
-        CircularProgressIndicator()
+        CircularProgressIndicator(color = LoginButtonColor)
     else if (homeInfo.data?.result != null) {
         homeInfo.data?.code?.let {
             if (it >= 200) return@let
@@ -157,7 +157,9 @@ private fun HomeMainContent(
     var scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val pagingData = homeViewModel.pager.collectAsLazyPagingItems()
+    val pagingData = homeViewModel.pager.collectAsLazyPagingItems().also{
+        homeViewModel.invalidateDataSource()
+    }
 
     var reportDialogVisible by remember {
         mutableStateOf(false)

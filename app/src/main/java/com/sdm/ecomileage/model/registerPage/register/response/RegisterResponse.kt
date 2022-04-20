@@ -1,4 +1,4 @@
-package com.sdm.ecomileage.model.register.response
+package com.sdm.ecomileage.model.registerPage.register.response
 
 data class RegisterResponse(
     val code: Int,

@@ -17,9 +17,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Sdm_eco_mileage"
         android:usesCleartextTraffic="true">
+
         <activity
             android:name="com.sdm.ecomileage.MainActivity"
-
             android:exported="true"
             android:theme="@style/Theme.Sdm_eco_mileage"
             android:windowSoftInputMode="adjustResize"
@@ -43,6 +43,8 @@
                     android:scheme="kakaofb7903a5b79c6fb3d7172024332e682d" />
             </intent-filter>
         </activity>
+        <activity android:name="com.canhub.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat"/>
 
     </application>
 

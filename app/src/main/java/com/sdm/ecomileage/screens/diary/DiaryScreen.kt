@@ -28,7 +28,9 @@ import com.sdm.ecomileage.screens.education.EducationViewModel
 import com.sdm.ecomileage.screens.homeAdd.ContentInputField
 import com.sdm.ecomileage.ui.theme.ButtonColor
 import com.sdm.ecomileage.ui.theme.RankingTitleColor
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun DiaryScreen(
@@ -90,18 +92,28 @@ fun DiaryScreen(
                 }
                 Button(
                     onClick = {
-                        scope.launch {
-                            educationViewModel.postDiary(educationNo, inputComment.value).let {
-                                if (it.data?.code == 200){
-                                    showLongToastMessage(context, "소감일기 제출이 완료되었습니다.\n마일리지가 적립됩니다.")
-                                    navController.navigate(SecomiScreens.EducationScreen.name){
-                                        launchSingleTop
-                                    }
-                                } else {
-                                    showLongToastMessage(context, "소감일기 제출에 실패했습니다. ${it.data?.message}")
+                        scope.launch(Dispatchers.IO) {
+                            if (inputComment.value.length < 50) {
+                                withContext(Dispatchers.Main) {
+                                    showShortToastMessage(context, "소감일기를 50자 이상 작성해주세요.")
                                 }
-                            }
-
+                            } else educationViewModel.postDiary(educationNo, inputComment.value)
+                                .let {
+                                    if (it.data?.code == 200) {
+                                        showLongToastMessage(
+                                            context,
+                                            "소감일기 제출이 완료되었습니다.\n마일리지가 적립됩니다."
+                                        )
+                                        navController.navigate(SecomiScreens.EducationScreen.name) {
+                                            launchSingleTop
+                                        }
+                                    } else {
+                                        showLongToastMessage(
+                                            context,
+                                            "소감일기 제출에 실패했습니다. ${it.data?.message}"
+                                        )
+                                    }
+                                }
                         }
                     },
                     modifier = Modifier

@@ -8,8 +8,8 @@ import com.sdm.ecomileage.model.login.request.LoginRequest
 import com.sdm.ecomileage.model.login.response.LoginResponse
 import com.sdm.ecomileage.model.memberUpdate.request.MemberUpdateRequest
 import com.sdm.ecomileage.model.memberUpdate.response.MemberUpdateResponse
-import com.sdm.ecomileage.model.register.request.RegisterRequest
-import com.sdm.ecomileage.model.register.response.RegisterResponse
+import com.sdm.ecomileage.model.registerPage.register.request.RegisterRequest
+import com.sdm.ecomileage.model.registerPage.register.response.RegisterResponse
 import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -40,4 +40,6 @@ interface LoginRegisterFindAPI {
         @Header("token") token: String,
         @Body body: MemberUpdateRequest
     ): MemberUpdateResponse
+
+
 }

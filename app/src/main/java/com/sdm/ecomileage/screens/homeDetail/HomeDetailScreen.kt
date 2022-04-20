@@ -157,6 +157,7 @@ private fun HomeDetailScaffold(
     loginUserInfoData: DataOrException<AppMemberInfoResponse, Boolean, Exception>,
     commentViewModel: HomeDetailViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
     val homeDetailCommentData = HomeDetailCommentData
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -284,6 +285,8 @@ private fun HomeDetailScaffold(
                     CustomReportDialog(
                         title = "${data.userName}님의 댓글을 신고",
                         reportAction = { selectedOptionToCode, reportDescription ->
+                            if (selectedOptionToCode == "00") showShortToastMessage(context, "신고 사유를 선택해주세요.")
+
                             commentViewModel.addReportingComment(index)
                             scope.launch(Dispatchers.IO) {
                                 commentViewModel.postNewReportComment(

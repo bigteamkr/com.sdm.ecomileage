@@ -1,4 +1,4 @@
-package com.sdm.ecomileage.model.register.request
+package com.sdm.ecomileage.model.registerPage.register.request
 
 data class AppRegister(
     val profileImg: String,

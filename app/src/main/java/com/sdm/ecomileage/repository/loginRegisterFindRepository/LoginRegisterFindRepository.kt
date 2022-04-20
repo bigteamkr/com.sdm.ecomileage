@@ -1,7 +1,6 @@
 package com.sdm.ecomileage.repository.loginRegisterFindRepository
 
 import android.util.Log
-import com.sdm.ecomileage.SdmEcoMileageApplication
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.appSettings.init.request.AppInitRequest
 import com.sdm.ecomileage.model.appSettings.init.response.AppInitResponse
@@ -11,8 +10,8 @@ import com.sdm.ecomileage.model.login.request.LoginRequest
 import com.sdm.ecomileage.model.login.response.LoginResponse
 import com.sdm.ecomileage.model.memberUpdate.request.MemberUpdateRequest
 import com.sdm.ecomileage.model.memberUpdate.response.MemberUpdateResponse
-import com.sdm.ecomileage.model.register.request.RegisterRequest
-import com.sdm.ecomileage.model.register.response.RegisterResponse
+import com.sdm.ecomileage.model.registerPage.register.request.RegisterRequest
+import com.sdm.ecomileage.model.registerPage.register.response.RegisterResponse
 import com.sdm.ecomileage.network.LoginRegisterFindAPI
 import java.util.concurrent.CancellationException
 import javax.inject.Inject

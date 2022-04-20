@@ -17,9 +17,9 @@ import com.sdm.ecomileage.model.login.response.LoginResponse
 import com.sdm.ecomileage.model.memberUpdate.request.AppMemberUpdate
 import com.sdm.ecomileage.model.memberUpdate.request.MemberUpdateRequest
 import com.sdm.ecomileage.model.memberUpdate.response.MemberUpdateResponse
-import com.sdm.ecomileage.model.register.request.AppRegister
-import com.sdm.ecomileage.model.register.request.RegisterRequest
-import com.sdm.ecomileage.model.register.response.RegisterResponse
+import com.sdm.ecomileage.model.registerPage.register.request.AppRegister
+import com.sdm.ecomileage.model.registerPage.register.request.RegisterRequest
+import com.sdm.ecomileage.model.registerPage.register.response.RegisterResponse
 import com.sdm.ecomileage.repository.loginRegisterFindRepository.LoginRegisterFindRepository
 import com.sdm.ecomileage.utils.accessTokenUtil
 import com.sdm.ecomileage.utils.bitmapToString

@@ -10,6 +10,7 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -217,6 +218,7 @@ private fun ProfileSubmitPage(
     var imageUri by remember {
         mutableStateOf<Uri?>(null)
     }
+
     var source: ImageDecoder.Source
 
     val imageCropLauncher =
@@ -231,6 +233,12 @@ private fun ProfileSubmitPage(
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
             val cropOptions = CropImageContractOptions(uri, CropImageOptions())
             imageCropLauncher.launch(cropOptions)
+        }
+
+    val imageCameraLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) { takenPhoto ->
+            if (takenPhoto != null) profileImgBitmap = takenPhoto
+            else showShortToastMessage(context, "카메라 촬영을 취소하셨습니다.")
         }
 
     LaunchedEffect(key1 = imageUri) {
@@ -291,7 +299,11 @@ private fun ProfileSubmitPage(
                     Image(
                         painter = painterResource(id = R.drawable.ic_camera),
                         contentDescription = "카메라를 통해 프로필 사진 업로드",
-                        modifier = Modifier.size(43.dp)
+                        modifier = Modifier
+                            .size(43.dp)
+                            .clickable {
+                                imageCameraLauncher.launch()
+                            }
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     Text(
@@ -337,6 +349,7 @@ private fun ProfileSubmitPage(
                             loginRegisterViewModel.putMemberUpdate(
                                 profileImg = bitmapToString(profileImgBitmap!!)
                             ).let {
+                                Log.d("putMemberUpdate", "ProfileSubmitPage: ${bitmapToString(profileImgBitmap!!)}")
                                 Log.d("putMemberUpdate", "ProfileSubmitPage: ${it.data?.message}")
                                 navController.navigate(SecomiScreens.HomeScreen.name) {
                                     launchSingleTop

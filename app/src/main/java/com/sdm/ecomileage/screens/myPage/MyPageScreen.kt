@@ -18,6 +18,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -103,14 +104,17 @@ private fun PageScaffold(
     userFeedInfo: DataOrException<UserFeedInfoResponse, Boolean, Exception>? = null,
     myPageViewModel: MyPageViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     var isShowingReportDialog by remember {
         mutableStateOf(false)
     }
     var isReported by remember {
-        mutableStateOf(userFeedInfo?.data?.result?.feedList?.get(0)?.reportuseryn ?: false)
+        mutableStateOf(false)
     }
+    if (userFeedInfo != null) isReported = userFeedInfo.data?.result?.reportuseryn ?: false
+
     var isShowingBlockDialog by remember {
         mutableStateOf(false)
     }
@@ -166,8 +170,10 @@ private fun PageScaffold(
         CustomReportDialog(
             title = "${userFeedInfo?.data?.result?.username}님을 신고하기",
             reportAction = { selectedOptionCode, reportDetailDescription ->
+                if (selectedOptionCode == "00") showShortToastMessage(context, "신고 사유를 선택해주세요.")
+
                 scope.launch {
-                    if (isShowingReportDialog){
+                    if (isShowingReportDialog) {
                         myPageViewModel.postNewUserReport(
                             userId,
                             selectedOptionCode,

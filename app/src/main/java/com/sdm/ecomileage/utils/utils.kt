@@ -77,9 +77,6 @@ fun AppSettings() {
 }
 
 
-
-
-
 @Composable
 fun LockScreenOrientation(orientation: Int) {
     val context = LocalContext.current
@@ -101,12 +98,13 @@ fun Context.findActivity(): AppCompatActivity? = when (this) {
 }
 
 
-
 fun bitmapToString(bitmap: Bitmap): String {
     val currentBitmap = bitmap.copy(Bitmap.Config.RGB_565, true)
 
     val byteArrayOutputStream = ByteArrayOutputStream()
     currentBitmap.compress(Bitmap.CompressFormat.JPEG, 30, byteArrayOutputStream)
+    bitmap.recycle()
+
     val byteArray = byteArrayOutputStream.toByteArray()
 
     return Base64.encodeToString(byteArray, Base64.NO_WRAP)
