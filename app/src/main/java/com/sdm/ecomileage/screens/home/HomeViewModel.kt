@@ -47,7 +47,7 @@ class HomeViewModel @Inject constructor(
         )
 
     val pager = Pager(
-        config = PagingConfig(pageSize = 20, prefetchDistance = 5),
+        config = PagingConfig(pageSize = 20, prefetchDistance = 2),
         pagingSourceFactory = { MainFeedPagingSource(api) }
     ).flow.cachedIn(viewModelScope)
 

@@ -37,13 +37,24 @@ fun SdmNavigation() {
             SplashScreen(navController, systemUiController)
         }
 
-        composable(SecomiScreens.LoginScreen.name) {
-            LoginScreen(navController, systemUiController)
+        composable(SecomiScreens.LoginScreen.name + "/{type}", arguments = listOf(
+            navArgument(name = "type"){
+                type = NavType.IntType
+            }
+        )) { navBackStackEntry ->
+            navBackStackEntry.arguments?.getInt("type")?.let { type ->
+                LoginScreen(navController, systemUiController, type)
+            }
         }
 
-        composable(SecomiScreens.FindingAccountScreen.name) {
-//            FindingAccountScreen(navController, systemUiController)
-            FindingAccountScreen()
+        composable("${SecomiScreens.FindingAccountScreen.name}/{type}", arguments = listOf(
+            navArgument(name = "type") {
+                type = NavType.IntType
+            }
+        )) { navBackStackEntry ->
+            navBackStackEntry.arguments?.getInt("type")?.let { type ->
+                FindingAccountScreen(navController, type)
+            }
         }
 
         composable(SecomiScreens.HomeScreen.name) {
@@ -106,6 +117,10 @@ fun SdmNavigation() {
 
         composable(SecomiScreens.NoticeScreen.name) {
             NoticeScreen(navController, systemUiController)
+        }
+
+        composable(SecomiScreens.MileageRanking.name){
+
         }
 
     }

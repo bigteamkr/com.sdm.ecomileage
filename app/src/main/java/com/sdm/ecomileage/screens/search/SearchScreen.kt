@@ -1,5 +1,6 @@
 package com.sdm.ecomileage.screens.search
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -29,10 +31,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
+import com.sdm.ecomileage.components.MainCardFeed
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.search.response.Feed
-import com.sdm.ecomileage.model.search.response.SearchFeedResponse
+import com.sdm.ecomileage.model.search.response.SearchFeedInfoResponse
 import com.sdm.ecomileage.navigation.SecomiScreens
+import com.sdm.ecomileage.screens.home.HomeViewModel
 import com.sdm.ecomileage.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -58,34 +62,44 @@ fun SearchScreen(
 @Composable
 private fun SearchScaffold(
     navController: NavController,
-    searchViewModel: SearchViewModel = hiltViewModel()
+    searchViewModel: SearchViewModel = hiltViewModel(),
+    homeViewModel: HomeViewModel = hiltViewModel()
 ) {
 
     var isFocusOnSearch by remember {
         mutableStateOf(false)
     }
+    var searchText by remember {
+        mutableStateOf("")
+    }
     val focusRequester = remember { FocusRequester() }
     val sampleHistory = listOf("장바구니", "나무", "화초키우기", "분리수거", "라벨분리법")
 
     val scope = rememberCoroutineScope()
-    var searchedFeedResponse: DataOrException<SearchFeedResponse, Boolean, Exception> =
+    var searchedFeedResponse: DataOrException<SearchFeedInfoResponse, Boolean, Exception> =
         DataOrException(loading = false)
 
-    var searchedFeedData: List<Feed>? = searchedFeedResponse.data?.result?.feedList
+    var category by remember{
+        mutableStateOf(searchViewModel.getOnSelectedZone())
+    }
+    var order by remember{
+        mutableStateOf(searchViewModel.getOnSelectedFilter())
+    }
 
 
+    val searchedFeedData = SnapshotStateList<Feed>()
 
     Scaffold(
         topBar = {
             SearchScreenTopBar(
-                valueState = searchViewModel.searchText,
-                valueHoist = { searchViewModel.onSearchTextChanged(it) }
+                valueState = searchText,
+                valueHoist = { searchText = it }
             ) {
-//                scope.launch {
-//                    searchViewModel.getSearchFeedInfo().let {
-//                        searchedFeedResponse = it
-//                    }
-//                }
+                scope.launch {
+                    searchedFeedResponse = searchViewModel.getSearchFeedInfo(searchText, category, order).apply {
+                        this.data?.result?.feedList?.let { searchedFeedData.addAll(it) }
+                    }
+                }
             }
         }
     ) {
@@ -95,49 +109,49 @@ private fun SearchScaffold(
             }
 
             SearchFilterRow(
-                searchViewModel.getOnSelectedZone(),
-                searchViewModel.getOnSelectedFilter(),
-                onSelectZone = { searchViewModel.onSelectedZone(it) },
-                onSelectFilter = { searchViewModel.onSelectedFilter(it) }
+                category,
+                order,
+                onSelectZone = { category = it },
+                onSelectFilter = { order = it }
             )
 
-
-            //Todo : Search API 요소가 다름
-//            LazyColumn {
-//                items(searchedFeedData) { data ->
-//                    CardContent(
-//                        contentImageList = listOf(data.photo),
-//                        contentText = data.feedcontent,
-//                        profileImage = data.profileimg,
-//                        profileName = data.userName,
-//                        reactionIcon = listOf(
-//                            R.drawable.ic_like_off,
-//                            R.drawable.ic_like_on
-//                        ),
-//                        reactionData = data.likeCount,
-//                        reactionTint = LikeColor,
-//                        likeYN = data,
-//                        onReactionClick = {
-//                            scope.launch {
-//                                homeViewModel.postFeedLike(data.feedsno, it)
-//                            }
-//                        },
-//                        otherIcons = mapOf(
-//                            "comment" to R.drawable.ic_comment,
-//                            "more" to R.drawable.ic_more
-//                        ),
-//                        hashtagList = data.hashtags,
-//                        navController = navController,
-//                        feedNo = data.feedsno,
-//                        currentScreen = SecomiScreens.HomeDetailScreen.name,
-//                        destinationScreen = null
-//                    )
-//                    if (index == postListData.lastIndex)
-//                        Spacer(modifier = Modifier.height(70.dp))
-//                }
-//            }
-
-
+            LazyColumn(
+                modifier = Modifier.padding(bottom = 70.dp)
+            ) {
+                items(searchedFeedData) { data ->
+                    MainCardFeed(
+                        contentImageList = listOf(data.photo),
+                        contentText = data.feedcontent,
+                        profileImage = data.profileimg,
+                        profileName = data.userName,
+                        reactionIcon = listOf(
+                            R.drawable.ic_like_off,
+                            R.drawable.ic_like_on
+                        ),
+                        reactionData = data.likeCount,
+                        reactionTint = LikeColor,
+                        likeYN = data.likeyn,
+                        onReactionClick = {
+                            scope.launch {
+                                homeViewModel.postFeedLike(data.feedsno, it)
+                            }
+                        },
+                        otherIcons = mapOf(
+                            "comment" to R.drawable.ic_comment,
+                            "more" to R.drawable.ic_more
+                        ),
+                        hashtagList = data.hashtags,
+                        navController = navController,
+                        feedNo = data.feedsno,
+                        currentScreen = SecomiScreens.HomeDetailScreen.name,
+                        destinationScreen = null,
+                        profileId = data.userid,
+                        reportDialogCallAction = {},
+                        showIndicator = true,
+                        colorIcon = {}
+                    )
+                }
+            }
         }
     }
 }

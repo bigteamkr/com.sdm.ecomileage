@@ -14,8 +14,8 @@ android {
         minSdk 24
         multiDexEnabled true
         targetSdk 32
-        versionCode 12
-        versionName "0.7.2"
+        versionCode 14
+        versionName "0.7.5"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -83,11 +83,6 @@ dependencies {
     // JSON Converter
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
-    // Coroutines
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0'
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.0"
-
     // Coroutine Lifecycle Scopes
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1"
 
@@ -127,6 +122,12 @@ dependencies {
     // KaKao-Login
     implementation "com.kakao.sdk:v2-user:2.9.0"
 
+    // Naver-Login
+    implementation 'com.navercorp.nid:oauth:5.1.0' // jdk 11
+
+    // Google-Login
+    implementation 'com.google.android.gms:play-services-auth:20.1.0'
+
     // protobuf
     implementation  "androidx.datastore:datastore:1.0.0"
     implementation 'org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5'
@@ -136,10 +137,9 @@ dependencies {
     implementation "androidx.paging:paging-runtime-ktx:3.1.1"
     implementation "androidx.paging:paging-compose:1.0.0-alpha14"
 
-    // googel play - core
+    // google play - core
     implementation("com.google.android.play:core:1.10.3")
     implementation("com.google.android.play:core-ktx:1.8.1")
-
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation "androidx.compose.ui:ui:$compose_version"

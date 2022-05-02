@@ -56,7 +56,10 @@ import com.sdm.ecomileage.model.homedetail.mainFeed.response.MainFeedResponse
 import com.sdm.ecomileage.model.homedetail.mainFeed.response.PostInfo
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
-import com.sdm.ecomileage.utils.*
+import com.sdm.ecomileage.utils.CommentReportOptions
+import com.sdm.ecomileage.utils.currentUUIDUtil
+import com.sdm.ecomileage.utils.dataStore
+import com.sdm.ecomileage.utils.loginedUserIdUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -73,12 +76,6 @@ fun HomeDetailScreen(
         systemUiController.setStatusBarColor(
             color = StatusBarGreenColor
         )
-    }
-
-    BackHandler() {
-        navController.navigate(SecomiScreens.HomeScreen.name) {
-            popUpTo(SecomiScreens.HomeDetailScreen.name) { inclusive = true }
-        }
     }
 
     val scope = rememberCoroutineScope()
@@ -197,6 +194,7 @@ private fun HomeDetailScaffold(
                         backgroundColor = TopBarColor
                     )
 
+
                     Row(
                         modifier = Modifier
                             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
@@ -235,7 +233,8 @@ private fun HomeDetailScaffold(
                             profileimg = loginUserInfoData.data!!.result.userImg,
                             title = comment,
                             userId = loginUserInfoData.data!!.result.userId,
-                            userName = loginUserInfoData.data!!.result.userName
+                            userName = loginUserInfoData.data!!.result.userName,
+                            reportyn = false
                         )
                     )
                 }
@@ -249,34 +248,35 @@ private fun HomeDetailScaffold(
             itemsIndexed(localComment) { index, data ->
                 isCurrentFeedReporting = commentViewModel.getReportingCommentValueFromKey(index)
 
-                HomeDetailContent(
-                    userId = data.userId,
-                    image = data.profileimg,
-                    name = data.userName,
-                    text = data.title,
-                    navController = navController,
-                    cancelReportAction = {
-                        commentViewModel.deleteReportingComment(index)
-                        isCurrentFeedReporting =
-                            commentViewModel.getReportingCommentValueFromKey(index)
+                if (!data.reportyn)
+                    HomeDetailContent(
+                        userId = data.userId,
+                        image = data.profileimg,
+                        name = data.userName,
+                        text = data.title,
+                        navController = navController,
+                        cancelReportAction = {
+                            commentViewModel.deleteReportingComment(index)
+                            isCurrentFeedReporting =
+                                commentViewModel.getReportingCommentValueFromKey(index)
 
-                        scope.launch(Dispatchers.IO) {
-                            commentViewModel.postNewReportComment(
-                                feedsno = feedNo,
-                                commentsno = data.commentsno,
-                                reportType = reportType,
-                                reportContent = reportContent,
-                                reportyn = false
-                            )
+                            scope.launch(Dispatchers.IO) {
+                                commentViewModel.postNewReportComment(
+                                    feedsno = feedNo,
+                                    commentsno = data.commentsno,
+                                    reportType = reportType,
+                                    reportContent = reportContent,
+                                    reportyn = false
+                                )
+                            }
+                        },
+                        isItCommentFeed = true,
+                        isThisReported = isCurrentFeedReporting,
+                        onReportVisible = {
+                            reportDialogVisible = true
+                            reportTargetCommentNo = data.commentsno
                         }
-                    },
-                    isItCommentFeed = true,
-                    isThisReported = isCurrentFeedReporting,
-                    onReportVisible = {
-                        reportDialogVisible = true
-                        reportTargetCommentNo = data.commentsno
-                    }
-                )
+                    )
 
                 if (index == homeDetailCommentData.lastIndex)
                     Spacer(modifier = Modifier.height(50.dp))
@@ -285,7 +285,10 @@ private fun HomeDetailScaffold(
                     CustomReportDialog(
                         title = "${data.userName}님의 댓글을 신고",
                         reportAction = { selectedOptionToCode, reportDescription ->
-                            if (selectedOptionToCode == "00") showShortToastMessage(context, "신고 사유를 선택해주세요.")
+                            if (selectedOptionToCode == "00") showShortToastMessage(
+                                context,
+                                "신고 사유를 선택해주세요."
+                            )
 
                             commentViewModel.addReportingComment(index)
                             scope.launch(Dispatchers.IO) {

@@ -1,6 +1,6 @@
 package com.sdm.ecomileage.model.search.response
 
-data class SearchFeedResponse(
+data class SearchFeedInfoResponse(
     val code: Int,
     val message: String,
     val page: Int,

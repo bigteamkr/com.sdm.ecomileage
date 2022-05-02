@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.search.request.SearchFeedInfo
 import com.sdm.ecomileage.model.search.request.SearchFeedRequest
-import com.sdm.ecomileage.model.search.response.SearchFeedResponse
+import com.sdm.ecomileage.model.search.response.SearchFeedInfoResponse
 import com.sdm.ecomileage.repository.searchRepository.SearchRepository
 import com.sdm.ecomileage.utils.accessTokenUtil
 import com.sdm.ecomileage.utils.currentUUIDUtil
@@ -15,7 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(private val repository: SearchRepository) : ViewModel() {
 
-    suspend fun getSearchFeedInfo(): DataOrException<SearchFeedResponse, Boolean, Exception> {
+    suspend fun getSearchFeedInfo(searchText: String, category: String, order: String): DataOrException<SearchFeedInfoResponse, Boolean, Exception> {
         categoryOrderSelect()
 
         return repository.getSearchFeedInfo(
@@ -26,10 +26,10 @@ class SearchViewModel @Inject constructor(private val repository: SearchReposito
                         lang = "ko",
                         uuid = currentUUIDUtil,
                         searchkeyword = searchText,
-                        category = _category.value,
+                        category = category,
                         page = "1",
                         perpage = 10,
-                        order = _order.value,
+                        order = order,
                         desc = "10"
                     )
                 )
@@ -72,7 +72,7 @@ class SearchViewModel @Inject constructor(private val repository: SearchReposito
 //        )
 //    }
 
-    var searchText = _searchText.value
+
     var selectedZone = _selectedZone.value
     var selectedFilter = _selectedFilter.value
 

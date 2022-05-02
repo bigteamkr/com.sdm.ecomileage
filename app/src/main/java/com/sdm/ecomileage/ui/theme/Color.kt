@@ -26,7 +26,7 @@ val BottomUnSelectedColor = Color(0xFFC4C4C4)
 val LeavesColor = Color(0xFFADFF9D)
 val BottomSheetDividerColor = Color(0xFFCCCCCC)
 val BottomSheetCheckColor = Color(0xFF9C9C9C)
-
+val BottomSheetSearchBackgroundColor = Color(0xFFF2F2F2)
 
 // Home Color
 val LikeColor = Color(0xFFF97884)
@@ -62,11 +62,13 @@ val BorderColor = Color(0xFF717171)
 val ProfileDescriptionColor = Color(0xFF757575)
 val ProfileIconColor = Color(0xFF04A964)
 val RegisterGreyColor = Color(0xFFA4A4A4)
+val BottomSheetGreyColor = Color(0xFF878C94)
 
 
 // Finding Account Color
 val FindingAccountErrorColor = Color(0xFFE56857)
 val SendingEmailMessageColor = Color(0xFF0BC207)
+val SurfaceGreyColor = Color(0xFFE4E4E4)
 
 // Education Color
 val MileageColor = Color(0xFF329336)

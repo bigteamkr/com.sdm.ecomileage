@@ -281,6 +281,7 @@ private fun CustomEducationVideoDialog(
     }
 
 
+
     exoPlayer.setMediaItem(mediaItem)
     styledPlayerView.player = exoPlayer
     styledPlayerView.useController = false
@@ -350,26 +351,6 @@ private fun CustomEducationVideoDialog(
         }
     })
 
-//    if (isFullScreen) {
-//        FullScreen {
-//            LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
-//
-//            Column() {
-//                AndroidView(
-//                    factory = {
-//                        styledPlayerView
-//                    },
-//                    modifier = Modifier
-//                        .padding(20.dp)
-//                        .fillMaxSize()
-//                        .clickable {
-//                            if (styledPlayerView.player!!.isPlaying) styledPlayerView.player!!.pause() else styledPlayerView.player!!.play()
-//                        }
-//                )
-//                Text(text = "돌아가기", modifier = Modifier.clickable { isFullScreen = false })
-//            }
-//        }
-//    } else {
     LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
     EducationDialog(
         configuration,
@@ -388,6 +369,11 @@ private fun CustomEducationVideoDialog(
         currentPlayTime,
         { currentPlayTime = it }
     )
+
+    if (isFullScreen)
+        Dialog(onDismissRequest = { isFullScreen = false }) {
+            Text(text = "Hi BBANG GA RU?", color = Color.White)
+        }
 
 
 }

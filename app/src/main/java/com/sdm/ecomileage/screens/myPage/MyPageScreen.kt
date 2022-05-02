@@ -47,6 +47,7 @@ import com.sdm.ecomileage.screens.homeDetail.HomeDetailViewModel
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.UserReportOptions
 import com.sdm.ecomileage.utils.currentUUIDUtil
+import com.sdm.ecomileage.utils.lastLoginedUserIdUtil
 import com.sdm.ecomileage.utils.loginedUserIdUtil
 import kotlinx.coroutines.launch
 
@@ -70,7 +71,7 @@ fun MyPageScreen(
     val myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>
     val userFeedInfo: DataOrException<UserFeedInfoResponse, Boolean, Exception>
 
-    if (userId == "myPage") {
+    if (userId == "myPage" || userId == loginedUserIdUtil) {
         myFeedInfo = produceState<DataOrException<MyFeedInfoResponse, Boolean, Exception>>(
             initialValue = DataOrException(loading = true)
         ) {

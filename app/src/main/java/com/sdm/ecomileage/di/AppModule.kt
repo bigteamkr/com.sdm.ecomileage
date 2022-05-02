@@ -1,8 +1,8 @@
 package com.sdm.ecomileage.di
 
-import com.sdm.ecomileage.utils.Constants
 import com.google.gson.GsonBuilder
 import com.sdm.ecomileage.network.*
+import com.sdm.ecomileage.utils.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,7 +24,6 @@ object AppModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(HomeInfoAPI::class.java)
-
 
 
     //Todo : ? 이거 이상한 거 같아 다시 확인!!
@@ -83,7 +82,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideMyPageAPI() : MyPageAPI =
+    fun provideMyPageAPI(): MyPageAPI =
         Retrofit
             .Builder()
             .baseUrl(Constants.BASE_URL)
@@ -93,11 +92,21 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideChallengeAPI() : ChallengeAPI =
+    fun provideChallengeAPI(): ChallengeAPI =
         Retrofit
             .Builder()
             .baseUrl(Constants.BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ChallengeAPI::class.java)
+
+    @Provides
+    @Singleton
+    fun provideFindingAPI(): FindingAPI =
+        Retrofit
+            .Builder()
+            .baseUrl(Constants.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(FindingAPI::class.java)
 }

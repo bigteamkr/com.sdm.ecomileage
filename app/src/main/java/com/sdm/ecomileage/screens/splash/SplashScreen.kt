@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -29,7 +30,10 @@ import com.sdm.ecomileage.R
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.SplashColor
 import com.sdm.ecomileage.ui.theme.SplashTopBarColor
-import com.sdm.ecomileage.utils.*
+import com.sdm.ecomileage.utils.AppSettings
+import com.sdm.ecomileage.utils.currentUUIDUtil
+import com.sdm.ecomileage.utils.dataStore
+import com.sdm.ecomileage.utils.setUUID
 import kotlinx.coroutines.delay
 
 @Composable
@@ -37,6 +41,10 @@ fun SplashScreen(
     navController: NavController,
     systemUiController: SystemUiController
 ) {
+    val context = LocalContext.current
+    val appSettings =
+        context.dataStore.data.collectAsState(initial = com.sdm.ecomileage.data.AppSettings())
+
     SideEffect {
         systemUiController.setStatusBarColor(
             color = SplashTopBarColor
@@ -59,10 +67,11 @@ fun SplashScreen(
     LaunchedEffect(key1 = true) {
         delay(500)
         visible.value = true
+        currentUUIDUtil = appSettings.value.uuid
         if (currentUUIDUtil == "0") setUUID()
 
         delay(3000)
-        navController.navigate(SecomiScreens.LoginScreen.name) {
+        navController.navigate(SecomiScreens.LoginScreen.name + "/0") {
             popUpTo(SecomiScreens.SplashScreen.name) { inclusive = true }
         }
     }

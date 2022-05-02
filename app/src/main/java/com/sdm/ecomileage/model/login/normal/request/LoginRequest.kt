@@ -1,4 +1,4 @@
-package com.sdm.ecomileage.model.login.request
+package com.sdm.ecomileage.model.login.normal.request
 
 data class LoginRequest(
     val id: String,

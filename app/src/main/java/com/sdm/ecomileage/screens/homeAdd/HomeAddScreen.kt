@@ -76,7 +76,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun HomeAddScreen(
@@ -323,11 +322,14 @@ private fun HomeAddScaffold(
                             Button(
                                 onClick = {
                                     scope.launch(Dispatchers.IO) {
-                                        isLoading = true
+                                        var startTime = System.currentTimeMillis()
 
+                                        isLoading = true
                                         imageData.clear()
+
+                                        var startImageToList = System.currentTimeMillis()
                                         imageList.forEach { image ->
-                                            if (image != null)
+                                            if (image != null){
                                                 imageData.add(
                                                     Image(
                                                         status = "I",
@@ -338,7 +340,11 @@ private fun HomeAddScaffold(
                                                         image = bitmapToString(image)
                                                     )
                                                 )
+                                                image.recycle()
+                                            }
                                         }.let {
+                                            Log.d("TimeCheck", "HomeAddScaffold: Image To List Time${System.currentTimeMillis() - startImageToList}")
+
                                             if (selectedCategory.value == "일상생활")
                                                 viewModel.postHomeFeedInfo(
                                                     HomeAddRequest(
@@ -358,6 +364,17 @@ private fun HomeAddScaffold(
                                                     when {
                                                         it.loading == true -> canUploadNetworkStatus =
                                                             false
+                                                        it.data?.code == 200 -> {
+                                                            Log.d("TimeCheck", "HomeAddScaffold: total = ${System.currentTimeMillis() - startTime}")
+                                                            withContext(Dispatchers.Main) {
+                                                                navController.navigate(SecomiScreens.HomeScreen.name) {
+                                                                    launchSingleTop
+                                                                    popUpTo(SecomiScreens.HomeAddScreen.name) {
+                                                                        inclusive = true
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
                                                         it.data?.code != 200 -> {
                                                             canUploadNetworkStatus = true
                                                             Log.d(
@@ -369,16 +386,6 @@ private fun HomeAddScaffold(
                                                                     context,
                                                                     "오류가 발생했습니다."
                                                                 )
-                                                            }
-                                                        }
-                                                        it.data?.code == 200 -> {
-                                                            withContext(Dispatchers.Main) {
-                                                                navController.navigate(SecomiScreens.HomeScreen.name) {
-                                                                    launchSingleTop
-                                                                    popUpTo(SecomiScreens.HomeAddScreen.name) {
-                                                                        inclusive = true
-                                                                    }
-                                                                }
                                                             }
                                                         }
                                                     }

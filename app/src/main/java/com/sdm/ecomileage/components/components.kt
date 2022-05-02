@@ -1,12 +1,18 @@
 package com.sdm.ecomileage.components
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -16,6 +22,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -25,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -39,15 +47,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.sdm.ecomileage.R
+import com.sdm.ecomileage.SdmEcoMileageApplication
+import com.sdm.ecomileage.model.registerPage.searchLocation.areaResponse.Search
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.homeAdd.ContentInputField
+import com.sdm.ecomileage.screens.loginRegister.LoginRegisterViewModel
 import com.sdm.ecomileage.ui.theme.*
+import com.sdm.ecomileage.utils.backWaitTime
 import kotlinx.coroutines.launch
 
 @Composable
@@ -613,9 +626,11 @@ fun CardWriterInformation(
                             modifier = Modifier
                                 .padding(start = 10.dp)
                                 .clickable {
-                                    navController?.navigate(SecomiScreens.HomeDetailScreen.name + "/$feedNo") {
-                                        launchSingleTop
-                                        popUpTo(currentScreen)
+                                    feedNo?.let {
+                                        navController.navigate(SecomiScreens.HomeDetailScreen.name + "/$feedNo") {
+                                            launchSingleTop
+                                            popUpTo(currentScreen)
+                                        }
                                     }
                                 },
                             tint = CardIconsColor
@@ -759,7 +774,11 @@ fun CardImageRow(
 }
 
 @Composable
-fun SecomiBottomBar(navController: NavController, currentScreen: String, scrollState: LazyListState? = null) {
+fun SecomiBottomBar(
+    navController: NavController,
+    currentScreen: String,
+    scrollState: LazyListState? = null
+) {
     BottomAppBar(
         backgroundColor = Color.White,
         cutoutShape = CircleShape,
@@ -882,9 +901,8 @@ private fun RowScope.BottomBarItem(
                     popUpTo(currentScreen.value) { inclusive = true }
                 }
                 currentScreen.value = currentBottomButton
-            }
-            else if (currentScreen.value == currentBottomButton)
-                scope.launch { scrollState?.animateScrollToItem(0,1) }
+            } else if (currentScreen.value == currentBottomButton)
+                scope.launch { scrollState?.animateScrollToItem(0, 1) }
         },
         icon = {
             Icon(
@@ -1009,6 +1027,7 @@ fun CustomReportDialog(
     dismissAction: (Boolean) -> Unit,
     reportOptions: List<String>
 ) {
+    val context = LocalContext.current
     val configuration = LocalConfiguration.current
     var selectedOption by remember {
         mutableStateOf("")
@@ -1064,14 +1083,6 @@ fun CustomReportDialog(
                     Text(
                         text = "확인",
                         modifier = Modifier.clickable {
-                            when (selectedOption) {
-                                reportOptions[0] -> selectedOptionToCode = "10"
-                                reportOptions[1] -> selectedOptionToCode = "20"
-                                reportOptions[2] -> selectedOptionToCode = "30"
-                                reportOptions[3] -> selectedOptionToCode = "40"
-                                reportOptions[4] -> selectedOptionToCode = "50"
-                                reportOptions[5] -> selectedOptionToCode = "60"
-                            }
                             reportAction(selectedOptionToCode, reportDetailDescription.value)
                         },
                         color = BottomSheetCheckColor,
@@ -1090,6 +1101,7 @@ fun CustomReportDialog(
                                     .padding(top = (index * 35).dp)
                                     .clickable {
                                         selectedOption = reportOption
+                                        selectedOptionToCode = index.toString() + "0"
                                     },
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Start
@@ -1163,15 +1175,28 @@ fun ReportedFeed(
 }
 
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun RegisterBottomSheetMain() {
+fun RegisterBottomSheetMain(
+    isArea: Boolean = true,
+    loginRegisterViewModel: LoginRegisterViewModel = hiltViewModel(),
+    hideSheet: (Int, String) -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    val keyboardController = LocalSoftwareKeyboardController.current
     var input by remember {
         mutableStateOf("")
     }
 
+    val areaList = SnapshotStateList<Search>()
+    val schoolList =
+        SnapshotStateList<com.sdm.ecomileage.model.registerPage.searchLocation.schoolResponse.Search>()
+    // 위에껀 areaSearch, 밑에껀 schoolSearch
+    // 같은 이름의 Search 이지만 패키지로 다르게 들어가고 있음.
+
     Surface(
-        modifier = Modifier.fillMaxSize(),
-        shape = RoundedCornerShape(topStartPercent = 10, topEndPercent = 10)
+        modifier = Modifier
+            .fillMaxSize(),
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -1180,26 +1205,117 @@ fun RegisterBottomSheetMain() {
         ) {
             Surface(
                 modifier = Modifier
-                    .width(30.dp)
-                    .height(5.dp),
-                color = BottomSheetDividerColor,
-                shape = RoundedCornerShape(10)
+                    .padding(top = 10.dp, bottom = 20.dp)
+                    .height(3.dp)
+                    .width(50.dp),
+                shape = RoundedCornerShape(100),
+                color = BottomSheetDividerColor
             ) {}
 
-            Text(text = "학교 검색")
-            Row() {
-                BasicTextField(value = input, onValueChange = { input = it })
+            Text(
+                text = if (isArea) "동네 검색" else "학교 검색",
+                fontWeight = FontWeight.Bold,
+                fontSize = 17.sp,
+                color = ProfileDescriptionColor
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                BasicTextField(
+                    value = input,
+                    onValueChange = { input = it },
+                    modifier = Modifier
+                        .padding(start = 15.dp, end = 10.dp)
+                        .fillMaxWidth(0.75f)
+                        .height(ButtonDefaults.MinHeight),
+                    textStyle = TextStyle(color = ProfileDescriptionColor)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(5),
+                        border = BorderStroke(1.dp, LoginLabelColor)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(start = 10.dp),
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            it()
+                        }
+                    }
+                }
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                        scope.launch {
+                            if (isArea) loginRegisterViewModel.getSearchLocalArea(input).data?.result?.searchList?.let {
+                                areaList.addAll(
+                                    it
+                                )
+                            }
+                            else loginRegisterViewModel.getSearchLocalSchool(input).data?.result?.searchList?.let {
+                                schoolList.addAll(
+                                    it
+                                )
+                            }
+                        }
+                        keyboardController?.hide()
+                    },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = LoginButtonColor
                     )
                 ) {
-                    Text(text = "검색")
+                    Text(text = "검색", color = Color.White)
                 }
             }
-            Column(modifier = Modifier.fillMaxSize()) {
-                RegisterBottomSheetLocationItem()
+            Spacer(Modifier.height(15.dp))
+
+            Divider(
+                modifier = Modifier
+                    .height(3.dp),
+                color = BottomSheetSearchBackgroundColor
+            )
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(BottomSheetSearchBackgroundColor),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (areaList.isEmpty() && schoolList.isEmpty())
+                    item {
+                        Text(
+                            text = if (isArea) "동네를 검색해주세요." else "학교를 검색해주세요.",
+                            color = BottomSheetGreyColor
+                        )
+                    }
+
+                items(areaList) { area ->
+                    Surface(
+                        modifier = Modifier.clickable {
+                            hideSheet(
+                                (area.areaId).toInt(),
+                                "${area.sidoname} ${area.sggname} ${area.areaName}"
+                            )
+                        }
+                    ) { RegisterBottomSheetLocationItem(name = "${area.sidoname} ${area.sggname} ${area.areaName}") }
+                }
+                items(schoolList) { school ->
+                    Surface(
+                        Modifier.clickable {
+                            hideSheet(
+                                school.schoolId,
+                                "${school.schoolName}"
+                            )
+                        }
+                    ) {
+                        RegisterBottomSheetLocationItem(
+                            name = school.schoolName,
+                            address = "${school.sidoname} ${school.sggname}"
+                        )
+                    }
+                }
             }
         }
     }
@@ -1207,28 +1323,42 @@ fun RegisterBottomSheetMain() {
 
 
 @Composable
-fun RegisterBottomSheetLocationItem() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_option),
-            contentDescription = "위치 아이콘",
-            modifier = Modifier.padding(20.dp),
-            tint = LoginButtonColor
-        )
-        Column(
-            horizontalAlignment = Alignment.Start
+fun RegisterBottomSheetLocationItem(
+    name: String,
+    address: String? = null
+) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
         ) {
-            Text(text = "서울강동초등학교")
-            Spacer(modifier = Modifier.height(5.dp))
-            Text(
-                text = "서울 강동구",
-                color = RegisterGreyColor,
-                style = MaterialTheme.typography.caption
+            Icon(
+                painter = painterResource(id = R.drawable.ic_option),
+                contentDescription = "위치 아이콘",
+                modifier = Modifier.padding(20.dp),
+                tint = LoginButtonColor
             )
+            Column(
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(text = name, color = ProfileDescriptionColor)
+                Spacer(modifier = Modifier.height(5.dp))
+                address?.let {
+                    Text(
+                        text = "서울 강동구",
+                        color = RegisterGreyColor,
+                        style = MaterialTheme.typography.caption
+                    )
+                }
+            }
         }
+        Divider(
+            modifier = Modifier.height(5.dp),
+            color = BottomSheetSearchBackgroundColor
+        )
     }
 }
 
@@ -1239,4 +1369,17 @@ fun showShortToastMessage(context: Context, message: String) {
 
 fun showLongToastMessage(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+}
+
+fun doubleBackForFinish(context: Context) {
+
+    if (System.currentTimeMillis() - backWaitTime >= 1500) {
+        backWaitTime = System.currentTimeMillis()
+        showShortToastMessage(
+            SdmEcoMileageApplication.ApplicationContext(),
+            "뒤로가기 버튼을 한번 더 누르면 종료됩니다."
+        )
+    } else {
+        (context as Activity).finish()
+    }
 }

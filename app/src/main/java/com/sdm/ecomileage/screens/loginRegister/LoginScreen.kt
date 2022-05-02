@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
@@ -50,10 +51,10 @@ import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.kakao.sdk.user.UserApiClient
+import com.navercorp.nid.NaverIdLoginSDK
+import com.navercorp.nid.oauth.OAuthLoginCallback
 import com.sdm.ecomileage.R
-import com.sdm.ecomileage.components.CustomLoginInputTextField
-import com.sdm.ecomileage.components.showLongToastMessage
-import com.sdm.ecomileage.components.showShortToastMessage
+import com.sdm.ecomileage.components.*
 import com.sdm.ecomileage.data.AppSettings
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
@@ -66,6 +67,7 @@ import kotlinx.coroutines.withContext
 fun LoginScreen(
     navController: NavController,
     systemUiController: SystemUiController,
+    type: Int,
     loginRegisterViewModel: LoginRegisterViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -80,12 +82,21 @@ fun LoginScreen(
         )
     }
 
-
-    if (isAutoLoginUtil) {
-        AutoLoginLogic(loginRegisterViewModel, { isLoading = it }, navController, context)
+    BackHandler {
+        doubleBackForFinish(context)
     }
 
-    var tabIndex by remember { mutableStateOf(0) }
+    if (isAutoLoginUtil) {
+        AutoLoginLogic(
+            loginRegisterViewModel,
+            { isLoading = it },
+            navController,
+            context,
+            SecomiScreens.HomeScreen.name
+        )
+    }
+
+    var tabIndex by remember { mutableStateOf(type) }
     val tabTitles = listOf("로그인", "회원가입")
 
     Column(
@@ -112,13 +123,15 @@ fun LoginScreen(
 
         when (tabIndex) {
             0 -> LoginScaffold(
-                loginRegisterViewModel,
                 navController
-            )
+            ) {
+                tabIndex = 1
+            }
             1 -> RegisterScaffold(
-                loginRegisterViewModel,
                 navController
-            )
+            ) {
+                tabIndex = 0
+            }
         }
     }
 }
@@ -128,7 +141,8 @@ fun AutoLoginLogic(
     loginRegisterViewModel: LoginRegisterViewModel = hiltViewModel(),
     isLoading: (Boolean) -> Unit,
     navController: NavController,
-    context: Context
+    context: Context,
+    screen: String
 ) {
     LaunchedEffect(key1 = true) {
         loginRegisterViewModel.getAppRequestToken(
@@ -144,7 +158,7 @@ fun AutoLoginLogic(
                 setRefreshToken(response.refreshToken)
                 loginedUserIdUtil = lastLoginedUserIdUtil
 
-                navController.navigate(SecomiScreens.HomeScreen.name) {
+                navController.navigate(screen) {
                     popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
                 }
             } ?: withContext(Dispatchers.Main) {
@@ -155,7 +169,11 @@ fun AutoLoginLogic(
 }
 
 @Composable
-fun RegisterScaffold(loginRegisterViewModel: LoginRegisterViewModel, navController: NavController) {
+fun RegisterScaffold(
+    navController: NavController,
+    loginRegisterViewModel: LoginRegisterViewModel = hiltViewModel(),
+    backToLogin: () -> Unit
+) {
     //Todo : WA 리팩토링할게 천지뺴까리에요 :) 이거 전부 함수안에 넣으세요 :)
     var isFirstTermAgree by remember {
         mutableStateOf(false)
@@ -195,7 +213,7 @@ fun RegisterScaffold(loginRegisterViewModel: LoginRegisterViewModel, navControll
         showTerms = it
     }
     else if (isRegisterDataInputStep) {
-        RegisterPage(loginRegisterViewModel) {
+        RegisterPage(backToLogin) {
             isRegisterDataInputStep = it
         }
     } else if (!isRegisterDataInputStep) {
@@ -213,7 +231,6 @@ private fun ProfileSubmitPage(
     var profileImgBitmap by remember {
         mutableStateOf<Bitmap?>(null)
     }
-
 
     var imageUri by remember {
         mutableStateOf<Uri?>(null)
@@ -349,7 +366,10 @@ private fun ProfileSubmitPage(
                             loginRegisterViewModel.putMemberUpdate(
                                 profileImg = bitmapToString(profileImgBitmap!!)
                             ).let {
-                                Log.d("putMemberUpdate", "ProfileSubmitPage: ${bitmapToString(profileImgBitmap!!)}")
+                                Log.d(
+                                    "putMemberUpdate",
+                                    "ProfileSubmitPage: ${bitmapToString(profileImgBitmap!!)}"
+                                )
                                 Log.d("putMemberUpdate", "ProfileSubmitPage: ${it.data?.message}")
                                 navController.navigate(SecomiScreens.HomeScreen.name) {
                                     launchSingleTop
@@ -390,7 +410,8 @@ private fun ProfileSubmitPage(
 @OptIn(ExperimentalMaterialApi::class, androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 private fun RegisterPage(
-    loginRegisterViewModel: LoginRegisterViewModel,
+    backToLogin: () -> Unit,
+    loginRegisterViewModel: LoginRegisterViewModel = hiltViewModel(),
     onRegisterButtonClick: (Boolean) -> Unit
 ) {
     var userName by remember {
@@ -432,18 +453,16 @@ private fun RegisterPage(
     var validationCheck by remember {
         mutableStateOf(false)
     }
+
+    var addressId = ""
     var address by remember {
         mutableStateOf("")
     }
-    var isAddressFocus by remember {
-        mutableStateOf(false)
-    }
+    var deptId = ""
     var dept by remember {
         mutableStateOf("")
     }
-    var isDeptFocus by remember {
-        mutableStateOf(false)
-    }
+
     var isOrganizationNull by remember {
         mutableStateOf(false)
     }
@@ -454,13 +473,34 @@ private fun RegisterPage(
 
     val focusRequester = remember { FocusRequester() }
 
-    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = BottomSheetState(BottomSheetValue.Collapsed)
-    )
+    val bottomSheetScaffoldState =
+        rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 
     val appSettings = context.dataStore.data.collectAsState(initial = AppSettings())
+    var isAreaForBottomSheet by remember { mutableStateOf(true) }
 
-    Scaffold() {
+    BackHandler {
+        if (bottomSheetScaffoldState.isVisible) scope.launch { bottomSheetScaffoldState.hide() }
+        else backToLogin()
+    }
+
+    ModalBottomSheetLayout(
+        sheetState = bottomSheetScaffoldState,
+        sheetContent = {
+            RegisterBottomSheetMain(isAreaForBottomSheet) { id, name ->
+                if (isAreaForBottomSheet) {
+                    addressId = id.toString()
+                    address = name
+                } else {
+                    deptId = id.toString()
+                    dept = name
+                }
+                scope.launch { bottomSheetScaffoldState.hide() }
+            }
+        },
+        sheetShape = RoundedCornerShape(topStartPercent = 3, topEndPercent = 3),
+        sheetBackgroundColor = PlaceholderColor
+    ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceEvenly
@@ -508,8 +548,6 @@ private fun RegisterPage(
                         isPasswordFirstInputFocus = false
                         isPasswordSecondInputFocus = false
                         isPhoneNumberInputFocus = false
-                        isAddressFocus = false
-                        isDeptFocus = false
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                 )
@@ -545,8 +583,6 @@ private fun RegisterPage(
                                 isPasswordFirstInputFocus = false
                                 isPasswordSecondInputFocus = false
                                 isPhoneNumberInputFocus = false
-                                isAddressFocus = false
-                                isDeptFocus = false
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                         )
@@ -617,8 +653,6 @@ private fun RegisterPage(
                         isPasswordFirstInputFocus = true
                         isPasswordSecondInputFocus = false
                         isPhoneNumberInputFocus = false
-                        isAddressFocus = false
-                        isDeptFocus = false
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                 )
@@ -646,8 +680,6 @@ private fun RegisterPage(
                         isPasswordFirstInputFocus = false
                         isPasswordSecondInputFocus = true
                         isPhoneNumberInputFocus = false
-                        isAddressFocus = false
-                        isDeptFocus = false
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                 )
@@ -668,8 +700,6 @@ private fun RegisterPage(
                         isPasswordFirstInputFocus = false
                         isPasswordSecondInputFocus = false
                         isPhoneNumberInputFocus = true
-                        isAddressFocus = false
-                        isDeptFocus = false
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
@@ -701,42 +731,24 @@ private fun RegisterPage(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(0.5.dp)
-                            .height(30.dp),
+                            .height(30.dp)
+                            .clickable {
+                                isAreaForBottomSheet = false
+                                scope.launch {
+                                    bottomSheetScaffoldState.animateTo(ModalBottomSheetValue.Expanded)
+                                }
+                            },
                         shape = RoundedCornerShape(5),
                         border = BorderStroke(1.dp, PlaceholderColor),
                         color = if (isOrganizationNull) BottomUnSelectedColor else Color.White
                     ) {
-                        CustomLoginInputTextField(
-                            modifier = Modifier
-                                .padding(top = 7.dp, start = 5.dp)
-                                .fillMaxWidth()
-                                .focusRequester(focusRequester)
-                                .clickable {
-                                    focusRequester.requestFocus()
-                                },
-                            inputEvent = { dept = it },
-                            focusState = isDeptFocus,
-                            color = BorderColor,
-                            enabled = isOrganizationNull,
-                            label = "",
-                            isFocus = {
-                                isNameInputFocus = false
-                                isEmailInputFocus = false
-                                isPasswordFirstInputFocus = false
-                                isPasswordSecondInputFocus = false
-                                isPhoneNumberInputFocus = false
-                                isDeptFocus = true
-                                isAddressFocus = false
-                            },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                        Text(
+                            dept,
+                            modifier = Modifier.padding(top = 3.dp, start = 5.dp),
+                            maxLines = 1
                         )
                     }
                     Spacer(modifier = Modifier.height(5.dp))
-
-                    var backgroundColor by remember {
-                        mutableStateOf(Color.White)
-                    }
-
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -747,11 +759,12 @@ private fun RegisterPage(
                                 .size(13.dp)
                                 .clickable {
                                     isOrganizationNull = !isOrganizationNull
+                                    deptId = ""
                                     dept = ""
                                 },
                             border = BorderStroke(1.dp, PlaceholderColor),
                             shape = CircleShape,
-                            color = if (!isOrganizationNull) backgroundColor else LoginButtonColor
+                            color = if (!isOrganizationNull) Color.White else LoginButtonColor
                         ) { }
                         Spacer(modifier = Modifier.width(2.dp))
                         Text(text = "없음", modifier = Modifier.padding(3.dp), fontSize = 12.sp)
@@ -772,49 +785,67 @@ private fun RegisterPage(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(0.5.dp)
-                            .height(30.dp),
+                            .height(30.dp)
+                            .clickable {
+                                isAreaForBottomSheet = true
+                                scope.launch {
+                                    bottomSheetScaffoldState.animateTo(ModalBottomSheetValue.Expanded)
+                                }
+                            },
                         shape = RoundedCornerShape(5),
                         border = BorderStroke(1.dp, PlaceholderColor)
-                    ) {
-                        CustomLoginInputTextField(
-                            modifier = Modifier
-                                .padding(top = 7.dp, start = 5.dp)
-                                .fillMaxWidth()
-                                .focusRequester(focusRequester)
-                                .clickable {
-                                    focusRequester.requestFocus()
-                                },
-                            inputEvent = { address = it },
-                            focusState = isAddressFocus,
-                            color = BorderColor,
-                            label = "",
-                            isFocus = {
-                                isNameInputFocus = false
-                                isEmailInputFocus = false
-                                isPasswordFirstInputFocus = false
-                                isPasswordSecondInputFocus = false
-                                isPhoneNumberInputFocus = false
-                                isDeptFocus = false
-                                isAddressFocus = true
-                            },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
-                        )
-                    }
+                    ) { Text(address, modifier = Modifier.padding(top = 3.dp, start = 5.dp)) }
 
                 }
             }
 
             Button(
                 onClick = {
-                    if (dept.isEmpty()) dept = "세코미 베타테스터"
-                    if (address.isEmpty()) address = "사랑시 서대문구 행복동"
+                    if (deptId.isEmpty()) deptId = "세코미 베타테스터"
+                    if (addressId.isEmpty()) addressId = "사랑시 서대문구 행복동"
 
                     if (passwordFirst != passwordSecond)
                         showShortToastMessage(context, "비밀번호가 일치하지 않습니다.")
                     else if (userName.isEmpty() || emailHead.isEmpty() || emailTail.isEmpty() || passwordFirst.isEmpty() || passwordSecond.isEmpty())
                         showShortToastMessage(context, "필수 입력정보가 부족합니다.")
-                    else if (userName.length > 14)
-                        showShortToastMessage(context, "성함은 14자 이내로 작성해주세요.")
+                    else if (userName.length > 7)
+                        showShortToastMessage(context, "성함은 7자 이내로 작성해주세요.")
+                    else if (loginRegisterViewModel.socialType != "")
+                        scope.launch {
+                            loginRegisterViewModel.postSocialRegister(
+                                userName = userName,
+                                email = loginRegisterViewModel.socialEmail,
+                                userPwd = passwordSecond,
+                                userDept = dept,
+                                userAddress = address,
+                            ).let {
+                                when {
+                                    it.data?.code == 200 -> {
+                                        showLongToastMessage(context, "${it.data?.message}")
+                                        loginedUserIdUtil = loginRegisterViewModel.socialEmail
+                                        currentUUIDUtil = appSettings.value.uuid
+
+                                        loginRegisterViewModel.getLogin(
+                                            loginedUserIdUtil,
+                                            passwordSecond,
+                                            appSettings.value.uuid
+                                        ).let { loginResult ->
+                                            accessTokenUtil = loginResult.data!!.data.accessToken
+                                        }
+
+                                        onRegisterButtonClick(false)
+                                    }
+                                    it.data?.code != 200 -> {
+                                        Log.d("SocialRegister", "RegisterPage: ${it.data?.code}")
+                                        Log.d(
+                                            "SocialRegister",
+                                            "RegisterPage: ${loginRegisterViewModel.socialSSOID} ${loginRegisterViewModel.socialType}"
+                                        )
+                                        showLongToastMessage(context, "${it.data?.message}")
+                                    }
+                                }
+                            }
+                        }
                     else scope.launch {
                         loginRegisterViewModel.postRegister(
                             userName = userName,
@@ -822,6 +853,7 @@ private fun RegisterPage(
                             userPwd = passwordSecond,
                             userDept = dept,
                             userAddress = address,
+                            phone = phoneNumber
                         ).let {
                             when {
                                 it.data?.code == 200 -> {
@@ -1012,8 +1044,9 @@ private fun CustomCheckBox(
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun LoginScaffold(
-    loginRegisterViewModel: LoginRegisterViewModel,
-    navController: NavController
+    navController: NavController,
+    loginRegisterViewModel: LoginRegisterViewModel = hiltViewModel(),
+    socialSignUp: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -1123,7 +1156,7 @@ private fun LoginScaffold(
             Spacer(modifier = Modifier.height(10.dp))
             FindIdButton(navController = navController)
             Spacer(modifier = Modifier.height(50.dp))
-            SocialLoginList(navController, loginRegisterViewModel)
+            SocialLoginList(navController, socialSignUp)
         }
     }
 }
@@ -1136,7 +1169,6 @@ private fun InputLoginInformation(
     userPassword: MutableState<String>,
     onClickIdPasswordFocus: (Boolean, Boolean) -> Unit
 ) {
-
     CustomLoginInputTextField(
         modifier = Modifier.padding(start = 25.dp, end = 25.dp),
         inputEvent = {
@@ -1251,24 +1283,30 @@ fun FindIdButton(navController: NavController) {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        TextButton(onClick = { navController.navigate(SecomiScreens.FindingAccountScreen.name) }) {
-            Text("아이디", color = Color.DarkGray)
+        TextButton(onClick = { navController.navigate(SecomiScreens.FindingAccountScreen.name + "/0") }) {
+            Text("아이디 찾기", color = Color.DarkGray)
         }
         Text(text = " | ")
-        TextButton(onClick = { navController.navigate(SecomiScreens.FindingAccountScreen.name) }) {
+        TextButton(onClick = { navController.navigate(SecomiScreens.FindingAccountScreen.name + "/1") }) {
             Text("비밀번호 찾기", color = Color.DarkGray)
         }
     }
 }
 
 @Composable
-fun SocialLoginList(navController: NavController, loginRegisterViewModel: LoginRegisterViewModel) {
+fun SocialLoginList(
+    navController: NavController,
+    socialSignUp: () -> Unit,
+    loginRegisterViewModel: LoginRegisterViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     Column {
         Column(modifier = Modifier.padding(vertical = 4.dp)) {
-            SocialLoginCard(R.drawable.ic_facebook, "Facebook 로그인") {}
+            SocialLoginCard(R.drawable.ic_facebook, "Facebook 로그인") {
+
+            }
             SocialLoginCard(R.drawable.ic_kakaotalk, "Kakao Talk 로그인") {
 
                 UserApiClient.instance.loginWithKakaoAccount(context) { token, error ->
@@ -1281,9 +1319,36 @@ fun SocialLoginList(navController: NavController, loginRegisterViewModel: LoginR
                                 showShortToastMessage(context, "잠시 후 다시 시도해주세요.")
                             if (user != null) {
                                 Log.d("Kakao", "SocialLoginList: ${user.id}")
-                                // Todo : SSO login, SSO Register 기다리기
-                                // Todo : SSO login, SSO Register 기다리기
-                                // Todo : SSO login, SSO Register 기다리기
+
+                                scope.launch {
+                                    loginRegisterViewModel.getSocialLogin(
+                                        user.kakaoAccount!!.email!!,
+                                        user.id.toString(),
+                                        "kakao",
+                                        currentUUIDUtil
+                                    ).let {
+                                        Log.d(
+                                            "Social",
+                                            "SocialLoginList: email = ${user.kakaoAccount!!.email!!}, id = ${user.id.toString()}"
+                                        )
+                                        if (it.data?.code == 400) {
+                                            loginRegisterViewModel.socialEmail =
+                                                user.kakaoAccount!!.email!!
+                                            loginRegisterViewModel.socialType = "kakao"
+                                            loginRegisterViewModel.socialSSOID = user.id.toString()
+                                            socialSignUp()
+                                        } else if (it.data?.code == 200) {
+                                            accessTokenUtil = it.data!!.data.accessToken
+                                            refreshTokenUtil = it.data!!.data.refreshToken
+                                            loginedUserIdUtil = user.kakaoAccount!!.email!!
+                                            navController.navigate(SecomiScreens.HomeScreen.name) {
+                                                popUpTo(SecomiScreens.LoginScreen.name) {
+                                                    inclusive = true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -1293,7 +1358,26 @@ fun SocialLoginList(navController: NavController, loginRegisterViewModel: LoginR
             }
         }
     }
-    SocialLoginCard(R.drawable.ic_naver, "Naver 로그인") {}
+    SocialLoginCard(R.drawable.ic_naver, "Naver 로그인") {
+        val callBack = object : OAuthLoginCallback {
+            override fun onError(errorCode: Int, message: String) {
+                Log.d("NaverLogin", "onError: $errorCode")
+                showShortToastMessage(context, message)
+            }
+
+            override fun onFailure(httpStatus: Int, message: String) {
+                Log.d("NaverLogin", "onError: $httpStatus")
+                showShortToastMessage(context, "$httpStatus, $message")
+            }
+
+            override fun onSuccess() {
+
+            }
+
+        }
+
+        NaverIdLoginSDK.authenticate(context, callBack)
+    }
     SocialLoginCard(R.drawable.ic_google, "Google 로그인") {}
 }
 
@@ -1310,12 +1394,12 @@ fun SocialLoginCard(
             .fillMaxWidth()
             .height(45.dp)
             .clickable(
-                enabled = buttonText == "Kakao Talk 로그인"
+                enabled = buttonText == "Kakao Talk 로그인" || buttonText == "Naver 로그인"
             ) {
                 loginClick()
             },
         elevation = 4.dp,
-        backgroundColor = if (buttonText == "Kakao Talk 로그인") Color.White else PlaceholderColor
+        backgroundColor = if (buttonText == "Kakao Talk 로그인" || buttonText == "Naver 로그인") Color.White else PlaceholderColor
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.padding(start = 10.dp)) {

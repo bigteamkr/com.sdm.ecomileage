@@ -1,4 +1,4 @@
-package com.sdm.ecomileage.model.login.response
+package com.sdm.ecomileage.model.login.normal.response
 
 data class Data(
     val accessToken: String,

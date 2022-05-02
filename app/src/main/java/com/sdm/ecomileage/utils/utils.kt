@@ -25,8 +25,11 @@ var isSaveIdUtil = false
 var isAutoLoginUtil = false
 var isThisFirstTime = true
 var refreshTokenUtil: String = ""
+var backWaitTime = 0L
 
 val kakaoNativeAppKey = "fb7903a5b79c6fb3d7172024332e682d"
+val naverClientID = "yNnPfOiZhyJxp49H7LKN"
+val naverClientSecret = "aZha1lkIGS"
 
 val Context.dataStore by dataStore("app-settings.json", AppSettingsSerializer)
 suspend fun setIsAutoLogin(isAutoLogin: Boolean) {
@@ -99,11 +102,10 @@ fun Context.findActivity(): AppCompatActivity? = when (this) {
 
 
 fun bitmapToString(bitmap: Bitmap): String {
-    val currentBitmap = bitmap.copy(Bitmap.Config.RGB_565, true)
+    val currentBitmap = bitmap.copy(Bitmap.Config.RGB_565, false)
 
     val byteArrayOutputStream = ByteArrayOutputStream()
     currentBitmap.compress(Bitmap.CompressFormat.JPEG, 30, byteArrayOutputStream)
-    bitmap.recycle()
 
     val byteArray = byteArrayOutputStream.toByteArray()
 

@@ -7,5 +7,5 @@ import com.google.accompanist.systemuicontroller.SystemUiController
 
 @Composable
 fun SettingsScreen(navController: NavController, systemUiController: SystemUiController) {
-    TODO("Not yet implemented")
+
 }

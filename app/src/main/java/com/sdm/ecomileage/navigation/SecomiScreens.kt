@@ -14,5 +14,6 @@ enum class SecomiScreens {
     RankingScreen,
     SettingsScreen,
     NoticeScreen,
+    MileageRanking,
     DiaryScreen
 }

@@ -1,7 +1,6 @@
 package com.sdm.ecomileage.screens.home
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -48,13 +47,18 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-
     var isLoading by remember {
         mutableStateOf(false)
     }
 
-    BackHandler() {
-        (context as Activity).finish()
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = StatusBarGreenColor
+        )
+    }
+
+    BackHandler {
+        doubleBackForFinish(context)
     }
 
     val homeInfo = produceState<DataOrException<HomeInfoResponse, Boolean, Exception>>(
@@ -63,11 +67,6 @@ fun HomeScreen(
         value = homeViewModel.getHomeInfo()
     }.value
 
-    SideEffect {
-        systemUiController.setStatusBarColor(
-            color = StatusBarGreenColor
-        )
-    }
 
     if (homeInfo.loading == true)
         CircularProgressIndicator(color = LoginButtonColor)
@@ -78,11 +77,11 @@ fun HomeScreen(
                 AutoLoginLogic(
                     isLoading = { isLoading = true },
                     navController = navController,
-                    context = context
+                    context = context,
+                    screen = SecomiScreens.HomeScreen.name
                 )
             }
         }
-
         HomeScaffold(navController, homeInfo)
     }
 
@@ -157,7 +156,7 @@ private fun HomeMainContent(
     var scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val pagingData = homeViewModel.pager.collectAsLazyPagingItems().also{
+    val pagingData = homeViewModel.pager.collectAsLazyPagingItems().also {
         homeViewModel.invalidateDataSource()
     }
 
