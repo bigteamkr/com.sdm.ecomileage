@@ -2,7 +2,10 @@ package com.sdm.ecomileage.screens.loginRegister
 
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.SdmEcoMileageApplication
 import com.sdm.ecomileage.data.DataOrException
@@ -12,6 +15,7 @@ import com.sdm.ecomileage.model.appSettings.init.response.AppInitResponse
 import com.sdm.ecomileage.model.appSettings.refresh.request.AppRequestToken
 import com.sdm.ecomileage.model.appSettings.refresh.request.AppRequestTokenRequest
 import com.sdm.ecomileage.model.appSettings.refresh.response.AppRequestTokenResponse
+import com.sdm.ecomileage.model.googleLogin.GoogleUserModel
 import com.sdm.ecomileage.model.login.normal.request.LoginRequest
 import com.sdm.ecomileage.model.login.normal.response.LoginResponse
 import com.sdm.ecomileage.model.login.social.request.SocialLoginRequest
@@ -19,6 +23,7 @@ import com.sdm.ecomileage.model.login.social.response.SocialLoginResponse
 import com.sdm.ecomileage.model.memberUpdate.request.AppMemberUpdate
 import com.sdm.ecomileage.model.memberUpdate.request.MemberUpdateRequest
 import com.sdm.ecomileage.model.memberUpdate.response.MemberUpdateResponse
+import com.sdm.ecomileage.model.naver.UserInfoResponse
 import com.sdm.ecomileage.model.registerPage.register.request.AppRegister
 import com.sdm.ecomileage.model.registerPage.register.request.RegisterRequest
 import com.sdm.ecomileage.model.registerPage.register.response.RegisterResponse
@@ -34,6 +39,7 @@ import com.sdm.ecomileage.utils.accessTokenUtil
 import com.sdm.ecomileage.utils.bitmapToString
 import com.sdm.ecomileage.utils.currentUUIDUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -142,7 +148,7 @@ class LoginRegisterViewModel @Inject constructor(private val repository: LoginRe
         email: String,
         userDept: String,
         userAddress: String
-    ) : DataOrException<SocialRegisterResponse, Boolean, Exception> =
+    ): DataOrException<SocialRegisterResponse, Boolean, Exception> =
         repository.postSocialRegister(
             SocialRegisterRequest(
                 AppRegisterSSO = listOf(
@@ -202,7 +208,7 @@ class LoginRegisterViewModel @Inject constructor(private val repository: LoginRe
 
     suspend fun getSearchLocalArea(
         input: String
-    ) : DataOrException<SearchAreaResponse, Boolean, Exception> =
+    ): DataOrException<SearchAreaResponse, Boolean, Exception> =
         repository.getSearchLocalArea(
             SearchLocalAreaRequest(
                 listOf(
@@ -217,7 +223,7 @@ class LoginRegisterViewModel @Inject constructor(private val repository: LoginRe
 
     suspend fun getSearchLocalSchool(
         input: String
-    ) : DataOrException<SearchSchoolResponse, Boolean, Exception> =
+    ): DataOrException<SearchSchoolResponse, Boolean, Exception> =
         repository.getSearchLocalSchool(
             SearchLocalAreaRequest(
                 listOf(
@@ -229,5 +235,31 @@ class LoginRegisterViewModel @Inject constructor(private val repository: LoginRe
                 )
             )
         )
+
+
+    private var _googleUserState = MutableLiveData<GoogleUserModel>()
+    val googleUser: LiveData<GoogleUserModel> = _googleUserState
+
+    private var _loadingState = MutableLiveData(false)
+    val loading: LiveData<Boolean> = _loadingState
+
+    fun fetchSignInUser(email: String, name: String, id: String) {
+        _loadingState.value = true
+        socialName = name
+        socialEmail = email
+        socialSSOID = id
+        socialType = "google"
+
+        viewModelScope.launch {
+            _googleUserState.value = GoogleUserModel(
+                email = email,
+                name = name
+            )
+        }
+        _loadingState.value = false
+    }
+
+    suspend fun getNaverUserInfo(naverToken: String): DataOrException<UserInfoResponse, Boolean, Exception> =
+        repository.getNaverUserInfo(" Bearer $naverToken")
 
 }

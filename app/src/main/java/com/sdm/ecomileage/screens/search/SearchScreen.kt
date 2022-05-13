@@ -1,18 +1,17 @@
 package com.sdm.ecomileage.screens.search
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -29,12 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.items
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.MainCardFeed
-import com.sdm.ecomileage.data.DataOrException
-import com.sdm.ecomileage.model.search.response.Feed
-import com.sdm.ecomileage.model.search.response.SearchFeedInfoResponse
+import com.sdm.ecomileage.components.SecomiBottomBar
+import com.sdm.ecomileage.components.SecomiMainFloatingActionButton
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.home.HomeViewModel
 import com.sdm.ecomileage.ui.theme.*
@@ -76,32 +77,44 @@ private fun SearchScaffold(
     val sampleHistory = listOf("장바구니", "나무", "화초키우기", "분리수거", "라벨분리법")
 
     val scope = rememberCoroutineScope()
-    var searchedFeedResponse: DataOrException<SearchFeedInfoResponse, Boolean, Exception> =
-        DataOrException(loading = false)
 
-    var category by remember{
+    var category by remember {
         mutableStateOf(searchViewModel.getOnSelectedZone())
     }
-    var order by remember{
+    var order by remember {
         mutableStateOf(searchViewModel.getOnSelectedFilter())
     }
 
-
-    val searchedFeedData = SnapshotStateList<Feed>()
+    val pagingData = searchViewModel.pager.collectAsLazyPagingItems()
+    val scrollState = rememberLazyListState()
 
     Scaffold(
         topBar = {
             SearchScreenTopBar(
                 valueState = searchText,
-                valueHoist = { searchText = it }
+                valueHoist = {
+                    searchText = it
+                }
             ) {
+                searchViewModel.onSearchTextChanged(searchText)
+                searchViewModel.onSelectedFilter(order)
+                searchViewModel.onSelectedZone(category)
+                searchViewModel.categoryOrderSelect()
                 scope.launch {
-                    searchedFeedResponse = searchViewModel.getSearchFeedInfo(searchText, category, order).apply {
-                        this.data?.result?.feedList?.let { searchedFeedData.addAll(it) }
-                    }
+                    pagingData.refresh().let { searchViewModel.invalidateDataSource() }
                 }
             }
-        }
+        },
+        bottomBar = {
+            SecomiBottomBar(
+                navController = navController,
+                currentScreen = SecomiScreens.SearchScreen.name,
+                scrollState = scrollState
+            )
+        },
+        floatingActionButton = { SecomiMainFloatingActionButton(navController) },
+        isFloatingActionButtonDocked = true,
+        floatingActionButtonPosition = FabPosition.Center
     ) {
         Column {
             if (isFocusOnSearch) {
@@ -118,38 +131,87 @@ private fun SearchScaffold(
             LazyColumn(
                 modifier = Modifier.padding(bottom = 70.dp)
             ) {
-                items(searchedFeedData) { data ->
-                    MainCardFeed(
-                        contentImageList = listOf(data.photo),
-                        contentText = data.feedcontent,
-                        profileImage = data.profileimg,
-                        profileName = data.userName,
-                        reactionIcon = listOf(
-                            R.drawable.ic_like_off,
-                            R.drawable.ic_like_on
-                        ),
-                        reactionData = data.likeCount,
-                        reactionTint = LikeColor,
-                        likeYN = data.likeyn,
-                        onReactionClick = {
-                            scope.launch {
-                                homeViewModel.postFeedLike(data.feedsno, it)
+
+                pagingData.apply {
+                    when {
+                        loadState.refresh is LoadState.Loading -> {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .padding(12.dp)
+                                            .align(Alignment.Center), color = LoginButtonColor
+                                    )
+                                }
                             }
-                        },
-                        otherIcons = mapOf(
-                            "comment" to R.drawable.ic_comment,
-                            "more" to R.drawable.ic_more
-                        ),
-                        hashtagList = data.hashtags,
-                        navController = navController,
-                        feedNo = data.feedsno,
-                        currentScreen = SecomiScreens.HomeDetailScreen.name,
-                        destinationScreen = null,
-                        profileId = data.userid,
-                        reportDialogCallAction = {},
-                        showIndicator = true,
-                        colorIcon = {}
-                    )
+                        }
+                        loadState.append is LoadState.Loading -> {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .padding(12.dp)
+                                            .align(Alignment.Center), color = LoginButtonColor
+                                    )
+                                }
+                            }
+                        }
+                        loadState.prepend is LoadState.Error -> {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                ) {
+                                    Text(text = "검색 결과를 찾을 수 없습니다.")
+                                }
+                            }
+                        }
+                    }
+                }
+                items(pagingData) { data ->
+
+                    data?.let {
+                        MainCardFeed(
+                            contentImageList = listOf(data.photo),
+                            contentText = data.feedcontent,
+                            profileImage = data.profileimg,
+                            profileName = data.userName,
+                            reactionIcon = listOf(
+                                R.drawable.ic_like_off,
+                                R.drawable.ic_like_on
+                            ),
+                            reactionData = data.likeCount,
+                            reactionTint = LikeColor,
+                            likeYN = data.likeyn,
+                            onReactionClick = {
+                                scope.launch {
+                                    homeViewModel.postFeedLike(data.feedsno, it)
+                                }
+                            },
+                            otherIcons = mapOf(
+                                "comment" to R.drawable.ic_comment,
+                                "more" to R.drawable.ic_more
+                            ),
+                            hashtagList = data.hashtags,
+                            navController = navController,
+                            feedNo = data.feedsno,
+                            currentScreen = SecomiScreens.HomeDetailScreen.name,
+                            destinationScreen = null,
+                            profileId = data.userid,
+                            reportDialogCallAction = {},
+                            showIndicator = true,
+                            colorIcon = {}
+                        )
+                    }
                 }
             }
         }
@@ -210,7 +272,8 @@ private fun SearchFilterRow(
                 Text(
                     text = "동네별",
                     modifier = Modifier.clickable {
-                        onSelectZone("동네별")
+                        if (selectedZone == "동네별") onSelectZone("")
+                        else onSelectZone("동네별")
                     },
                     style = TextStyle(
                         fontSize = filterFontSize,
@@ -221,7 +284,8 @@ private fun SearchFilterRow(
                 Text(
                     text = "학교별",
                     modifier = Modifier.clickable {
-                        onSelectZone("학교별")
+                        if (selectedZone == "학교별") onSelectZone("")
+                        else onSelectZone("학교별")
                     },
                     style = TextStyle(
                         fontSize = filterFontSize,
@@ -235,7 +299,8 @@ private fun SearchFilterRow(
                 Text(
                     text = "인기",
                     modifier = Modifier.clickable {
-                        onSelectFilter("인기")
+                        if (selectedFilter == "인기") onSelectFilter("")
+                        else onSelectFilter("인기")
                     },
                     style = TextStyle(
                         fontSize = filterFontSize,
@@ -246,7 +311,8 @@ private fun SearchFilterRow(
                 Text(
                     text = "사용자",
                     modifier = Modifier.clickable {
-                        onSelectFilter("사용자")
+                        if (selectedFilter == "사용자") onSelectFilter("")
+                        else onSelectFilter("사용자")
                     },
                     style = TextStyle(
                         fontSize = filterFontSize,
@@ -257,7 +323,8 @@ private fun SearchFilterRow(
                 Text(
                     text = "태그",
                     modifier = Modifier.clickable {
-                        onSelectFilter("태그")
+                        if (selectedFilter == "태그") onSelectFilter("")
+                        else onSelectFilter("태그")
                     },
                     style = TextStyle(
                         fontSize = filterFontSize,

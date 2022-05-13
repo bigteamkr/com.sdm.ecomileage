@@ -12,6 +12,7 @@ import com.sdm.ecomileage.model.login.social.request.SocialLoginRequest
 import com.sdm.ecomileage.model.login.social.response.SocialLoginResponse
 import com.sdm.ecomileage.model.memberUpdate.request.MemberUpdateRequest
 import com.sdm.ecomileage.model.memberUpdate.response.MemberUpdateResponse
+import com.sdm.ecomileage.model.naver.UserInfoResponse
 import com.sdm.ecomileage.model.registerPage.register.request.RegisterRequest
 import com.sdm.ecomileage.model.registerPage.register.response.RegisterResponse
 import com.sdm.ecomileage.model.registerPage.searchLocation.areaResponse.SearchAreaResponse
@@ -20,10 +21,14 @@ import com.sdm.ecomileage.model.registerPage.searchLocation.schoolResponse.Searc
 import com.sdm.ecomileage.model.registerPage.socialRegister.request.SocialRegisterRequest
 import com.sdm.ecomileage.model.registerPage.socialRegister.response.SocialRegisterResponse
 import com.sdm.ecomileage.network.LoginRegisterFindAPI
+import com.sdm.ecomileage.network.NaverLoginAPI
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
 
-class LoginRegisterFindRepository @Inject constructor(private val api: LoginRegisterFindAPI) {
+class LoginRegisterFindRepository @Inject constructor(
+    private val api: LoginRegisterFindAPI,
+    private val naverApi: NaverLoginAPI
+) {
 
     suspend fun postAppInit(
         body: AppInitRequest
@@ -192,6 +197,25 @@ class LoginRegisterFindRepository @Inject constructor(private val api: LoginRegi
                 "LoginRegisterFindRepository",
                 "getSearchLocalArea: getSocialLogin: exception is $e"
             )
+            return DataOrException(e = e)
+        }
+        return DataOrException(response)
+    }
+
+    suspend fun getNaverUserInfo(
+        token: String
+    ): DataOrException<UserInfoResponse, Boolean, Exception> {
+        val response = try {
+            naverApi.getUserInfo(token)
+        } catch (e: Exception) {
+            if (e is CancellationException)
+                throw e
+
+            Log.d(
+                "LoginRegisterFindRepository",
+                "getNaverUserInfo: api call in repository didn't work"
+            )
+            Log.d("LoginRegisterFindRepository", "getNaverUserInfo:  exception is $e")
 
             return DataOrException(e = e)
         }

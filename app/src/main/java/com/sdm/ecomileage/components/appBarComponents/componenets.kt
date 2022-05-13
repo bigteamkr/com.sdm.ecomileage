@@ -2,22 +2,17 @@ package com.sdm.ecomileage.components.appBarComponents
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.navigation.SecomiScreens
-import com.sdm.ecomileage.screens.home.HomeViewModel
 
 @Composable
 fun SearchComponent(navController: NavController, currentScreens: String) {
@@ -43,7 +38,9 @@ fun RankingComponent(navController: NavController, currentScreens: String) {
         modifier = Modifier
             .size(30.dp)
             .clickable {
-
+                navController.navigate(SecomiScreens.MileageRanking.name) {
+                    launchSingleTop = true
+                }
             },
         tint = Color.White
     )
@@ -89,10 +86,15 @@ fun MoreVertComponent(
     DropdownMenu(
         expanded = isShowingOptions,
         onDismissRequest = { isShowingOptions = false },
-        modifier = Modifier.clickable(enabled = false){}
+        modifier = Modifier.clickable(enabled = false) {}
     ) {
         options.forEach {
             it()
         }
     }
+}
+
+@Composable
+fun MileageComponent(current: String, change: (String) -> Unit) {
+
 }

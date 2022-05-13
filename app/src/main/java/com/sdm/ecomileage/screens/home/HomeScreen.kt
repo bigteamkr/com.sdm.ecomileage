@@ -14,7 +14,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
@@ -38,6 +40,7 @@ import com.sdm.ecomileage.ui.theme.LoginButtonColor
 import com.sdm.ecomileage.ui.theme.StatusBarGreenColor
 import com.sdm.ecomileage.ui.theme.TopBarColor
 import com.sdm.ecomileage.utils.MainFeedReportOptions
+import com.sdm.ecomileage.utils.pxToDp
 import kotlinx.coroutines.launch
 
 @Composable
@@ -156,9 +159,12 @@ private fun HomeMainContent(
     var scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val pagingData = homeViewModel.pager.collectAsLazyPagingItems().also {
-        homeViewModel.invalidateDataSource()
+    val pagingData = homeViewModel.pager.collectAsLazyPagingItems()
+
+    var isShowingDropDownMenu by remember {
+        mutableStateOf(false)
     }
+    var dropDownOffset by remember { mutableStateOf(DpOffset(0.dp, 0.dp)) }
 
     var reportDialogVisible by remember {
         mutableStateOf(false)
@@ -204,9 +210,7 @@ private fun HomeMainContent(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .padding(16.dp)
-                            ) {
-
-                            }
+                            ) {}
                         }
                     }
                     loadState.append is LoadState.Loading -> {
@@ -289,7 +293,9 @@ private fun HomeMainContent(
                         navController = navController,
                         feedNo = data.feedsno,
                         reportDialogCallAction = {
-                            reportDialogVisible = it
+//                            isShowingDropDownMenu = true
+//                            dropDownOffset = DpOffset(pxToDp(it.y).dp, pxToDp(it.x).dp)
+                            reportDialogVisible = true
                             reportTargetFeedNo = data.feedsno
                             reportedTargetName = data.userName
                         },
@@ -316,11 +322,28 @@ private fun HomeMainContent(
                         destinationScreen = null
                     )
                 }
-
-
             }
         }
+        if (isShowingDropDownMenu)
+            DropdownMenu(
+                expanded = isShowingDropDownMenu,
+                onDismissRequest = { isShowingDropDownMenu = false },
+                offset = dropDownOffset
+            ) {
+                Column(
+                    modifier = Modifier
+                        .width(150.dp)
+                        .height(50.dp),
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = "신고하기")
+                    Text(text = "팔로우하기")
+                }
+            }
     }
+
+
 
     if (reportDialogVisible && reportTargetFeedNo != null) {
         CustomReportDialog(
@@ -339,7 +362,6 @@ private fun HomeMainContent(
                         )
                         reportTargetFeedNo = null
                     }
-
                     reportDialogVisible = false
                 }
             },

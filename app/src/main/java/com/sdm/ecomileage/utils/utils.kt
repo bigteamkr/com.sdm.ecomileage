@@ -5,17 +5,22 @@ import android.content.ContextWrapper
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
+import android.util.DisplayMetrics
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.dataStore
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.sdm.ecomileage.SdmEcoMileageApplication
 import com.sdm.ecomileage.data.AppSettings
 import com.sdm.ecomileage.data.AppSettingsSerializer
 import java.io.ByteArrayOutputStream
 import java.util.*
+import kotlin.math.roundToInt
 
 var accessTokenUtil: String = ""
 var loginedUserIdUtil: String = ""
@@ -117,6 +122,11 @@ fun stringToBitmap(encodedString: String): Bitmap {
     val encodeByte = Base64.decode(encodedString, Base64.DEFAULT)
 
     return BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.size)
+}
+
+fun pxToDp(px: Float): Int {
+    val displayMetrics = SdmEcoMileageApplication.ApplicationContext().resources.displayMetrics
+    return (px / displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT).roundToInt()
 }
 
 val termsFirst = "이용약관\n" +

@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">기후환경\n마일리지</string>
+    <string name="gcp_id">713727857587-185ftg60trjarbinjsibnf0pnr29jo4j.apps.googleusercontent.com</string>
+    <string name="facebook_app_id">1797882353742310</string>
+    <string name="facebook_client_token">54bde1cad6d2e3348fbf7fce08fc989d</string>
+    <string name="fb_login_protocol_scheme">fb1797882353742310</string>
 </resources>

@@ -164,6 +164,8 @@ private fun HomeDetailScaffold(
         localComment.add(it)
     }
 
+    Log.d("comment", "HomeDetailScaffold: ${commentInfoData.data?.result?.mainComment?.size}")
+
     var reportDialogVisible by remember {
         mutableStateOf(false)
     }

@@ -10,6 +10,7 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
 import androidx.compose.foundation.BorderStroke
@@ -49,7 +50,13 @@ import coil.compose.rememberImagePainter
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
 import com.google.accompanist.systemuicontroller.SystemUiController
+import com.google.android.gms.common.api.ApiException
 import com.kakao.sdk.user.UserApiClient
 import com.navercorp.nid.NaverIdLoginSDK
 import com.navercorp.nid.oauth.OAuthLoginCallback
@@ -62,6 +69,7 @@ import com.sdm.ecomileage.utils.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.*
 
 @Composable
 fun LoginScreen(
@@ -113,7 +121,16 @@ fun LoginScreen(
                 Tab(
                     selected = tabIndex == index,
                     modifier = Modifier.background(Color.White),
-                    onClick = { tabIndex = index },
+                    onClick = {
+                        tabIndex = index
+                        if (tabIndex == 0) {
+                            loginRegisterViewModel.socialName = ""
+                            loginRegisterViewModel.socialPhone = ""
+                            loginRegisterViewModel.socialEmail = ""
+                            loginRegisterViewModel.socialSSOID = ""
+                            loginRegisterViewModel.socialType = ""
+                        }
+                    },
                     text = { Text(text = title) },
                     selectedContentColor = SelectedTabColor,
                     unselectedContentColor = PlaceholderColor
@@ -213,7 +230,7 @@ fun RegisterScaffold(
         showTerms = it
     }
     else if (isRegisterDataInputStep) {
-        RegisterPage(backToLogin) {
+        RegisterPage(backToLogin, navController) {
             isRegisterDataInputStep = it
         }
     } else if (!isRegisterDataInputStep) {
@@ -411,20 +428,20 @@ private fun ProfileSubmitPage(
 @Composable
 private fun RegisterPage(
     backToLogin: () -> Unit,
+    navController: NavController,
     loginRegisterViewModel: LoginRegisterViewModel = hiltViewModel(),
     onRegisterButtonClick: (Boolean) -> Unit
 ) {
+
+
     var userName by remember {
-        mutableStateOf("")
+        mutableStateOf(loginRegisterViewModel.socialName)
     }
     var isNameInputFocus by remember {
         mutableStateOf(false)
     }
-    var emailHead by remember {
-        mutableStateOf("")
-    }
-    var emailTail by remember {
-        mutableStateOf("")
+    var email by remember {
+        mutableStateOf(loginRegisterViewModel.socialEmail)
     }
     var isEmailInputFocus by remember {
         mutableStateOf(false)
@@ -442,7 +459,7 @@ private fun RegisterPage(
         mutableStateOf(false)
     }
     var phoneNumber by remember {
-        mutableStateOf("")
+        mutableStateOf(loginRegisterViewModel.socialPhone)
     }
     var isPhoneNumberInputFocus by remember {
         mutableStateOf(false)
@@ -481,7 +498,26 @@ private fun RegisterPage(
 
     BackHandler {
         if (bottomSheetScaffoldState.isVisible) scope.launch { bottomSheetScaffoldState.hide() }
-        else backToLogin()
+        else {
+            loginRegisterViewModel.socialName = ""
+            loginRegisterViewModel.socialPhone = ""
+            loginRegisterViewModel.socialEmail = ""
+            loginRegisterViewModel.socialSSOID = ""
+            loginRegisterViewModel.socialType = ""
+            backToLogin()
+        }
+    }
+
+    LaunchedEffect(
+        key1 = loginRegisterViewModel.socialEmail,
+        key2 = loginRegisterViewModel.socialName
+    ) {
+        Log.d("social", "RegisterPage: changed?")
+        userName = loginRegisterViewModel.socialName
+        email = loginRegisterViewModel.socialEmail
+
+        Log.d("social", "RegisterPage: ${loginRegisterViewModel.socialName}")
+        Log.d("social", "RegisterPage: ${loginRegisterViewModel.socialEmail}")
     }
 
     ModalBottomSheetLayout(
@@ -536,7 +572,7 @@ private fun RegisterPage(
                         userName = it
                         scope.launch {
                             validationCheck =
-                                userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
+                                userName.isNotEmpty() && email.isNotEmpty() &&
                                         passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
                         }
                     },
@@ -549,7 +585,8 @@ private fun RegisterPage(
                         isPasswordSecondInputFocus = false
                         isPhoneNumberInputFocus = false
                     },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    defaultText = userName
                 )
                 Spacer(modifier = Modifier.height(25.dp))
                 Row(
@@ -559,7 +596,7 @@ private fun RegisterPage(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Row(modifier = Modifier.fillMaxWidth(0.4f)) {
+                    Row(modifier = Modifier.fillMaxWidth()) {
                         CustomLoginInputTextField(
                             modifier = Modifier
                                 .padding(start = 25.dp)
@@ -568,14 +605,15 @@ private fun RegisterPage(
                                     focusRequester.requestFocus()
                                 },
                             inputEvent = {
-                                emailHead = it
+                                email = it
                                 scope.launch {
                                     validationCheck =
-                                        userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
+                                        userName.isNotEmpty() && email.isNotEmpty() &&
                                                 passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
                                 }
                             },
                             focusState = isEmailInputFocus,
+                            enabled = loginRegisterViewModel.socialEmail == "",
                             label = "이메일",
                             isFocus = {
                                 isNameInputFocus = false
@@ -584,106 +622,69 @@ private fun RegisterPage(
                                 isPasswordSecondInputFocus = false
                                 isPhoneNumberInputFocus = false
                             },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                            defaultText = email
                         )
-                    }
-                    Text(text = "@")
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth(0.42f)
-                            .height(30.dp)
-                            .padding(bottom = 2.dp),
-                        shape = RoundedCornerShape(5),
-                        border = BorderStroke(1.dp, PlaceholderColor)
-                    ) {
-                        CustomLoginInputTextField(
-                            modifier = Modifier
-                                .padding(top = 3.2.dp, start = 2.dp)
-                                .fillMaxWidth()
-                                .focusRequester(focusRequester)
-                                .clickable {
-                                    focusRequester.requestFocus()
-                                },
-                            inputEvent = {
-                                emailTail = it
-                                scope.launch {
-                                    validationCheck =
-                                        userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
-                                                passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
-                                }
-                            },
-                            focusState = false,
-                            color = BorderColor,
-                            label = "",
-                            isFocus = {},
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-                        )
-                    }
-                    Button(
-                        onClick = { /*TODO*/ },
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = PlaceholderColor,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text(text = "메일인증")
                     }
                 }
                 Spacer(modifier = Modifier.height(25.dp))
-                CustomLoginInputTextField(
-                    modifier = Modifier
-                        .padding(start = 25.dp, end = 25.dp)
-                        .focusRequester(focusRequester)
-                        .clickable {
-                            focusRequester.requestFocus()
+                if (loginRegisterViewModel.socialType == "") {
+                    CustomLoginInputTextField(
+                        modifier = Modifier
+                            .padding(start = 25.dp, end = 25.dp)
+                            .focusRequester(focusRequester)
+                            .clickable {
+                                focusRequester.requestFocus()
+                            },
+                        inputEvent = {
+                            passwordFirst = it
+                            scope.launch {
+                                validationCheck =
+                                    userName.isNotEmpty() && email.isNotEmpty() &&
+                                            passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
+                            }
                         },
-                    inputEvent = {
-                        passwordFirst = it
-                        scope.launch {
-                            validationCheck =
-                                userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
-                                        passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
-                        }
-                    },
-                    focusState = isPasswordFirstInputFocus,
-                    label = "비밀번호",
-                    isFocus = {
-                        isNameInputFocus = false
-                        isEmailInputFocus = false
-                        isPasswordFirstInputFocus = true
-                        isPasswordSecondInputFocus = false
-                        isPhoneNumberInputFocus = false
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-                )
-                Spacer(modifier = Modifier.height(25.dp))
-                CustomLoginInputTextField(
-                    modifier = Modifier
-                        .padding(start = 25.dp, end = 25.dp)
-                        .focusRequester(focusRequester)
-                        .clickable {
-                            focusRequester.requestFocus()
+                        focusState = isPasswordFirstInputFocus,
+                        label = "비밀번호 (영문 숫자 포함 9자 이상)",
+                        isFocus = {
+                            isNameInputFocus = false
+                            isEmailInputFocus = false
+                            isPasswordFirstInputFocus = true
+                            isPasswordSecondInputFocus = false
+                            isPhoneNumberInputFocus = false
                         },
-                    inputEvent = {
-                        passwordSecond = it
-                        scope.launch {
-                            validationCheck =
-                                userName.isNotEmpty() && emailHead.isNotEmpty() && emailTail.isNotEmpty() &&
-                                        passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
-                        }
-                    },
-                    focusState = isPasswordSecondInputFocus,
-                    label = "비밀번호 확인",
-                    isFocus = {
-                        isNameInputFocus = false
-                        isEmailInputFocus = false
-                        isPasswordFirstInputFocus = false
-                        isPasswordSecondInputFocus = true
-                        isPhoneNumberInputFocus = false
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-                )
-                Spacer(modifier = Modifier.height(25.dp))
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                    )
+                    Spacer(modifier = Modifier.height(25.dp))
+                    CustomLoginInputTextField(
+                        modifier = Modifier
+                            .padding(start = 25.dp, end = 25.dp)
+                            .focusRequester(focusRequester)
+                            .clickable {
+                                focusRequester.requestFocus()
+                            },
+                        inputEvent = {
+                            passwordSecond = it
+                            scope.launch {
+                                validationCheck =
+                                    userName.isNotEmpty() && email.isNotEmpty() &&
+                                            passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
+                            }
+                        },
+                        focusState = isPasswordSecondInputFocus,
+                        label = "비밀번호 확인 (영문 숫자 포함 9자 이상)",
+                        isFocus = {
+                            isNameInputFocus = false
+                            isEmailInputFocus = false
+                            isPasswordFirstInputFocus = false
+                            isPasswordSecondInputFocus = true
+                            isPhoneNumberInputFocus = false
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                    )
+                    Spacer(modifier = Modifier.height(25.dp))
+                }
+
                 CustomLoginInputTextField(
                     modifier = Modifier
                         .padding(start = 25.dp, end = 25.dp)
@@ -694,6 +695,7 @@ private fun RegisterPage(
                     inputEvent = { phoneNumber = it },
                     focusState = isPhoneNumberInputFocus,
                     label = "전화번호(숫자만 적으세요)",
+                    enabled = loginRegisterViewModel.socialPhone == "",
                     isFocus = {
                         isNameInputFocus = false
                         isEmailInputFocus = false
@@ -795,7 +797,6 @@ private fun RegisterPage(
                         shape = RoundedCornerShape(5),
                         border = BorderStroke(1.dp, PlaceholderColor)
                     ) { Text(address, modifier = Modifier.padding(top = 3.dp, start = 5.dp)) }
-
                 }
             }
 
@@ -806,7 +807,7 @@ private fun RegisterPage(
 
                     if (passwordFirst != passwordSecond)
                         showShortToastMessage(context, "비밀번호가 일치하지 않습니다.")
-                    else if (userName.isEmpty() || emailHead.isEmpty() || emailTail.isEmpty() || passwordFirst.isEmpty() || passwordSecond.isEmpty())
+                    else if (userName.isEmpty() || email.isEmpty() || passwordFirst.isEmpty() || passwordSecond.isEmpty())
                         showShortToastMessage(context, "필수 입력정보가 부족합니다.")
                     else if (userName.length > 7)
                         showShortToastMessage(context, "성함은 7자 이내로 작성해주세요.")
@@ -849,7 +850,7 @@ private fun RegisterPage(
                     else scope.launch {
                         loginRegisterViewModel.postRegister(
                             userName = userName,
-                            email = "$emailHead@$emailTail",
+                            email = email,
                             userPwd = passwordSecond,
                             userDept = dept,
                             userAddress = address,
@@ -858,7 +859,7 @@ private fun RegisterPage(
                             when {
                                 it.data?.code == 200 -> {
                                     showLongToastMessage(context, "${it.data?.message}")
-                                    loginedUserIdUtil = "$emailHead@$emailTail"
+                                    loginedUserIdUtil = email
                                     currentUUIDUtil = appSettings.value.uuid
 
                                     loginRegisterViewModel.getLogin(
@@ -1302,11 +1303,52 @@ fun SocialLoginList(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    val authGoogleResultLauncher =
+        rememberLauncherForActivityResult(contract = GoogleApiContract()) { task ->
+            try {
+                val gsa = task?.getResult(ApiException::class.java)
+
+                if (gsa != null) loginRegisterViewModel.fetchSignInUser(
+                    gsa.email!!,
+                    gsa.displayName!!,
+                    gsa.id!!
+                )
+
+            } catch (e: ApiException) {
+                Log.d("SocialLogin", "Google SocialLoginList: $e")
+            }
+        }
+
     Column {
         Column(modifier = Modifier.padding(vertical = 4.dp)) {
             SocialLoginCard(R.drawable.ic_facebook, "Facebook 로그인") {
-
+//                val callbackManager = CallbackManager.Factory.create()
+//                val loginManager = LoginManager.getInstance()
+//
+//                loginManager.logInWithReadPermissions(
+//                    context as ActivityResultRegistryOwner,
+//                    callbackManager,
+//                    Arrays.asList("public_profile", "email")
+//                )
+//                loginManager.registerCallback(
+//                    callbackManager,
+//                    object : FacebookCallback<LoginResult?> {
+//                        override fun onCancel() {
+//                            showShortToastMessage(context, "페이스북 로그인을 취소하였습니다.")
+//                        }
+//
+//                        override fun onError(error: FacebookException) {
+//                            Log.d("Facebook Login", "onError: ${error.message}")
+//                            showShortToastMessage(context, "로그인에 실패하였습니다. 다시 시도해주세요.")
+//                        }
+//
+//                        override fun onSuccess(result: LoginResult?) {
+//
+//                        }
+//                    }
+//                )
             }
+
             SocialLoginCard(R.drawable.ic_kakaotalk, "Kakao Talk 로그인") {
 
                 UserApiClient.instance.loginWithKakaoAccount(context) { token, error ->
@@ -1336,6 +1378,10 @@ fun SocialLoginList(
                                                 user.kakaoAccount!!.email!!
                                             loginRegisterViewModel.socialType = "kakao"
                                             loginRegisterViewModel.socialSSOID = user.id.toString()
+                                            loginRegisterViewModel.socialName =
+                                                user.kakaoAccount!!.name.toString()
+                                            loginRegisterViewModel.socialPhone =
+                                                user.kakaoAccount!!.phoneNumber.toString()
                                             socialSignUp()
                                         } else if (it.data?.code == 200) {
                                             accessTokenUtil = it.data!!.data.accessToken
@@ -1356,29 +1402,97 @@ fun SocialLoginList(
 
 
             }
+            SocialLoginCard(R.drawable.ic_naver, "Naver 로그인") {
+                val callBack = object : OAuthLoginCallback {
+                    override fun onError(errorCode: Int, message: String) {
+                        Log.d("NaverLogin", "onError: $errorCode")
+
+                        showShortToastMessage(context, message)
+                    }
+
+                    override fun onFailure(httpStatus: Int, message: String) {
+                        Log.d("NaverLogin", "onError: $httpStatus")
+                        showShortToastMessage(context, "$httpStatus, $message")
+                    }
+
+                    override fun onSuccess() {
+                        var token = NaverIdLoginSDK.getAccessToken()
+
+                        Log.d("NaverLogin", "onSuccess: $token")
+                        scope.launch {
+                            loginRegisterViewModel.getNaverUserInfo(token ?: "").let {
+                                if (it.data?.response?.id != null) {
+                                    loginRegisterViewModel.socialSSOID = it.data?.response?.id!!
+                                    loginRegisterViewModel.socialName = it.data?.response?.name!!
+                                    loginRegisterViewModel.socialEmail = it.data?.response?.email!!
+                                    loginRegisterViewModel.socialPhone =
+                                        it.data?.response?.mobile.toString()
+                                    loginRegisterViewModel.socialType = "naver"
+                                    loginRegisterViewModel.socialPhone =
+                                        it.data?.response?.mobile.toString()
+
+                                    loginRegisterViewModel.getSocialLogin(
+                                        loginRegisterViewModel.socialEmail,
+                                        loginRegisterViewModel.socialSSOID,
+                                        "naver",
+                                        currentUUIDUtil
+                                    ).let {
+                                        if (it.data?.code == 400)
+                                            socialSignUp()
+                                        else if (it.data?.code == 200) {
+                                            accessTokenUtil = it.data!!.data.accessToken
+                                            refreshTokenUtil = it.data!!.data.refreshToken
+                                            loginedUserIdUtil = loginRegisterViewModel.socialEmail
+                                            navController.navigate(SecomiScreens.HomeScreen.name) {
+                                                popUpTo(SecomiScreens.LoginScreen.name) {
+                                                    inclusive = true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                NaverIdLoginSDK.authenticate(context, callBack)
+            }
+
+            SocialLoginCard(R.drawable.ic_google, "Google 로그인") {
+                authGoogleResultLauncher.launch(1).let {
+                    if (loginRegisterViewModel.socialSSOID != "") scope.launch {
+
+                        loginRegisterViewModel.getSocialLogin(
+                            loginRegisterViewModel.socialEmail,
+                            loginRegisterViewModel.socialSSOID,
+                            "google",
+                            currentUUIDUtil
+                        ).let {
+
+                            Log.d(
+                                "social",
+                                "SocialLoginList: ${loginRegisterViewModel.socialEmail}"
+                            )
+                            Log.d("social", "SocialLoginList: ${loginRegisterViewModel.socialName}")
+                            Log.d(
+                                "social",
+                                "SocialLoginList: ${loginRegisterViewModel.socialSSOID}"
+                            )
+
+                            if (it.data?.code == 200) {
+                                accessTokenUtil = it.data!!.data.accessToken
+                                refreshTokenUtil = it.data!!.data.refreshToken
+                                loginedUserIdUtil = loginRegisterViewModel.socialEmail
+                                navController.navigate(SecomiScreens.HomeScreen.name)
+                            } else if (it.data?.code == 400) socialSignUp()
+                        }
+                    }
+                }
+            }
         }
     }
-    SocialLoginCard(R.drawable.ic_naver, "Naver 로그인") {
-        val callBack = object : OAuthLoginCallback {
-            override fun onError(errorCode: Int, message: String) {
-                Log.d("NaverLogin", "onError: $errorCode")
-                showShortToastMessage(context, message)
-            }
 
-            override fun onFailure(httpStatus: Int, message: String) {
-                Log.d("NaverLogin", "onError: $httpStatus")
-                showShortToastMessage(context, "$httpStatus, $message")
-            }
-
-            override fun onSuccess() {
-
-            }
-
-        }
-
-        NaverIdLoginSDK.authenticate(context, callBack)
-    }
-    SocialLoginCard(R.drawable.ic_google, "Google 로그인") {}
 }
 
 @Composable
@@ -1393,13 +1507,11 @@ fun SocialLoginCard(
             .padding(start = 25.dp, end = 25.dp, top = 5.dp, bottom = 5.dp)
             .fillMaxWidth()
             .height(45.dp)
-            .clickable(
-                enabled = buttonText == "Kakao Talk 로그인" || buttonText == "Naver 로그인"
-            ) {
+            .clickable {
                 loginClick()
             },
         elevation = 4.dp,
-        backgroundColor = if (buttonText == "Kakao Talk 로그인" || buttonText == "Naver 로그인") Color.White else PlaceholderColor
+        backgroundColor = Color.White
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.padding(start = 10.dp)) {

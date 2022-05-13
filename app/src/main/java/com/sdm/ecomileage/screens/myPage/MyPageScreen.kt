@@ -47,7 +47,6 @@ import com.sdm.ecomileage.screens.homeDetail.HomeDetailViewModel
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.UserReportOptions
 import com.sdm.ecomileage.utils.currentUUIDUtil
-import com.sdm.ecomileage.utils.lastLoginedUserIdUtil
 import com.sdm.ecomileage.utils.loginedUserIdUtil
 import kotlinx.coroutines.launch
 
@@ -119,7 +118,6 @@ private fun PageScaffold(
     var isShowingBlockDialog by remember {
         mutableStateOf(false)
     }
-
 
     Scaffold(
         topBar = {
@@ -265,8 +263,10 @@ private fun UserFeedLayout(
                         )
                     }
                 },
+                enabled = !isReported,
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (isReported) ReportedButtonColor else if (isFollow) LoginButtonColor else PlaceholderColor
+                    backgroundColor = if (isFollow) LoginButtonColor else PlaceholderColor,
+                    disabledBackgroundColor = ReportedButtonColor
                 )
             ) {
                 Text(
@@ -496,7 +496,7 @@ private fun MyPageTopBar(
                         modifier = Modifier
                             .size(25.dp)
                             .clickable {
-
+                                navController.navigate(SecomiScreens.SettingsScreen.name)
                             },
                         tint = Color.White
                     )

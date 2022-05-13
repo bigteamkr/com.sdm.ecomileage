@@ -109,4 +109,24 @@ object AppModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(FindingAPI::class.java)
+
+    @Provides
+    @Singleton
+    fun provideNaverAPI(): NaverLoginAPI =
+        Retrofit
+            .Builder()
+            .baseUrl("https://openapi.naver.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(NaverLoginAPI::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAppSettingsAPI(): AppSettingsAPI =
+        Retrofit
+            .Builder()
+            .baseUrl(Constants.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(AppSettingsAPI::class.java)
 }

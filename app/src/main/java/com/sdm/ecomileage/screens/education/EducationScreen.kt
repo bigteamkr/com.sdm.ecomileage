@@ -374,8 +374,6 @@ private fun CustomEducationVideoDialog(
         Dialog(onDismissRequest = { isFullScreen = false }) {
             Text(text = "Hi BBANG GA RU?", color = Color.White)
         }
-
-
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -397,6 +395,8 @@ private fun EducationDialog(
     currentPlayTime: Long,
     onClickCurrentPlayTime: (Long) -> Unit
 ) {
+    val context = LocalContext.current
+
     Dialog(
         onDismissRequest = { },
         properties = DialogProperties(
@@ -453,16 +453,17 @@ private fun EducationDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text("영상 길이", color = Color.White, style = MaterialTheme.typography.caption)
-                        Text(
-                            text = "전체화면 아이콘",
-                            modifier = Modifier.clickable {
-                                onClickFullScreen()
-                                exoPlayer.pause()
-                                onClickCurrentPlayTime(exoPlayer.currentPosition)
-                            },
-                            color = Color.White,
-                            style = MaterialTheme.typography.caption
-                        )
+                        Button(onClick = {
+                            styledPlayerView.setControllerOnFullScreenModeChangedListener {
+
+                            }
+                        }) {
+                            Text(
+                                text = "전체화면 아이콘",
+                                color = Color.White,
+                                style = MaterialTheme.typography.caption
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                 }

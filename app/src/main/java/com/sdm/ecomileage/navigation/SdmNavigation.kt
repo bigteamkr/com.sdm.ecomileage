@@ -17,6 +17,7 @@ import com.sdm.ecomileage.screens.home.HomeScreen
 import com.sdm.ecomileage.screens.homeAdd.HomeAddScreen
 import com.sdm.ecomileage.screens.homeDetail.HomeDetailScreen
 import com.sdm.ecomileage.screens.loginRegister.LoginScreen
+import com.sdm.ecomileage.screens.mileage.MileageScreen
 import com.sdm.ecomileage.screens.myPage.MyPageScreen
 import com.sdm.ecomileage.screens.notice.NoticeScreen
 import com.sdm.ecomileage.screens.ranking.RankingScreen
@@ -38,7 +39,7 @@ fun SdmNavigation() {
         }
 
         composable(SecomiScreens.LoginScreen.name + "/{type}", arguments = listOf(
-            navArgument(name = "type"){
+            navArgument(name = "type") {
                 type = NavType.IntType
             }
         )) { navBackStackEntry ->
@@ -119,8 +120,8 @@ fun SdmNavigation() {
             NoticeScreen(navController, systemUiController)
         }
 
-        composable(SecomiScreens.MileageRanking.name){
-
+        composable(SecomiScreens.MileageRanking.name) {
+            MileageScreen(navController, systemUiController)
         }
 
     }

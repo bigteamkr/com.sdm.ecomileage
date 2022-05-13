@@ -49,5 +49,4 @@ class MainFeedPagingSource @Inject constructor(private val api: HomeInfoAPI) :
             LoadResult.Error(e)
         }
     }
-
 }

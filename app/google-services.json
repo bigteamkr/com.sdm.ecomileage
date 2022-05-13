@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "288102816117",
+    "project_id": "sdm-eco-mileage-app",
+    "storage_bucket": "sdm-eco-mileage-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:288102816117:android:40043fdffc9d2bb0795b3c",
+        "android_client_info": {
+          "package_name": "com.sdm.ecomileage"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "288102816117-4c28jibitk3dna121hpqlgimamt9885h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6O8u8p9gbCHQImIBhFXZXJw4ONT4Zakk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "288102816117-4c28jibitk3dna121hpqlgimamt9885h.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "288102816117-tpugdkbglno0189ig6tqqhiss1qsi435.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.sdm.ecomileage"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

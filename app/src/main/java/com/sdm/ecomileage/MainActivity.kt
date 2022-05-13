@@ -33,7 +33,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             Sdm_eco_mileageTheme {
                 // A surface container using the 'background' color from the theme
+                
                 SecomiApp()
+
                 KakaoSdk.init(this, kakaoNativeAppKey)
                 NaverIdLoginSDK.initialize(
                     this,
@@ -41,10 +43,13 @@ class MainActivity : ComponentActivity() {
                     naverClientSecret,
                     "기후환경 마일리지"
                 )
+
             }
         }
     }
 }
+
+
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable

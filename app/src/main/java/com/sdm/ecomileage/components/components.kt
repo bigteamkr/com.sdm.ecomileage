@@ -9,6 +9,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -27,9 +28,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -173,6 +176,24 @@ fun SecomiTopAppBar(
                         }
 
                         SecomiScreens.DiaryScreen.name -> {
+                            AppBarTitleText(
+                                title,
+                                Modifier.padding(end = 25.dp),
+                                contentColor,
+                                18.sp
+                            )
+                        }
+
+                        SecomiScreens.SettingsScreen.name -> {
+                            AppBarTitleText(
+                                title,
+                                Modifier.padding(end = 25.dp),
+                                contentColor,
+                                18.sp
+                            )
+                        }
+
+                        SecomiScreens.MileageRanking.name -> {
                             AppBarTitleText(
                                 title,
                                 Modifier.padding(end = 25.dp),
@@ -421,7 +442,7 @@ fun MainFeedCardStructure(
     navController: NavController,
     feedNo: Int,
     isCurrentReportingFeedsNo: Boolean,
-    reportDialogCallAction: (Boolean) -> Unit,
+    reportDialogCallAction: (Offset) -> Unit,
     reportingCancelAction: (Int) -> Unit,
     currentScreen: String,
     destinationScreen: String?,
@@ -484,7 +505,7 @@ fun MainCardFeed(
     colorIcon: @Composable() (() -> Unit)?,
     otherIcons: Map<String, Int>?,
     navController: NavController,
-    reportDialogCallAction: ((Boolean) -> Unit)?,
+    reportDialogCallAction: ((Offset) -> Unit)?,
     currentScreen: String,
     feedNo: Int,
     contentText: String?,
@@ -565,7 +586,7 @@ fun CardWriterInformation(
     colorIcon: (@Composable () -> Unit)?,
     otherIcons: (Map<String, Int>)?,
     navController: NavController,
-    reportDialogCallAction: ((Boolean) -> Unit)?,
+    reportDialogCallAction: ((Offset) -> Unit)?,
     currentScreen: String,
     feedNo: Int?,
     isOnEducation: Boolean = false
@@ -642,8 +663,11 @@ fun CardWriterInformation(
                             contentDescription = "설정창 열기",
                             modifier = Modifier
                                 .padding(start = 10.dp)
-                                .clickable {
-                                    if (reportDialogCallAction != null) reportDialogCallAction(true)
+                                .pointerInput(Unit) {
+                                    detectTapGestures {
+                                        Log.d("component", "CardWriterInformation: ${it.x} ${it.y}")
+                                        reportDialogCallAction?.invoke(it)
+                                    }
                                 },
                             tint = CardIconsColor
                         )
@@ -802,7 +826,6 @@ fun SecomiBottomBar(
             mutableStateOf(R.drawable.ic_mypage_off)
         }
 
-
         val iconModifier = Modifier.size(25.dp)
         val labelModifier = Modifier.padding(start = 1.dp, top = 10.dp)
         val labelStyle = MaterialTheme.typography.overline
@@ -942,10 +965,7 @@ fun CustomLoginInputTextField(
     defaultText: String? = null
 ) {
     var text by remember {
-        mutableStateOf("")
-    }
-    LaunchedEffect(key1 = defaultText) {
-        text = defaultText ?: ""
+        mutableStateOf(defaultText ?: "")
     }
 
     var labelPositionX by remember {
@@ -964,10 +984,10 @@ fun CustomLoginInputTextField(
     }
 
     val xOffsetAnimation: Dp by animateDpAsState(
-        if (!focusState) labelPositionX else (-2).dp
+        labelPositionX
     )
     val yOffsetAnimation: Dp by animateDpAsState(
-        if (!focusState) labelPositionY else (-20).dp
+        labelPositionY
     )
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -986,7 +1006,7 @@ fun CustomLoginInputTextField(
         ),
         enabled = enabled,
         singleLine = true,
-        visualTransformation = if (label == "비밀번호" || label == "비밀번호 확인") PasswordVisualTransformation() else VisualTransformation.None,
+        visualTransformation = if (label == "비밀번호 (영문 숫자 포함 9자 이상)" || label == "비밀번호 확인 (영문 숫자 포함 9자 이상)" || label == "비밀번호") PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(onDone = {
             inputEvent(text)
@@ -1348,7 +1368,7 @@ fun RegisterBottomSheetLocationItem(
                 Spacer(modifier = Modifier.height(5.dp))
                 address?.let {
                     Text(
-                        text = "서울 강동구",
+                        text = address,
                         color = RegisterGreyColor,
                         style = MaterialTheme.typography.caption
                     )
@@ -1372,7 +1392,6 @@ fun showLongToastMessage(context: Context, message: String) {
 }
 
 fun doubleBackForFinish(context: Context) {
-
     if (System.currentTimeMillis() - backWaitTime >= 1500) {
         backWaitTime = System.currentTimeMillis()
         showShortToastMessage(

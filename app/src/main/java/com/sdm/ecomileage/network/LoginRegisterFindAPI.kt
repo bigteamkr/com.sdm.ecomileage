@@ -18,6 +18,7 @@ import com.sdm.ecomileage.model.registerPage.searchLocation.schoolResponse.Searc
 import com.sdm.ecomileage.model.registerPage.socialRegister.request.SocialRegisterRequest
 import com.sdm.ecomileage.model.registerPage.socialRegister.response.SocialRegisterResponse
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 
