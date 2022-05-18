@@ -1,6 +1,7 @@
 package com.sdm.ecomileage.screens.loginRegister
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -10,7 +11,6 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
 import androidx.compose.foundation.BorderStroke
@@ -245,6 +245,7 @@ private fun ProfileSubmitPage(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
     var profileImgBitmap by remember {
         mutableStateOf<Bitmap?>(null)
     }
@@ -263,6 +264,7 @@ private fun ProfileSubmitPage(
                 val exception = result.error
             }
         }
+
     val imagePickerLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
             val cropOptions = CropImageContractOptions(uri, CropImageOptions())
@@ -286,7 +288,6 @@ private fun ProfileSubmitPage(
             }
         }
     }
-
 
 
     Column(
@@ -1322,31 +1323,55 @@ fun SocialLoginList(
     Column {
         Column(modifier = Modifier.padding(vertical = 4.dp)) {
             SocialLoginCard(R.drawable.ic_facebook, "Facebook 로그인") {
-//                val callbackManager = CallbackManager.Factory.create()
-//                val loginManager = LoginManager.getInstance()
-//
-//                loginManager.logInWithReadPermissions(
-//                    context as ActivityResultRegistryOwner,
-//                    callbackManager,
-//                    Arrays.asList("public_profile", "email")
-//                )
-//                loginManager.registerCallback(
-//                    callbackManager,
-//                    object : FacebookCallback<LoginResult?> {
-//                        override fun onCancel() {
-//                            showShortToastMessage(context, "페이스북 로그인을 취소하였습니다.")
-//                        }
-//
-//                        override fun onError(error: FacebookException) {
-//                            Log.d("Facebook Login", "onError: ${error.message}")
-//                            showShortToastMessage(context, "로그인에 실패하였습니다. 다시 시도해주세요.")
-//                        }
-//
-//                        override fun onSuccess(result: LoginResult?) {
-//
-//                        }
-//                    }
-//                )
+                val callbackManager = CallbackManager.Factory.create()
+                val loginManager = LoginManager.getInstance()
+
+                loginManager.logInWithReadPermissions(
+                    context as Activity,
+                    Arrays.asList("public_profile", "email")
+                )
+                loginManager.registerCallback(
+                    callbackManager,
+                    object : FacebookCallback<LoginResult?> {
+                        override fun onCancel() {
+                            showShortToastMessage(context, "페이스북 로그인을 취소하였습니다.")
+                        }
+
+                        override fun onError(error: FacebookException) {
+                            Log.d("Facebook Login", "onError: ${error.message}")
+                            showShortToastMessage(context, "로그인에 실패하였습니다. 다시 시도해주세요.")
+                        }
+
+                        override fun onSuccess(result: LoginResult?) {
+                            loginRegisterViewModel.socialSSOID =
+                                result?.accessToken?.userId.toString()
+                            loginRegisterViewModel.socialType = "facebook"
+                            loginRegisterViewModel.socialEmail = "${result?.accessToken?.userId}@facebook.com"
+
+                            scope.launch {
+                                loginRegisterViewModel.getSocialLogin(
+                                    loginRegisterViewModel.socialEmail,
+                                    loginRegisterViewModel.socialSSOID,
+                                    "facebook",
+                                    currentUUIDUtil
+                                ).let {
+                                    if (it.data?.code == 400)
+                                        socialSignUp()
+                                    else if (it.data?.code == 200) {
+                                        accessTokenUtil = it.data!!.data.accessToken
+                                        refreshTokenUtil = it.data!!.data.refreshToken
+                                        loginedUserIdUtil = loginRegisterViewModel.socialEmail
+                                        navController.navigate(SecomiScreens.HomeScreen.name) {
+                                            popUpTo(SecomiScreens.LoginScreen.name) {
+                                                inclusive = true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                )
             }
 
             SocialLoginCard(R.drawable.ic_kakaotalk, "Kakao Talk 로그인") {

@@ -21,6 +21,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
+import com.sdm.ecomileage.components.MileageSwipeButton
 import com.sdm.ecomileage.components.SecomiTopAppBar
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.LoginGreyTextColor
@@ -40,7 +41,8 @@ fun MileageScreen(navController: NavController, systemUiController: SystemUiCont
                 navigationIcon = rememberImagePainter(R.drawable.ic_back_arrow),
                 currentScreen = SecomiScreens.MileageRanking.name,
                 navController = navController,
-                contentColor = NavGreyColor
+                contentColor = NavGreyColor,
+                actionIconsList = listOf { MileageSwipeButton() }
             )
         }
     ) {

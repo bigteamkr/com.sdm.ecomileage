@@ -26,7 +26,7 @@ class SearchViewModel @Inject constructor(
     fun invalidateDataSource() =
         SearchFeedPagingSource(api, _searchText, _category).invalidate()
 
-    private var _searchText = "WEORPZV!@#)$(SAVDZXCVKMASDF"
+    private var _searchText = ""
     private var _showProgressBar: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private var _selectedZone = ""
     private var _selectedFilter = ""

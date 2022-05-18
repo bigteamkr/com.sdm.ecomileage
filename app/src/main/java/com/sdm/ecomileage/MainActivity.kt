@@ -14,6 +14,7 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.core.view.ViewCompat
 import com.kakao.sdk.common.KakaoSdk
 import com.navercorp.nid.NaverIdLoginSDK
 import com.sdm.ecomileage.navigation.SdmNavigation
@@ -48,8 +49,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable

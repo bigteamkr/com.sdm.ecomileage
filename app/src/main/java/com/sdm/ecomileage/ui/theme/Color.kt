@@ -90,3 +90,7 @@ val IndicationColor = Color(0xFF676767)
 val ReportedButtonColor = Color(0xFFFF6F6F)
 val MileageChangeButtonColor = Color(0xFF808080)
 val SettingsBackgroundColor = Color(0xFFF8FBFF)
+
+// Mileage Color
+val MileageSwipeButtonSchoolColor = Color(0xFF59AF3B)
+val MileageSwipeButtonTownColor = Color(0xFF2B93CE)

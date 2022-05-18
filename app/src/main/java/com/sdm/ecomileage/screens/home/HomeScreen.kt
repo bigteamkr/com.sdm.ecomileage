@@ -16,7 +16,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
@@ -40,7 +39,7 @@ import com.sdm.ecomileage.ui.theme.LoginButtonColor
 import com.sdm.ecomileage.ui.theme.StatusBarGreenColor
 import com.sdm.ecomileage.ui.theme.TopBarColor
 import com.sdm.ecomileage.utils.MainFeedReportOptions
-import com.sdm.ecomileage.utils.pxToDp
+import com.sdm.ecomileage.utils.doubleBackForFinish
 import kotlinx.coroutines.launch
 
 @Composable
@@ -161,9 +160,7 @@ private fun HomeMainContent(
 
     val pagingData = homeViewModel.pager.collectAsLazyPagingItems()
 
-    var isShowingDropDownMenu by remember {
-        mutableStateOf(false)
-    }
+
     var dropDownOffset by remember { mutableStateOf(DpOffset(0.dp, 0.dp)) }
 
     var reportDialogVisible by remember {
@@ -258,89 +255,77 @@ private fun HomeMainContent(
                     isCurrentFeedReporting =
                         homeViewModel.isFeedIncludedReportingList(data.feedsno)
 
-                    MainFeedCardStructure(
-                        contentImageList = data.imageList,
-                        contentText = data.feedcontent,
-                        profileImage = data.profileimg,
-                        profileId = data.userid,
-                        profileName = data.userName,
-                        reactionIcon = listOf(
-                            R.drawable.ic_like_off,
-                            R.drawable.ic_like_on
-                        ),
-                        reactionData = data.likeCount,
-                        reactionTint = LikeColor,
-                        likeYN = data.likeyn,
-                        onReactionClick = {
-                            scope.launch {
-                                homeViewModel.postFeedLike(data.feedsno, it).let {
-                                    Log.d(
-                                        "Home-Like",
-                                        "HomeMainContent: ${it.data?.code}"
-                                    )
-                                    Log.d(
-                                        "Home-Like",
-                                        "HomeMainContent: ${it.data?.message}"
-                                    )
-                                }
-                            }
-                        },
-                        otherIcons = mapOf(
-                            "comment" to R.drawable.ic_comment,
-                            "more" to R.drawable.ic_more
-                        ),
-                        hashtagList = data.hashtags,
-                        navController = navController,
-                        feedNo = data.feedsno,
-                        reportDialogCallAction = {
-//                            isShowingDropDownMenu = true
-//                            dropDownOffset = DpOffset(pxToDp(it.y).dp, pxToDp(it.x).dp)
-                            reportDialogVisible = true
-                            reportTargetFeedNo = data.feedsno
-                            reportedTargetName = data.userName
-                        },
-                        reportingCancelAction = {
-                            reportListValue =
-                                homeViewModel.getReportingFeedNoValueFromKey(data.feedsno)
-                            Log.d("HomeRepo", "HomeMainContent: $reportListValue")
+                    var isShowingDropDownMenu by remember {
+                        mutableStateOf(false)
+                    }
 
-                            if (reportListValue != null) {
+                    Box {
+                        MainFeedCardStructure(
+                            contentImageList = data.imageList,
+                            contentText = data.feedcontent,
+                            profileImage = data.profileimg,
+                            profileId = data.userid,
+                            profileName = data.userName,
+                            reactionIcon = listOf(
+                                R.drawable.ic_like_off,
+                                R.drawable.ic_like_on
+                            ),
+                            reactionData = data.likeCount,
+                            reactionTint = LikeColor,
+                            likeYN = data.likeyn,
+                            onReactionClick = {
                                 scope.launch {
-                                    homeViewModel.postReport(
-                                        data.feedsno,
-                                        reportListValue!!,
-                                        reportYN = false
-                                    )
-                                    Log.d("HomeRepo", "HomeMainContent: 뀽")
+                                    homeViewModel.postFeedLike(data.feedsno, it).let {
+                                        Log.d(
+                                            "Home-Like",
+                                            "HomeMainContent: ${it.data?.code}"
+                                        )
+                                        Log.d(
+                                            "Home-Like",
+                                            "HomeMainContent: ${it.data?.message}"
+                                        )
+                                    }
                                 }
-                                homeViewModel.reportingFeedNoRemove(it)
-                            }
-                        },
-                        isCurrentReportingFeedsNo = isCurrentFeedReporting,
-                        reportYN = data.reportyn,
-                        currentScreen = SecomiScreens.HomeDetailScreen.name,
-                        destinationScreen = null
-                    )
+                            },
+                            otherIcons = mapOf(
+                                "comment" to R.drawable.ic_comment,
+                                "more" to R.drawable.ic_more
+                            ),
+                            hashtagList = data.hashtags,
+                            navController = navController,
+                            feedNo = data.feedsno,
+                            deleteFeedAction = {},
+                            reportDialogCallAction = {
+                                reportDialogVisible = true
+                                reportTargetFeedNo = data.feedsno
+                                reportedTargetName = data.userName
+                            },
+                            reportingCancelAction = {
+                                reportListValue =
+                                    homeViewModel.getReportingFeedNoValueFromKey(data.feedsno)
+                                Log.d("HomeRepo", "HomeMainContent: $reportListValue")
+
+                                if (reportListValue != null) {
+                                    scope.launch {
+                                        homeViewModel.postReport(
+                                            data.feedsno,
+                                            reportListValue!!,
+                                            reportYN = false
+                                        )
+                                        Log.d("HomeRepo", "HomeMainContent: 뀽")
+                                    }
+                                    homeViewModel.reportingFeedNoRemove(it)
+                                }
+                            },
+                            isCurrentReportingFeedsNo = isCurrentFeedReporting,
+                            reportYN = data.reportyn,
+                            currentScreen = SecomiScreens.HomeDetailScreen.name,
+                            destinationScreen = null
+                        )
+                    }
                 }
             }
         }
-        if (isShowingDropDownMenu)
-            DropdownMenu(
-                expanded = isShowingDropDownMenu,
-                onDismissRequest = { isShowingDropDownMenu = false },
-                offset = dropDownOffset
-            ) {
-                Column(
-                    modifier = Modifier
-                        .width(150.dp)
-                        .height(50.dp),
-                    verticalArrangement = Arrangement.SpaceEvenly,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "신고하기")
-                    Text(text = "팔로우하기")
-                }
-            }
     }
 
 

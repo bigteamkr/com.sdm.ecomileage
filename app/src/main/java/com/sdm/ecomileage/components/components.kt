@@ -1,14 +1,13 @@
 package com.sdm.ecomileage.components
 
-import android.app.Activity
 import android.content.Context
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,14 +27,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -44,6 +47,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -57,13 +61,11 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.sdm.ecomileage.R
-import com.sdm.ecomileage.SdmEcoMileageApplication
 import com.sdm.ecomileage.model.registerPage.searchLocation.areaResponse.Search
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.homeAdd.ContentInputField
 import com.sdm.ecomileage.screens.loginRegister.LoginRegisterViewModel
 import com.sdm.ecomileage.ui.theme.*
-import com.sdm.ecomileage.utils.backWaitTime
 import kotlinx.coroutines.launch
 
 @Composable
@@ -108,7 +110,6 @@ fun SecomiTopAppBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-
                 // Left - Title or Icons
                 Row(
                     modifier = Modifier
@@ -196,7 +197,7 @@ fun SecomiTopAppBar(
                         SecomiScreens.MileageRanking.name -> {
                             AppBarTitleText(
                                 title,
-                                Modifier.padding(end = 25.dp),
+                                Modifier.padding(start = 67.dp),
                                 contentColor,
                                 18.sp
                             )
@@ -442,6 +443,7 @@ fun MainFeedCardStructure(
     navController: NavController,
     feedNo: Int,
     isCurrentReportingFeedsNo: Boolean,
+    deleteFeedAction: (() -> Unit)? = null,
     reportDialogCallAction: (Offset) -> Unit,
     reportingCancelAction: (Int) -> Unit,
     currentScreen: String,
@@ -476,6 +478,7 @@ fun MainFeedCardStructure(
                 null,
                 otherIcons,
                 navController,
+                deleteFeedAction,
                 reportDialogCallAction,
                 currentScreen,
                 feedNo,
@@ -505,6 +508,7 @@ fun MainCardFeed(
     colorIcon: @Composable() (() -> Unit)?,
     otherIcons: Map<String, Int>?,
     navController: NavController,
+    deleteFeedAction: (() -> Unit)? = null,
     reportDialogCallAction: ((Offset) -> Unit)?,
     currentScreen: String,
     feedNo: Int,
@@ -563,6 +567,7 @@ fun MainCardFeed(
                 colorIcon,
                 otherIcons,
                 navController,
+                deleteFeedAction,
                 reportDialogCallAction,
                 currentScreen,
                 feedNo,
@@ -586,11 +591,15 @@ fun CardWriterInformation(
     colorIcon: (@Composable () -> Unit)?,
     otherIcons: (Map<String, Int>)?,
     navController: NavController,
+    deleteFeedAction: (() -> Unit)? = null,
     reportDialogCallAction: ((Offset) -> Unit)?,
     currentScreen: String,
     feedNo: Int?,
     isOnEducation: Boolean = false
 ) {
+    var expandedDropdown by remember {
+        mutableStateOf(false)
+    }
     Row(
         modifier = Modifier
             .padding(5.dp)
@@ -638,6 +647,7 @@ fun CardWriterInformation(
                 colorIcon()
             }
 
+
             otherIcons?.forEach { (key, icon) ->
                 when (key) {
                     "comment" -> {
@@ -658,19 +668,48 @@ fun CardWriterInformation(
                         )
                     }
                     "more" -> {
-                        Icon(
-                            painter = painterResource(icon),
-                            contentDescription = "설정창 열기",
-                            modifier = Modifier
-                                .padding(start = 10.dp)
-                                .pointerInput(Unit) {
-                                    detectTapGestures {
-                                        Log.d("component", "CardWriterInformation: ${it.x} ${it.y}")
-                                        reportDialogCallAction?.invoke(it)
+                        Box {
+                            Icon(
+                                painter = painterResource(icon),
+                                contentDescription = "설정창 열기",
+                                modifier = Modifier
+                                    .padding(start = 10.dp)
+                                    .clickable {
+                                        expandedDropdown = true
+                                    },
+                                tint = CardIconsColor
+                            )
+                            DropdownMenu(
+                                expanded = expandedDropdown,
+                                onDismissRequest = { expandedDropdown = !expandedDropdown }
+                            ) {
+                                if (likeYN == true)
+                                    DropdownMenuItem(onClick = {
+                                        expandedDropdown = false
+                                        if (onReactionClick != null) {
+                                            onReactionClick(true)
+                                        }
+                                    }) {
+                                        Text(text = "팔로우하기")
                                     }
-                                },
-                            tint = CardIconsColor
-                        )
+                                else if (likeYN == false)
+                                    DropdownMenuItem(onClick = {
+                                        expandedDropdown = false
+                                        if (onReactionClick != null) {
+                                            onReactionClick(false)
+                                        }
+                                    }) {
+                                        Text(text = "팔로우 취소하기")
+                                    }
+
+                                DropdownMenuItem(onClick = {
+                                    expandedDropdown = false
+                                    reportDialogCallAction?.invoke(Offset.Zero)
+                                }) {
+                                    Text(text = "신고하기")
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1269,11 +1308,13 @@ fun RegisterBottomSheetMain(
                     onClick = {
                         scope.launch {
                             if (isArea) loginRegisterViewModel.getSearchLocalArea(input).data?.result?.searchList?.let {
+                                areaList.clear()
                                 areaList.addAll(
                                     it
                                 )
                             }
                             else loginRegisterViewModel.getSearchLocalSchool(input).data?.result?.searchList?.let {
+                                schoolList.clear()
                                 schoolList.addAll(
                                     it
                                 )
@@ -1300,7 +1341,7 @@ fun RegisterBottomSheetMain(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(BottomSheetSearchBackgroundColor),
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (areaList.isEmpty() && schoolList.isEmpty())
@@ -1382,6 +1423,93 @@ fun RegisterBottomSheetLocationItem(
     }
 }
 
+@Preview
+@Composable
+fun MileageSwipeButton() {
+    var isOnLeft by remember { mutableStateOf(true) }
+    val thumbLineGap = 6
+    val width = 73.dp
+    val height = 24.dp
+    val backgroundColor =
+        if (isOnLeft) MileageSwipeButtonSchoolColor else MileageSwipeButtonTownColor
+    val firstText = "학교"
+    val secondText = "동네"
+    val thumbLinePosition = 3.7.dp
+
+    val thumbLinePositionAnimation = animateFloatAsState(
+        targetValue = if (isOnLeft) with(LocalDensity.current) { 2.5.dp.toPx() }
+        else with(LocalDensity.current) { ((width / 7) * 4).toPx() + 1.dp.toPx() }
+    )
+
+    val animatePosition = animateFloatAsState(
+        targetValue = if (isOnLeft) with(LocalDensity.current) { 2.dp.toPx() }
+        else with(LocalDensity.current) { ((width / 7) * 4).toPx() - 1.dp.toPx() }
+    )
+
+    Canvas(
+        modifier = Modifier
+            .padding(1.dp)
+            .size(width, height)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { isOnLeft = !isOnLeft }
+                )
+            }
+    ) {
+        drawRoundRect(
+            color = backgroundColor,
+            size = Size(width.toPx(), height.toPx()),
+            cornerRadius = CornerRadius(50f, 50f)
+        )
+
+        drawContext.canvas.nativeCanvas.apply {
+            if (isOnLeft)
+                drawText(
+                    firstText,
+                    ((width / 2) + 4.dp).toPx(),
+                    ((height / 2) + 4.5.dp).toPx(),
+                    Paint().apply {
+                        color = android.graphics.Color.WHITE
+                        textSize = 14.dp.toPx()
+                        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                    }
+                )
+            else drawText(
+                secondText,
+                (5.dp).toPx(),
+                ((height / 2) + 4.5.dp).toPx(),
+                Paint().apply {
+                    color = android.graphics.Color.WHITE
+                    textSize = 14.dp.toPx()
+                    typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                }
+            )
+        }
+
+        drawRoundRect(
+            color = Color.White,
+            topLeft = Offset(animatePosition.value, 2.5.dp.toPx()),
+            size = Size(((width / 7) * 3).toPx(), (height - 5.dp).toPx()),
+            cornerRadius = CornerRadius(80f, 80f)
+        )
+
+        for (i in 1..4) {
+            drawLine(
+                color = BottomSheetDividerColor,
+                start = Offset(
+                    thumbLinePositionAnimation.value + (i * thumbLineGap).dp.toPx(),
+                    (height / 3).toPx()
+                ),
+                end = Offset(
+                    thumbLinePositionAnimation.value + (i * thumbLineGap).dp.toPx(),
+                    ((height / 3) * 2).toPx()
+                ),
+                strokeWidth = 1.dp.toPx()
+            )
+        }
+    }
+}
+
 
 fun showShortToastMessage(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -1391,14 +1519,3 @@ fun showLongToastMessage(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_LONG).show()
 }
 
-fun doubleBackForFinish(context: Context) {
-    if (System.currentTimeMillis() - backWaitTime >= 1500) {
-        backWaitTime = System.currentTimeMillis()
-        showShortToastMessage(
-            SdmEcoMileageApplication.ApplicationContext(),
-            "뒤로가기 버튼을 한번 더 누르면 종료됩니다."
-        )
-    } else {
-        (context as Activity).finish()
-    }
-}

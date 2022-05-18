@@ -1,5 +1,6 @@
 package com.sdm.ecomileage.utils
 
+import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Bitmap
@@ -16,6 +17,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.sdm.ecomileage.SdmEcoMileageApplication
+import com.sdm.ecomileage.components.showShortToastMessage
 import com.sdm.ecomileage.data.AppSettings
 import com.sdm.ecomileage.data.AppSettingsSerializer
 import java.io.ByteArrayOutputStream
@@ -127,6 +129,18 @@ fun stringToBitmap(encodedString: String): Bitmap {
 fun pxToDp(px: Float): Int {
     val displayMetrics = SdmEcoMileageApplication.ApplicationContext().resources.displayMetrics
     return (px / displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT).roundToInt()
+}
+
+fun doubleBackForFinish(context: Context) {
+    if (System.currentTimeMillis() - backWaitTime >= 1500) {
+        backWaitTime = System.currentTimeMillis()
+        showShortToastMessage(
+            SdmEcoMileageApplication.ApplicationContext(),
+            "뒤로가기 버튼을 한번 더 누르면 종료됩니다."
+        )
+    } else {
+        (context as Activity).finish()
+    }
 }
 
 val termsFirst = "이용약관\n" +
