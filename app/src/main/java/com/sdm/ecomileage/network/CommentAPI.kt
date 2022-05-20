@@ -2,6 +2,8 @@ package com.sdm.ecomileage.network
 
 import com.sdm.ecomileage.model.homedetail.comment.commentInfo.request.CommentInfoRequest
 import com.sdm.ecomileage.model.homedetail.comment.commentInfo.response.CommentInfoResponse
+import com.sdm.ecomileage.model.homedetail.comment.deleteComment.DeleteCommentRequest.DeleteCommentRequest
+import com.sdm.ecomileage.model.homedetail.comment.deleteComment.DeleteCommentResponse.DeleteCommentResponse
 import com.sdm.ecomileage.model.homedetail.mainFeed.request.MainFeedRequest
 import com.sdm.ecomileage.model.homedetail.mainFeed.response.MainFeedResponse
 import com.sdm.ecomileage.model.homedetail.comment.newComment.request.NewCommentRequest
@@ -44,4 +46,10 @@ interface CommentAPI {
         @Header("token") token: String,
         @Body body: NewReportCommentRequest
     ) : NewReportCommentResponse
+
+    @POST(value = "RemoveCommentInfo")
+    suspend fun deleteComment(
+        @Header("token") token: String,
+        @Body body: DeleteCommentRequest
+    ) : DeleteCommentResponse
 }

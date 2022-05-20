@@ -13,9 +13,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.dataStore
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.sdm.ecomileage.SdmEcoMileageApplication
 import com.sdm.ecomileage.components.showShortToastMessage
 import com.sdm.ecomileage.data.AppSettings
@@ -25,7 +22,7 @@ import java.util.*
 import kotlin.math.roundToInt
 
 var accessTokenUtil: String = ""
-var loginedUserIdUtil: String = ""
+var currentLoginedUserId: String = ""
 var lastLoginedUserIdUtil: String = ""
 var currentUUIDUtil = ""
 var isSaveIdUtil = false

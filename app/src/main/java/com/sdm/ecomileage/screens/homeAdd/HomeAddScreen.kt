@@ -70,7 +70,7 @@ import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.bitmapToString
 import com.sdm.ecomileage.utils.currentUUIDUtil
-import com.sdm.ecomileage.utils.loginedUserIdUtil
+import com.sdm.ecomileage.utils.currentLoginedUserId
 import com.sdm.ecomileage.utils.uploadAlarm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -107,7 +107,7 @@ private fun HomeAddScaffold(
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
-    // Todo : selectedCategory should be in ViewModel
+
     var selectedCategory = rememberSaveable {
         mutableStateOf("카테고리 선택")
     }
@@ -126,7 +126,6 @@ private fun HomeAddScaffold(
         mutableStateListOf<Bitmap?>(null)
     }
 
-    // Todo : inputComment should be in ViewModel
     val inputComment = rememberSaveable {
         mutableStateOf("")
     }
@@ -136,12 +135,10 @@ private fun HomeAddScaffold(
 
     val keyboardAction = {}
 
-    // Todo: TagList should be in ViewModel
     val tagList = remember {
         mutableStateListOf<String>()
     }
 
-    // Todo: TagInputElement should be in ViewModel
     val tagInputElement = remember {
         mutableStateOf("")
     }
@@ -350,7 +347,7 @@ private fun HomeAddScaffold(
                                                     HomeAddRequest(
                                                         NewActivityInfo = listOf(
                                                             NewActivityInfo(
-                                                                userid = loginedUserIdUtil,
+                                                                userid = currentLoginedUserId,
                                                                 title = "",
                                                                 content = inputComment.value,
                                                                 category = "1",
@@ -407,7 +404,7 @@ private fun HomeAddScaffold(
                                                         NewChallengeInfo = listOf(
                                                             NewChallengeInfo(
                                                                 uuid = currentUUIDUtil,
-                                                                userid = loginedUserIdUtil,
+                                                                userid = currentLoginedUserId,
                                                                 category = categoryNum.toString(),
                                                                 content = inputComment.value,
                                                                 hashtag = tagList.toList(),

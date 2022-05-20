@@ -7,6 +7,5 @@ data class MainComment(
     val userId: String,
     val profileimg: String,
     val userName: String,
-    val photo: String,
     val title: String
 )

@@ -4,14 +4,16 @@ import android.util.Log
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.homedetail.comment.commentInfo.request.CommentInfoRequest
 import com.sdm.ecomileage.model.homedetail.comment.commentInfo.response.CommentInfoResponse
+import com.sdm.ecomileage.model.homedetail.comment.deleteComment.DeleteCommentRequest.DeleteCommentRequest
+import com.sdm.ecomileage.model.homedetail.comment.deleteComment.DeleteCommentResponse.DeleteCommentResponse
 import com.sdm.ecomileage.model.homedetail.comment.newComment.request.NewCommentRequest
 import com.sdm.ecomileage.model.homedetail.comment.newComment.response.NewCommentResponse
-import com.sdm.ecomileage.model.report.comment.request.NewReportCommentRequest
-import com.sdm.ecomileage.model.report.comment.response.NewReportCommentResponse
 import com.sdm.ecomileage.model.homedetail.loginUser.request.AppMemberInfoRequest
 import com.sdm.ecomileage.model.homedetail.loginUser.response.AppMemberInfoResponse
 import com.sdm.ecomileage.model.homedetail.mainFeed.request.MainFeedRequest
 import com.sdm.ecomileage.model.homedetail.mainFeed.response.MainFeedResponse
+import com.sdm.ecomileage.model.report.comment.request.NewReportCommentRequest
+import com.sdm.ecomileage.model.report.comment.response.NewReportCommentResponse
 import com.sdm.ecomileage.network.CommentAPI
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
@@ -104,5 +106,22 @@ class CommentRepository @Inject constructor(private val api: CommentAPI) {
             return DataOrException(e = e)
         }
         return DataOrException(data = response)
+    }
+
+    suspend fun deleteComment(
+        token: String,
+        body: DeleteCommentRequest
+    ): DataOrException<DeleteCommentResponse, Boolean, java.lang.Exception> {
+        val response = try {
+            api.deleteComment(token, body)
+        } catch (e: Exception) {
+            if (e is CancellationException)
+                throw e
+
+            Log.d("CommentRepo", "deleteComment: api call in repository didn't work")
+            Log.d("CommentRepo", "deleteComment:  exception is $e")
+            return DataOrException(e = e)
+        }
+        return DataOrException(response)
     }
 }

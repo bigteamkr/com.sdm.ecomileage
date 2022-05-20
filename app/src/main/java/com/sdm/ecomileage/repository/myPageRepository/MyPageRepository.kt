@@ -2,6 +2,8 @@ package com.sdm.ecomileage.repository.myPageRepository
 
 import android.util.Log
 import com.sdm.ecomileage.data.DataOrException
+import com.sdm.ecomileage.model.myPage.deleteFeed.request.DeleteFeedRequest
+import com.sdm.ecomileage.model.myPage.deleteFeed.response.DeleteFeedResponse
 import com.sdm.ecomileage.model.myPage.myFeedInfo.request.MyFeedInfoRequest
 import com.sdm.ecomileage.model.myPage.myFeedInfo.response.MyFeedInfoResponse
 import com.sdm.ecomileage.model.myPage.newFollow.request.NewFollowInfoRequest
@@ -81,6 +83,25 @@ class MyPageRepository @Inject constructor(private val api: MyPageAPI) {
 
             Log.d("MyPageRepository", "postNewUserReport: api call in repository didn't work")
             Log.d("MyPageRepository", "postNewUserReport: exception is $e")
+            return DataOrException(e = e)
+        }
+        return DataOrException(response)
+    }
+
+    suspend fun deleteMyFeed(
+        token: String,
+        body: DeleteFeedRequest
+    ): DataOrException<DeleteFeedResponse, Boolean, Exception> {
+        val response = try {
+            api.deleteMyFeed(
+                token, body
+            )
+        } catch (e: Exception) {
+            if (e is CancellationException)
+                throw e
+
+            Log.d("MyPageRepository", "deleteMyFeed: api call in repository didn't work")
+            Log.d("MyPageRepository", "deleteMyFeed:  exception is $e")
             return DataOrException(e = e)
         }
         return DataOrException(response)

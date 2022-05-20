@@ -173,7 +173,7 @@ fun AutoLoginLogic(
             it.data?.tokenInfo?.let { response ->
                 accessTokenUtil = response.accessToken
                 setRefreshToken(response.refreshToken)
-                loginedUserIdUtil = lastLoginedUserIdUtil
+                currentLoginedUserId = lastLoginedUserIdUtil
 
                 navController.navigate(screen) {
                     popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
@@ -191,7 +191,6 @@ fun RegisterScaffold(
     loginRegisterViewModel: LoginRegisterViewModel = hiltViewModel(),
     backToLogin: () -> Unit
 ) {
-    //Todo : WA 리팩토링할게 천지뺴까리에요 :) 이거 전부 함수안에 넣으세요 :)
     var isFirstTermAgree by remember {
         mutableStateOf(false)
     }
@@ -824,11 +823,11 @@ private fun RegisterPage(
                                 when {
                                     it.data?.code == 200 -> {
                                         showLongToastMessage(context, "${it.data?.message}")
-                                        loginedUserIdUtil = loginRegisterViewModel.socialEmail
+                                        currentLoginedUserId = loginRegisterViewModel.socialEmail
                                         currentUUIDUtil = appSettings.value.uuid
 
                                         loginRegisterViewModel.getLogin(
-                                            loginedUserIdUtil,
+                                            currentLoginedUserId,
                                             passwordSecond,
                                             appSettings.value.uuid
                                         ).let { loginResult ->
@@ -860,11 +859,11 @@ private fun RegisterPage(
                             when {
                                 it.data?.code == 200 -> {
                                     showLongToastMessage(context, "${it.data?.message}")
-                                    loginedUserIdUtil = email
+                                    currentLoginedUserId = email
                                     currentUUIDUtil = appSettings.value.uuid
 
                                     loginRegisterViewModel.getLogin(
-                                        loginedUserIdUtil, passwordSecond, appSettings.value.uuid
+                                        currentLoginedUserId, passwordSecond, appSettings.value.uuid
                                     ).let { loginResult ->
                                         accessTokenUtil = loginResult.data!!.data.accessToken
                                     }
@@ -1118,7 +1117,7 @@ private fun LoginScaffold(
                     ).let {
                         if (it.data?.code == 200) {
                             accessTokenUtil = it.data!!.data.accessToken
-                            loginedUserIdUtil = userId.value
+                            currentLoginedUserId = userId.value
                             setRefreshToken(it.data!!.data.refreshToken)
 
                             if (isThisFirstTime) {
@@ -1131,7 +1130,7 @@ private fun LoginScaffold(
 
                             if (isSaveId) {
                                 scope.launch {
-                                    setIsSaveId(isSaveId, loginedUserIdUtil)
+                                    setIsSaveId(isSaveId, currentLoginedUserId)
                                 }
                             }
 
@@ -1144,7 +1143,7 @@ private fun LoginScaffold(
                                     setIsAutoLogin(false)
                                 }
 
-                            loginedUserIdUtil = userId.value
+                            currentLoginedUserId = userId.value
                             navController.navigate(SecomiScreens.HomeScreen.name) {
                                 popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
                             }
@@ -1360,7 +1359,7 @@ fun SocialLoginList(
                                     else if (it.data?.code == 200) {
                                         accessTokenUtil = it.data!!.data.accessToken
                                         refreshTokenUtil = it.data!!.data.refreshToken
-                                        loginedUserIdUtil = loginRegisterViewModel.socialEmail
+                                        currentLoginedUserId = loginRegisterViewModel.socialEmail
                                         navController.navigate(SecomiScreens.HomeScreen.name) {
                                             popUpTo(SecomiScreens.LoginScreen.name) {
                                                 inclusive = true
@@ -1411,7 +1410,7 @@ fun SocialLoginList(
                                         } else if (it.data?.code == 200) {
                                             accessTokenUtil = it.data!!.data.accessToken
                                             refreshTokenUtil = it.data!!.data.refreshToken
-                                            loginedUserIdUtil = user.kakaoAccount!!.email!!
+                                            currentLoginedUserId = user.kakaoAccount!!.email!!
                                             navController.navigate(SecomiScreens.HomeScreen.name) {
                                                 popUpTo(SecomiScreens.LoginScreen.name) {
                                                     inclusive = true
@@ -1467,7 +1466,7 @@ fun SocialLoginList(
                                         else if (it.data?.code == 200) {
                                             accessTokenUtil = it.data!!.data.accessToken
                                             refreshTokenUtil = it.data!!.data.refreshToken
-                                            loginedUserIdUtil = loginRegisterViewModel.socialEmail
+                                            currentLoginedUserId = loginRegisterViewModel.socialEmail
                                             navController.navigate(SecomiScreens.HomeScreen.name) {
                                                 popUpTo(SecomiScreens.LoginScreen.name) {
                                                     inclusive = true
@@ -1508,7 +1507,7 @@ fun SocialLoginList(
                             if (it.data?.code == 200) {
                                 accessTokenUtil = it.data!!.data.accessToken
                                 refreshTokenUtil = it.data!!.data.refreshToken
-                                loginedUserIdUtil = loginRegisterViewModel.socialEmail
+                                currentLoginedUserId = loginRegisterViewModel.socialEmail
                                 navController.navigate(SecomiScreens.HomeScreen.name)
                             } else if (it.data?.code == 400) socialSignUp()
                         }

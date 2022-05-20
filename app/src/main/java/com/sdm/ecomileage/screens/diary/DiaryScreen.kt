@@ -113,9 +113,9 @@ private fun DiaryScaffold(
             Button(
                 onClick = {
                     scope.launch(Dispatchers.IO) {
-                        if (inputComment.value.length < 50) {
+                        if (inputComment.value.length < 100) {
                             withContext(Dispatchers.Main) {
-                                showShortToastMessage(context, "소감일기를 50자 이상 작성해주세요.")
+                                showShortToastMessage(context, "소감일기를 100자 이상 작성해주세요.")
                             }
                         } else educationViewModel.postDiary(educationNo, inputComment.value)
                             .let {

@@ -20,7 +20,7 @@ import com.sdm.ecomileage.repository.homeRepository.HomeRepository
 import com.sdm.ecomileage.repository.paging.MainFeedPagingSource
 import com.sdm.ecomileage.utils.accessTokenUtil
 import com.sdm.ecomileage.utils.currentUUIDUtil
-import com.sdm.ecomileage.utils.loginedUserIdUtil
+import com.sdm.ecomileage.utils.currentLoginedUserId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +40,7 @@ class HomeViewModel @Inject constructor(
             accessTokenUtil, HomeInfoRequest(
                 HomeInfo = listOf(
                     HomeInfo(
-                        loginedUserIdUtil
+                        currentLoginedUserId
                     )
                 )
             )

@@ -4,6 +4,7 @@ data class Post(
     val imageList: List<String>,
     val reportyn: Boolean,
     val likeyn: Boolean,
+    val followyn: Boolean,
     val profileimg: String,
     val hashtags: List<String>,
     val commentCount: Int,

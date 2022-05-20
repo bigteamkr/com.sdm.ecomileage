@@ -2,7 +2,6 @@ package com.sdm.ecomileage.screens.homeDetail
 
 import android.annotation.SuppressLint
 import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -55,11 +54,12 @@ import com.sdm.ecomileage.model.homedetail.loginUser.response.AppMemberInfoRespo
 import com.sdm.ecomileage.model.homedetail.mainFeed.response.MainFeedResponse
 import com.sdm.ecomileage.model.homedetail.mainFeed.response.PostInfo
 import com.sdm.ecomileage.navigation.SecomiScreens
+import com.sdm.ecomileage.screens.loginRegister.AutoLoginLogic
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.CommentReportOptions
+import com.sdm.ecomileage.utils.currentLoginedUserId
 import com.sdm.ecomileage.utils.currentUUIDUtil
 import com.sdm.ecomileage.utils.dataStore
-import com.sdm.ecomileage.utils.loginedUserIdUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -71,7 +71,10 @@ fun HomeDetailScreen(
     feedNo: Int?,
     commentViewModel: HomeDetailViewModel = hiltViewModel()
 ) {
-    // Todo : rememberSaveable 로 전부 다 바꾸기
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
+
     SideEffect {
         systemUiController.setStatusBarColor(
             color = StatusBarGreenColor
@@ -96,7 +99,7 @@ fun HomeDetailScreen(
         scope.launch(context = Dispatchers.IO) {
             if (feedNo != null) {
                 value = commentViewModel.getCommentInfo(
-                    userid = loginedUserIdUtil,
+                    userid = currentLoginedUserId,
                     feedNo = feedNo
                 )
             }
@@ -120,7 +123,14 @@ fun HomeDetailScreen(
 
         mainFeedData.loading == true || commentInfoData.loading == true || loginUserInfoData.loading == true -> CircularProgressIndicator()
         mainFeedData.data?.result?.postInfo != null && commentInfoData.data?.result?.mainComment != null && loginUserInfoData.data?.result != null
-        ->
+        -> {
+            if (commentInfoData.data?.code != 200 || loginUserInfoData.data?.code != 200 || mainFeedData.data?.code != 200)
+                AutoLoginLogic(
+                    isLoading = { isLoading = true },
+                    navController = navController,
+                    context = context,
+                    screen = SecomiScreens.HomeScreen.name
+                )
             HomeDetailScaffold(
                 navController,
                 feedNo,
@@ -129,6 +139,8 @@ fun HomeDetailScreen(
                 commentInfoData,
                 loginUserInfoData
             )
+        }
+
         else -> {
             Log.d(
                 "HomeDetail",
@@ -231,7 +243,6 @@ private fun HomeDetailScaffold(
                         MainComment(
                             commentsno = 0,
                             parentcommentsno = 0,
-                            photo = "",
                             profileimg = loginUserInfoData.data!!.result.userImg,
                             title = comment,
                             userId = loginUserInfoData.data!!.result.userId,
@@ -257,6 +268,22 @@ private fun HomeDetailScaffold(
                         name = data.userName,
                         text = data.title,
                         navController = navController,
+                        deleteComment = {
+                            scope.launch {
+                                commentViewModel.deleteComment(data.commentsno)
+                            }
+                            localComment.remove(
+                                MainComment(
+                                    commentsno = data.commentsno,
+                                    parentcommentsno = data.parentcommentsno,
+                                    profileimg = data.profileimg,
+                                    reportyn = data.reportyn,
+                                    title = data.title,
+                                    userId = data.userId,
+                                    userName = data.userName
+                                )
+                            )
+                        },
                         cancelReportAction = {
                             commentViewModel.deleteReportingComment(index)
                             isCurrentFeedReporting =
@@ -324,11 +351,14 @@ private fun HomeDetailContent(
     text: String,
     tag: List<String>? = null,
     navController: NavController,
+    deleteComment: () -> Unit = {},
     cancelReportAction: () -> Unit = {},
     isItCommentFeed: Boolean = false,
     onReportVisible: (() -> Unit)? = null,
     isThisReported: Boolean = false
 ) {
+    var isDropdownExpanded by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .padding(10.dp),
@@ -367,17 +397,31 @@ private fun HomeDetailContent(
                     .padding(top = 2.dp)
                     .size(20.dp)
                     .clickable {
-                        if (onReportVisible != null) onReportVisible()
+                        isDropdownExpanded = true
                     },
                 shape = CircleShape,
                 border = BorderStroke(1.dp, Color.Transparent)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_more),
-                    contentDescription = "내 댓글 수정하기 혹은 남의 글 신고하기 버튼",
-                    contentScale = ContentScale.Crop,
-                    colorFilter = ColorFilter.tint(UnselectedButtonColor)
-                )
+                Box {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_more),
+                        contentDescription = "내 댓글 수정하기 혹은 남의 글 신고하기 버튼",
+                        contentScale = ContentScale.Crop,
+                        colorFilter = ColorFilter.tint(UnselectedButtonColor)
+                    )
+                    DropdownMenu(
+                        expanded = isDropdownExpanded,
+                        onDismissRequest = { isDropdownExpanded = false }) {
+                        if (userId == currentLoginedUserId)
+                            DropdownMenuItem(onClick = { deleteComment() }) {
+                                Text(text = "삭제하기")
+                            }
+                        else
+                            DropdownMenuItem(onClick = { if (onReportVisible != null) onReportVisible() }) {
+                                Text(text = "신고하기")
+                            }
+                    }
+                }
             }
     }
 }
@@ -446,6 +490,7 @@ private fun HomeDetailFormat(
 private fun HomeDetailBottomCommentBar(
     submitComment: (String) -> Unit
 ) {
+    val context = LocalContext.current
     //Todo : viewModel 로 데이터 핸들링할 것
     val comment = rememberSaveable {
         mutableStateOf("")
@@ -479,14 +524,22 @@ private fun HomeDetailBottomCommentBar(
                 placeholderText = "댓글을 입력하세요",
                 isSingleLine = true,
                 onAction = KeyboardActions(onDone = {
-                    if (comment.value != "") submitComment(comment.value)
-                    comment.value = ""
+                    if (comment.value.length >= 20) {
+                        submitComment(comment.value)
+                        comment.value = ""
+                    } else {
+                        showShortToastMessage(context, "댓글을 20자 이상 작성해주세요.")
+                    }
                 })
             )
             Button(
                 onClick = {
-                    if (comment.value != "") submitComment(comment.value)
-                    comment.value = ""
+                    if (comment.value.length >= 20) {
+                        submitComment(comment.value)
+                        comment.value = ""
+                    } else {
+                        showShortToastMessage(context, "댓글을 20자 이상 작성해주세요.")
+                    }
                 },
                 modifier = Modifier
                     .padding(bottom = 1.dp)

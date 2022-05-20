@@ -44,10 +44,11 @@ import com.sdm.ecomileage.model.myPage.userFeedInfo.response.UserFeedInfoRespons
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.home.HomeViewModel
 import com.sdm.ecomileage.screens.homeDetail.HomeDetailViewModel
+import com.sdm.ecomileage.screens.loginRegister.AutoLoginLogic
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.UserReportOptions
 import com.sdm.ecomileage.utils.currentUUIDUtil
-import com.sdm.ecomileage.utils.loginedUserIdUtil
+import com.sdm.ecomileage.utils.currentLoginedUserId
 import kotlinx.coroutines.launch
 
 @Composable
@@ -57,6 +58,8 @@ fun MyPageScreen(
     userId: String?,
     myPageViewModel: MyPageViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    var isLoading by remember { mutableStateOf(false) }
     SideEffect {
         systemUiController.setStatusBarColor(StatusBarGreenColor)
     }
@@ -70,7 +73,7 @@ fun MyPageScreen(
     val myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>
     val userFeedInfo: DataOrException<UserFeedInfoResponse, Boolean, Exception>
 
-    if (userId == "myPage" || userId == loginedUserIdUtil) {
+    if (userId == "myPage" || userId == currentLoginedUserId) {
         myFeedInfo = produceState<DataOrException<MyFeedInfoResponse, Boolean, Exception>>(
             initialValue = DataOrException(loading = true)
         ) {
@@ -79,8 +82,18 @@ fun MyPageScreen(
 
         if (myFeedInfo.loading == true)
             CircularProgressIndicator()
-        else if (myFeedInfo.data?.result != null)
+        else if (myFeedInfo.data?.result != null) {
+            myFeedInfo.data?.code?.let {
+                if (it == 200) return@let
+                else AutoLoginLogic(
+                    isLoading = { isLoading = true },
+                    navController = navController,
+                    context = context,
+                    screen = SecomiScreens.MyPageScreen.name
+                )
+            }
             PageScaffold(navController, userId, myFeedInfo)
+        }
 
     } else {
         userFeedInfo = produceState<DataOrException<UserFeedInfoResponse, Boolean, Exception>>(
@@ -91,8 +104,18 @@ fun MyPageScreen(
 
         if (userFeedInfo.loading == true)
             CircularProgressIndicator()
-        else if (userFeedInfo.data?.result != null)
+        else if (userFeedInfo.data?.result != null) {
+            userFeedInfo.data?.code?.let {
+                if (it == 200) return@let
+                else AutoLoginLogic(
+                    isLoading = { isLoading = true },
+                    navController = navController,
+                    context = context,
+                    screen = SecomiScreens.MyPageScreen.name
+                )
+            }
             PageScaffold(navController, userId!!, userFeedInfo = userFeedInfo)
+        }
     }
 }
 
@@ -159,7 +182,7 @@ private fun PageScaffold(
         isFloatingActionButtonDocked = true,
         floatingActionButtonPosition = FabPosition.Center
     ) {
-        if (userId == "myPage" || userId == loginedUserIdUtil)
+        if (userId == "myPage" || userId == currentLoginedUserId)
             MyPageLayout(navController, myFeedInfo)
         else
             UserFeedLayout(navController, userFeedInfo!!, isReported)

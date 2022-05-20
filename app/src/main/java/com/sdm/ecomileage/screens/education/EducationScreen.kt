@@ -42,6 +42,7 @@ import com.sdm.ecomileage.model.education.educationInfo.response.EducationInfoRe
 import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.home.HomeViewModel
+import com.sdm.ecomileage.screens.loginRegister.AutoLoginLogic
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.LockScreenOrientation
 
@@ -52,6 +53,11 @@ fun EducationScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
     educationViewModel: EducationViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
+
     val homeInfo = produceState<DataOrException<HomeInfoResponse, Boolean, Exception>>(
         initialValue = DataOrException(loading = true)
     ) {
@@ -79,8 +85,20 @@ fun EducationScreen(
     if (homeInfo.loading == true || educationInfo.loading == true)
         CircularProgressIndicator()
     else if (homeInfo.data?.result != null && educationInfo.data?.challengeList != null) {
+
+        if (homeInfo.data?.code != 200 || educationInfo.data?.code != 200)
+            AutoLoginLogic(
+                isLoading = { isLoading = true },
+                navController = navController,
+                context = context,
+                screen = SecomiScreens.EducationScreen.name
+            )
+
         EducationScaffold(navController, homeInfo, educationInfo)
     }
+
+    if (isLoading)
+        CircularProgressIndicator(color = LoginButtonColor)
 }
 
 @Composable
@@ -191,60 +209,7 @@ private fun EducationScaffold(
     }
 }
 
-//@Composable
-//fun JWPlayerAndroidView(jwPlayerLicenseUtil: Unit, popUpState: MutableState<Boolean>) {
-//    Box {
-//        val popupWidth = 250.dp
-//        val popupHeight = 250.dp
-//        val cornerSize = 16.dp
-//
-//        Popup(
-//            alignment = Alignment.Center,
-////            offset = IntOffset(400, 400),
-//            onDismissRequest = { popUpState.value = false }
-//        ) {
-//            // Draw a rectangle shape with rounded corners inside the popup
-//            Box(
-//                Modifier
-//                    .size(popupWidth, popupHeight)
-//                    .background(Color.White, RoundedCornerShape(cornerSize)),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                AndroidView(
-//                    factory = { context ->
-//                        LinearLayout(context).apply {
-//                            orientation = LinearLayout.VERTICAL
-//                            addView(JWPlayerView(context))
-//                        }
-//                    },
-//                    modifier = Modifier.fillMaxSize(),
-//                    update = { layout ->
-//                        layout.forEach { view ->
-//
-//                            val mPlayer = (view as JWPlayerView).player
-//
-//                            val playListItem = PlaylistItem.Builder()
-//                                .file("https://cdn.jwplayer.com/videos/da0Q0zFE-PaXzRVFf.mp4")
-//                                .build()
-//
-//                            val playlist = ArrayList<PlaylistItem>()
-//                            playlist.add(playListItem)
-//
-//                            val config = PlayerConfig.Builder()
-//                                .playlist(playlist)
-//                                .build()
-//
-//                            mPlayer.setup(config)
-//                        }
-//                    }
-//                )
-//            }
-//        }
-//    }
-//}
 
-
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun CustomEducationVideoDialog(
     videoUrl: String,

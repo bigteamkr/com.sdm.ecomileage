@@ -65,7 +65,10 @@ import com.sdm.ecomileage.model.registerPage.searchLocation.areaResponse.Search
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.homeAdd.ContentInputField
 import com.sdm.ecomileage.screens.loginRegister.LoginRegisterViewModel
+import com.sdm.ecomileage.screens.myPage.MyPageViewModel
 import com.sdm.ecomileage.ui.theme.*
+import com.sdm.ecomileage.utils.currentUUIDUtil
+import com.sdm.ecomileage.utils.currentLoginedUserId
 import kotlinx.coroutines.launch
 
 @Composable
@@ -435,6 +438,7 @@ fun MainFeedCardStructure(
     reactionIcon: List<Int>,
     reactionData: Int,
     reactionTint: Color,
+    followYN: Boolean,
     likeYN: Boolean,
     reportYN: Boolean,
     onReactionClick: (Boolean) -> Unit,
@@ -475,6 +479,7 @@ fun MainFeedCardStructure(
                 onReactionClick,
                 reactionTint,
                 likeYN,
+                followYN,
                 null,
                 otherIcons,
                 navController,
@@ -504,7 +509,8 @@ fun MainCardFeed(
     reactionData: Int?,
     onReactionClick: ((Boolean) -> Unit)?,
     reactionTint: Color?,
-    likeYN: Boolean?,
+    likeYN: Boolean? = null,
+    followYN: Boolean? = null,
     colorIcon: @Composable() (() -> Unit)?,
     otherIcons: Map<String, Int>?,
     navController: NavController,
@@ -564,6 +570,7 @@ fun MainCardFeed(
                 onReactionClick,
                 reactionTint,
                 likeYN,
+                followYN,
                 colorIcon,
                 otherIcons,
                 navController,
@@ -588,6 +595,7 @@ fun CardWriterInformation(
     onReactionClick: ((Boolean) -> Unit)?,
     reactionTint: Color?,
     likeYN: Boolean?,
+    followYN: Boolean? = null,
     colorIcon: (@Composable () -> Unit)?,
     otherIcons: (Map<String, Int>)?,
     navController: NavController,
@@ -595,11 +603,18 @@ fun CardWriterInformation(
     reportDialogCallAction: ((Offset) -> Unit)?,
     currentScreen: String,
     feedNo: Int?,
-    isOnEducation: Boolean = false
+    isOnEducation: Boolean = false,
+    myPageViewModel: MyPageViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var expandedDropdown by remember {
         mutableStateOf(false)
     }
+    var followInfo by remember {
+        mutableStateOf(followYN)
+    }
+
     Row(
         modifier = Modifier
             .padding(5.dp)
@@ -683,30 +698,75 @@ fun CardWriterInformation(
                                 expanded = expandedDropdown,
                                 onDismissRequest = { expandedDropdown = !expandedDropdown }
                             ) {
-                                if (likeYN == true)
-                                    DropdownMenuItem(onClick = {
-                                        expandedDropdown = false
-                                        if (onReactionClick != null) {
-                                            onReactionClick(true)
+                                when (profileId) {
+                                    currentLoginedUserId -> {
+                                        DropdownMenuItem(onClick = {
+                                            if (deleteFeedAction != null && feedNo != null) {
+                                                scope.launch {
+                                                    myPageViewModel.deleteMyFeed(
+                                                        feedNo
+                                                    ).let {
+                                                        if (it.data?.code == 200) deleteFeedAction()
+                                                        else {
+                                                            Log.d("component", "CardWriterInformation: ${it.data?.message} ${it.data?.code}")
+                                                            showShortToastMessage(context, "${it.data?.message}")
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                Log.d("component", "CardWriterInformation: $feedNo")
+                                                showShortToastMessage(context, "오류가 발생하였습니다.")
+                                            }
+                                        }) {
+                                            Text(text = "삭제하기")
                                         }
-                                    }) {
-                                        Text(text = "팔로우하기")
                                     }
-                                else if (likeYN == false)
-                                    DropdownMenuItem(onClick = {
-                                        expandedDropdown = false
-                                        if (onReactionClick != null) {
-                                            onReactionClick(false)
+                                    else -> {
+                                        if (followInfo == false)
+                                            DropdownMenuItem(onClick = {
+                                                scope.launch {
+                                                    myPageViewModel.putNewFollowInfo(
+                                                        currentUUIDUtil,
+                                                        profileId,
+                                                        true
+                                                    ).let {
+                                                        if (it.data?.code == 200) followInfo = true
+                                                        else showShortToastMessage(
+                                                            context,
+                                                            "잠시 후 다시 시도해주세요."
+                                                        )
+                                                    }
+                                                }
+                                                expandedDropdown = false
+                                            }) {
+                                                Text(text = "팔로우하기")
+                                            }
+                                        else if (followInfo == true)
+                                            DropdownMenuItem(onClick = {
+                                                scope.launch {
+                                                    myPageViewModel.putNewFollowInfo(
+                                                        currentUUIDUtil,
+                                                        profileId,
+                                                        false
+                                                    ).let {
+                                                        if (it.data?.code == 200) followInfo = false
+                                                        else showShortToastMessage(
+                                                            context,
+                                                            "잠시 후 다시 시도해주세요."
+                                                        )
+                                                    }
+                                                }
+                                                expandedDropdown = false
+                                            }) {
+                                                Text(text = "팔로우 취소하기")
+                                            }
+                                        DropdownMenuItem(onClick = {
+                                            expandedDropdown = false
+                                            reportDialogCallAction?.invoke(Offset.Zero)
+                                        }) {
+                                            Text(text = "신고하기")
                                         }
-                                    }) {
-                                        Text(text = "팔로우 취소하기")
                                     }
-
-                                DropdownMenuItem(onClick = {
-                                    expandedDropdown = false
-                                    reportDialogCallAction?.invoke(Offset.Zero)
-                                }) {
-                                    Text(text = "신고하기")
                                 }
                             }
                         }

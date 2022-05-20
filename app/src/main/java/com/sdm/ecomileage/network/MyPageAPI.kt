@@ -1,5 +1,7 @@
 package com.sdm.ecomileage.network
 
+import com.sdm.ecomileage.model.myPage.deleteFeed.request.DeleteFeedRequest
+import com.sdm.ecomileage.model.myPage.deleteFeed.response.DeleteFeedResponse
 import com.sdm.ecomileage.model.myPage.myFeedInfo.request.MyFeedInfoRequest
 import com.sdm.ecomileage.model.myPage.myFeedInfo.response.MyFeedInfoResponse
 import com.sdm.ecomileage.model.myPage.newFollow.request.NewFollowInfoRequest
@@ -16,24 +18,30 @@ interface MyPageAPI {
     @POST("MyFeedInfo")
     suspend fun getMyFeedInfo(
         @Header("token") token: String,
-        @Body body:MyFeedInfoRequest
-    ) : MyFeedInfoResponse
+        @Body body: MyFeedInfoRequest
+    ): MyFeedInfoResponse
 
     @POST("UserFeedInfo")
     suspend fun getUserFeedInfo(
-        @Header ("token") token: String,
+        @Header("token") token: String,
         @Body body: UserFeedInfoRequest
-    ) : UserFeedInfoResponse
+    ): UserFeedInfoResponse
 
     @POST("NewFollowInfo")
     suspend fun putNewFollowInfo(
-        @Header ("token") token: String,
+        @Header("token") token: String,
         @Body body: NewFollowInfoRequest
-    ) : NewFollowInfoResponse
+    ): NewFollowInfoResponse
 
     @POST("NewReportUser")
     suspend fun postNewUserReport(
-        @Header ("token") token: String,
+        @Header("token") token: String,
         @Body body: NewUserReportRequest
-    ) : NewUserReportResponse
+    ): NewUserReportResponse
+
+    @POST("RemoveActivityInfo")
+    suspend fun deleteMyFeed(
+        @Header("token") token: String,
+        @Body body: DeleteFeedRequest
+    ): DeleteFeedResponse
 }

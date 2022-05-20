@@ -2,6 +2,8 @@ package com.sdm.ecomileage.screens.myPage
 
 import androidx.lifecycle.ViewModel
 import com.sdm.ecomileage.data.DataOrException
+import com.sdm.ecomileage.model.myPage.deleteFeed.request.DeleteFeedRequest
+import com.sdm.ecomileage.model.myPage.deleteFeed.request.RemoveActivityInfo
 import com.sdm.ecomileage.model.myPage.myFeedInfo.request.MyFeedInfo
 import com.sdm.ecomileage.model.myPage.myFeedInfo.request.MyFeedInfoRequest
 import com.sdm.ecomileage.model.myPage.myFeedInfo.response.MyFeedInfoResponse
@@ -81,6 +83,16 @@ class MyPageViewModel @Inject constructor(private val repository: MyPageReposito
                     reportcontent = reportContent,
                     reportyn = reportYN
                 )
+            )
+        )
+    )
+
+    suspend fun deleteMyFeed(
+        feedNo: Int
+    ) = repository.deleteMyFeed(
+        accessTokenUtil, DeleteFeedRequest(
+            listOf(
+                RemoveActivityInfo(feedNo)
             )
         )
     )

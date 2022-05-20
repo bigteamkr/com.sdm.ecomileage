@@ -5,18 +5,21 @@ import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.homedetail.comment.commentInfo.request.CommentInfo
 import com.sdm.ecomileage.model.homedetail.comment.commentInfo.request.CommentInfoRequest
 import com.sdm.ecomileage.model.homedetail.comment.commentInfo.response.CommentInfoResponse
+import com.sdm.ecomileage.model.homedetail.comment.deleteComment.DeleteCommentRequest.DeleteCommentRequest
+import com.sdm.ecomileage.model.homedetail.comment.deleteComment.DeleteCommentRequest.RemoveCommentInfo
+import com.sdm.ecomileage.model.homedetail.comment.deleteComment.DeleteCommentResponse.DeleteCommentResponse
 import com.sdm.ecomileage.model.homedetail.comment.newComment.request.NewCommentInfo
 import com.sdm.ecomileage.model.homedetail.comment.newComment.request.NewCommentRequest
 import com.sdm.ecomileage.model.homedetail.comment.newComment.response.NewCommentResponse
-import com.sdm.ecomileage.model.report.comment.request.NewReportComment
-import com.sdm.ecomileage.model.report.comment.request.NewReportCommentRequest
-import com.sdm.ecomileage.model.report.comment.response.NewReportCommentResponse
 import com.sdm.ecomileage.model.homedetail.loginUser.request.AppMemberInfo
 import com.sdm.ecomileage.model.homedetail.loginUser.request.AppMemberInfoRequest
 import com.sdm.ecomileage.model.homedetail.loginUser.response.AppMemberInfoResponse
 import com.sdm.ecomileage.model.homedetail.mainFeed.request.ActivityInfo
 import com.sdm.ecomileage.model.homedetail.mainFeed.request.MainFeedRequest
 import com.sdm.ecomileage.model.homedetail.mainFeed.response.MainFeedResponse
+import com.sdm.ecomileage.model.report.comment.request.NewReportComment
+import com.sdm.ecomileage.model.report.comment.request.NewReportCommentRequest
+import com.sdm.ecomileage.model.report.comment.response.NewReportCommentResponse
 import com.sdm.ecomileage.repository.commentRepository.CommentRepository
 import com.sdm.ecomileage.utils.accessTokenUtil
 import com.sdm.ecomileage.utils.currentUUIDUtil
@@ -112,6 +115,15 @@ class HomeDetailViewModel @Inject constructor(private val repository: CommentRep
                         reportyn = reportyn
                     )
                 )
+            )
+        )
+
+    suspend fun deleteComment(
+        commentNo: Int
+    ): DataOrException<DeleteCommentResponse, Boolean, Exception> =
+        repository.deleteComment(
+            accessTokenUtil, DeleteCommentRequest(
+                RemoveCommentInfo = listOf(RemoveCommentInfo(commentNo))
             )
         )
 }

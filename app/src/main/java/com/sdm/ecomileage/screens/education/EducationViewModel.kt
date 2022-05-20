@@ -18,6 +18,35 @@ import javax.inject.Inject
 class EducationViewModel @Inject constructor(private val repository: EducationRepository) :
     ViewModel() {
 
+    var _videoURL = ""
+    var _thumbnailUrl = ""
+    var _point = 0
+    var _educationsno = 0
+    var _educationYN = false
+    var _manageProfile = ""
+    var _manageId = ""
+    var _manageName = ""
+
+    fun setVideo(
+        videoURL: String,
+        thumbnailURL: String,
+        point: Int,
+        educationNo: Int,
+        educationYN: Boolean,
+        manageProfile: String,
+        manageId: String,
+        manageName: String
+    ) {
+        _videoURL = videoURL
+        _thumbnailUrl = thumbnailURL
+        _point = point
+        _educationsno = educationNo
+        _educationYN = educationYN
+        _manageProfile = manageProfile
+        _manageId = manageId
+        _manageName = manageName
+    }
+
     private var _lastEducationThumbnail: String = ""
     fun getEducationThumbnail(): String = _lastEducationThumbnail
     fun putEducationThumbnail(thumbnail: String) {
@@ -37,7 +66,10 @@ class EducationViewModel @Inject constructor(private val repository: EducationRe
             )
         )
 
-    suspend fun postDiary(educationNo: Int, content: String) : DataOrException<PostDiaryResponse, Boolean, Exception> =
+    suspend fun postDiary(
+        educationNo: Int,
+        content: String
+    ): DataOrException<PostDiaryResponse, Boolean, Exception> =
         repository.postDiary(
             accessTokenUtil, PostDiaryRequest(
                 NewEducationInfo = listOf(

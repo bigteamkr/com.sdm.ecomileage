@@ -8,7 +8,7 @@ import com.sdm.ecomileage.model.homeInfo.request.HomeInfoRequest
 import com.sdm.ecomileage.model.homeInfo.response.Post
 import com.sdm.ecomileage.network.HomeInfoAPI
 import com.sdm.ecomileage.utils.accessTokenUtil
-import com.sdm.ecomileage.utils.loginedUserIdUtil
+import com.sdm.ecomileage.utils.currentLoginedUserId
 import javax.inject.Inject
 
 class MainFeedPagingSource @Inject constructor(private val api: HomeInfoAPI) :
@@ -21,7 +21,7 @@ class MainFeedPagingSource @Inject constructor(private val api: HomeInfoAPI) :
         val requestBody = HomeInfoRequest(
             HomeInfo = listOf(
                 HomeInfo(
-                    loginedUserIdUtil,
+                    currentLoginedUserId,
                     postpage = page,
                     postperpage = postPerPager
                 )

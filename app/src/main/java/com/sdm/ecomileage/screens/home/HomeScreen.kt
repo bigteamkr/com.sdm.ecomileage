@@ -74,7 +74,7 @@ fun HomeScreen(
         CircularProgressIndicator(color = LoginButtonColor)
     else if (homeInfo.data?.result != null) {
         homeInfo.data?.code?.let {
-            if (it >= 200) return@let
+            if (it == 200) return@let
             else {
                 AutoLoginLogic(
                     isLoading = { isLoading = true },
@@ -272,6 +272,7 @@ private fun HomeMainContent(
                             ),
                             reactionData = data.likeCount,
                             reactionTint = LikeColor,
+                            followYN = data.followyn,
                             likeYN = data.likeyn,
                             onReactionClick = {
                                 scope.launch {
@@ -294,7 +295,13 @@ private fun HomeMainContent(
                             hashtagList = data.hashtags,
                             navController = navController,
                             feedNo = data.feedsno,
-                            deleteFeedAction = {},
+                            deleteFeedAction = {
+                                scope.launch {
+                                    homeViewModel.refresh {
+                                        pagingData.refresh().let { homeViewModel.invalidateDataSource() }
+                                    }
+                                }
+                            },
                             reportDialogCallAction = {
                                 reportDialogVisible = true
                                 reportTargetFeedNo = data.feedsno

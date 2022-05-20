@@ -39,7 +39,7 @@ import com.sdm.ecomileage.model.appMemberInfo.response.Result
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.loginRegister.AutoLoginLogic
 import com.sdm.ecomileage.ui.theme.*
-import com.sdm.ecomileage.utils.loginedUserIdUtil
+import com.sdm.ecomileage.utils.currentLoginedUserId
 
 
 @Composable
@@ -487,7 +487,7 @@ private fun SettingsProfile(navController: NavController, image: String) {
         ) {
             ProfileImage(
                 modifier = Modifier.fillMaxSize(),
-                userId = loginedUserIdUtil,
+                userId = currentLoginedUserId,
                 image = image,
                 navController = navController,
                 isNonClickable = true
