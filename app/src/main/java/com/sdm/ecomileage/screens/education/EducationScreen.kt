@@ -417,18 +417,18 @@ private fun EducationDialog(
                             .padding(start = 10.dp, end = 10.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("영상 길이", color = Color.White, style = MaterialTheme.typography.caption)
-                        Button(onClick = {
-                            styledPlayerView.setControllerOnFullScreenModeChangedListener {
-
-                            }
-                        }) {
-                            Text(
-                                text = "전체화면 아이콘",
-                                color = Color.White,
-                                style = MaterialTheme.typography.caption
-                            )
-                        }
+//                        Text("영상 길이", color = Color.White, style = MaterialTheme.typography.caption)
+//                        Button(onClick = {
+//                            styledPlayerView.setControllerOnFullScreenModeChangedListener {
+//
+//                            }
+//                        }) {
+//                            Text(
+//                                text = "전체화면 아이콘",
+//                                color = Color.White,
+//                                style = MaterialTheme.typography.caption
+//                            )
+//                        }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -458,7 +458,7 @@ private fun EducationDialog(
                                     textData = mileagePoint.toString()
                                 )
                             },
-                            otherIcons = mapOf("comment" to R.drawable.ic_comment),
+                            otherIcons = mapOf(),
                             navController = navController,
                             reportDialogCallAction = null,
                             currentScreen = SecomiScreens.EducationScreen.name,
