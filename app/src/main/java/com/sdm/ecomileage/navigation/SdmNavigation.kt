@@ -11,6 +11,7 @@ import androidx.navigation.navArgument
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sdm.ecomileage.screens.diary.DiaryScreen
 import com.sdm.ecomileage.screens.education.EducationScreen
+import com.sdm.ecomileage.screens.educationVideo.EducationVideoScreen
 import com.sdm.ecomileage.screens.event.EventScreen
 import com.sdm.ecomileage.screens.findingAccount.FindingAccountScreen
 import com.sdm.ecomileage.screens.home.HomeScreen
@@ -77,6 +78,30 @@ fun SdmNavigation() {
 
         composable(SecomiScreens.EducationScreen.name) {
             EducationScreen(navController, systemUiController)
+        }
+
+        composable("${SecomiScreens.EducationVideoScreen.name}/{videoURL}&{thumbnailURL}&{point}&{educationNo}&{educationYN}&{manageProfile}&{manageId}&{manageName}") { navBackStackEntry ->
+
+            val videoURL = navBackStackEntry.arguments?.getString("videoURL")
+            val thumbnail = navBackStackEntry.arguments?.getString("thumbnailURL")
+            val point = navBackStackEntry.arguments?.getInt("point")
+            val educationNo = navBackStackEntry.arguments?.getInt("educationNo")
+            val educationYN = navBackStackEntry.arguments?.getBoolean("educationYN")
+            val manageProfile = navBackStackEntry.arguments?.getString("manageProfile")
+            val manageId = navBackStackEntry.arguments?.getString("manageId")
+            val manageName = navBackStackEntry.arguments?.getString("manageName")
+
+            EducationVideoScreen(
+                videoURL ?: "ERROR",
+                thumbnail ?: "ERROR",
+                point ?: -1,
+                educationNo ?: -1,
+                educationYN ?: false,
+                manageProfile ?: "ERROR",
+                manageId ?: "ERROR",
+                manageName ?: "ERROR",
+                navController = navController
+            )
         }
 
         composable("${SecomiScreens.DiaryScreen.name}/{educationNo}", arguments = listOf(

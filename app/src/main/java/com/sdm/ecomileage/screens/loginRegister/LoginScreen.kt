@@ -61,7 +61,10 @@ import com.kakao.sdk.user.UserApiClient
 import com.navercorp.nid.NaverIdLoginSDK
 import com.navercorp.nid.oauth.OAuthLoginCallback
 import com.sdm.ecomileage.R
-import com.sdm.ecomileage.components.*
+import com.sdm.ecomileage.components.CustomLoginInputTextField
+import com.sdm.ecomileage.components.RegisterBottomSheetMain
+import com.sdm.ecomileage.components.showLongToastMessage
+import com.sdm.ecomileage.components.showShortToastMessage
 import com.sdm.ecomileage.data.AppSettings
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
@@ -180,6 +183,9 @@ fun AutoLoginLogic(
                 }
             } ?: withContext(Dispatchers.Main) {
                 showShortToastMessage(context, "로그인을 다시 시도해주세요.")
+                navController.navigate(SecomiScreens.LoginScreen.name) {
+                    popUpTo(screen) { inclusive = true }
+                }
             }
         }
     }
@@ -1345,7 +1351,8 @@ fun SocialLoginList(
                             loginRegisterViewModel.socialSSOID =
                                 result?.accessToken?.userId.toString()
                             loginRegisterViewModel.socialType = "facebook"
-                            loginRegisterViewModel.socialEmail = "${result?.accessToken?.userId}@facebook.com"
+                            loginRegisterViewModel.socialEmail =
+                                "${result?.accessToken?.userId}@facebook.com"
 
                             scope.launch {
                                 loginRegisterViewModel.getSocialLogin(
@@ -1466,7 +1473,8 @@ fun SocialLoginList(
                                         else if (it.data?.code == 200) {
                                             accessTokenUtil = it.data!!.data.accessToken
                                             refreshTokenUtil = it.data!!.data.refreshToken
-                                            currentLoginedUserId = loginRegisterViewModel.socialEmail
+                                            currentLoginedUserId =
+                                                loginRegisterViewModel.socialEmail
                                             navController.navigate(SecomiScreens.HomeScreen.name) {
                                                 popUpTo(SecomiScreens.LoginScreen.name) {
                                                     inclusive = true
