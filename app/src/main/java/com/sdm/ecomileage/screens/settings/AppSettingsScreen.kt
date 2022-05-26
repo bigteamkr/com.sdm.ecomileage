@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,7 +17,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -32,14 +32,17 @@ import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
-import com.sdm.ecomileage.components.*
+import com.sdm.ecomileage.components.SecomiBottomBar
+import com.sdm.ecomileage.components.SecomiMainFloatingActionButton
+import com.sdm.ecomileage.components.SecomiTopAppBar
+import com.sdm.ecomileage.components.showShortToastMessage
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.appMemberInfo.response.AppMemberInfoResponse
 import com.sdm.ecomileage.model.appMemberInfo.response.Result
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.loginRegister.AutoLoginLogic
+import com.sdm.ecomileage.screens.loginRegister.LoginRegisterViewModel
 import com.sdm.ecomileage.ui.theme.*
-import com.sdm.ecomileage.utils.currentLoginedUserId
 
 
 @Composable
@@ -438,13 +441,17 @@ private fun SettingsProfileName(name: String) {
 }
 
 @Composable
-private fun SettingsProfile(navController: NavController, image: String) {
+private fun SettingsProfile(
+    navController: NavController,
+    image: String,
+    appSettingsViewModel: AppSettingsViewModel = hiltViewModel(),
+    loginRegisterViewModel: LoginRegisterViewModel = hiltViewModel()
+) {
 
     val context = LocalContext.current
     var dropdownOpen by remember {
         mutableStateOf(false)
     }
-    var dropdownOffset = Offset.Zero
 
     var profileImgBitmap by remember {
         mutableStateOf<Bitmap?>(null)
@@ -458,6 +465,8 @@ private fun SettingsProfile(navController: NavController, image: String) {
         rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
             if (result.isSuccessful) {
                 imageUri = result.uriContent
+                //Todo : API 연결하기
+
             } else {
                 val exception = result.error
             }
@@ -471,8 +480,12 @@ private fun SettingsProfile(navController: NavController, image: String) {
 
     val imageCameraLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) { takenPhoto ->
-            if (takenPhoto != null) profileImgBitmap = takenPhoto
-            else showShortToastMessage(context, "카메라 촬영을 취소하셨습니다.")
+            if (takenPhoto != null) {
+                appSettingsViewModel
+                profileImgBitmap = takenPhoto
+                //Todo : API 연결하기
+
+            } else showShortToastMessage(context, "카메라 촬영을 취소하셨습니다.")
         }
 
     Row(
@@ -485,13 +498,22 @@ private fun SettingsProfile(navController: NavController, image: String) {
                 .size(100.dp),
             contentAlignment = Alignment.BottomEnd
         ) {
-            ProfileImage(
-                modifier = Modifier.fillMaxSize(),
-                userId = currentLoginedUserId,
-                image = image,
-                navController = navController,
-                isNonClickable = true
-            )
+            Surface(
+                shape = CircleShape
+            ) {
+                Image(
+                    painter = rememberImagePainter(data = profileImgBitmap ?: image),
+                    contentDescription = "Profile",
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+//            ProfileImage(
+//                modifier = Modifier.fillMaxSize(),
+//                userId = currentLoginedUserId,
+//                image = image,
+//                navController = navController,
+//                isNonClickable = true
+//            )
             Box {
                 Image(
                     painter = painterResource(id = R.drawable.ic_camera),
@@ -505,10 +527,10 @@ private fun SettingsProfile(navController: NavController, image: String) {
                 DropdownMenu(
                     expanded = dropdownOpen,
                     onDismissRequest = { dropdownOpen = !dropdownOpen }) {
-                    DropdownMenuItem(onClick = { /*TODO*/ }) {
+                    DropdownMenuItem(onClick = { imageCameraLauncher.launch() }) {
                         Text(text = "카메라에서 추가하기")
                     }
-                    DropdownMenuItem(onClick = { /*TODO*/ }) {
+                    DropdownMenuItem(onClick = { imagePickerLauncher.launch("image/*") }) {
                         Text(text = "갤러리에서 추가하기")
                     }
                 }

@@ -13,11 +13,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppSettingsViewModel @Inject constructor(
-    private val repository: AppSettingsRepository
+    private val appSettingsRepository: AppSettingsRepository
 ) : ViewModel() {
 
     suspend fun getAppMemberInfo(): DataOrException<AppMemberInfoResponse, Boolean, Exception> =
-        repository.getAppMemberInfo(
+        appSettingsRepository.getAppMemberInfo(
             accessTokenUtil, AppMemberInfoRequest(
                 AppMemberInfo = listOf(
                     AppMemberInfo(
@@ -26,5 +26,4 @@ class AppSettingsViewModel @Inject constructor(
                 )
             )
         )
-
 }

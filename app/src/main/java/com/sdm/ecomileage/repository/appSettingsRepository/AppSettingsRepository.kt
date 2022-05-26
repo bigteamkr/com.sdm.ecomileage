@@ -4,6 +4,8 @@ import android.util.Log
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.appMemberInfo.request.AppMemberInfoRequest
 import com.sdm.ecomileage.model.appMemberInfo.response.AppMemberInfoResponse
+import com.sdm.ecomileage.model.memberUpdate.request.MemberUpdateRequest
+import com.sdm.ecomileage.model.memberUpdate.response.MemberUpdateResponse
 import com.sdm.ecomileage.network.AppSettingsAPI
 import java.util.concurrent.CancellationException
 import javax.inject.Inject

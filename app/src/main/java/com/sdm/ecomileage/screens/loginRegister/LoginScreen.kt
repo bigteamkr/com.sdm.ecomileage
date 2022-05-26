@@ -533,9 +533,17 @@ private fun RegisterPage(
                 if (isAreaForBottomSheet) {
                     addressId = id.toString()
                     address = name
+                    validationCheck = if (loginRegisterViewModel.socialType == "")
+                        userName.isNotEmpty() && email.isNotEmpty() &&
+                                passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
+                    else userName.isNotEmpty() && email.isNotEmpty() && address.isNotEmpty() && dept.isNotEmpty()
                 } else {
                     deptId = id.toString()
                     dept = name
+                    validationCheck = if (loginRegisterViewModel.socialType == "")
+                        userName.isNotEmpty() && email.isNotEmpty() &&
+                                passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
+                    else userName.isNotEmpty() && email.isNotEmpty() && address.isNotEmpty() && dept.isNotEmpty()
                 }
                 scope.launch { bottomSheetScaffoldState.hide() }
             }
@@ -577,9 +585,10 @@ private fun RegisterPage(
                     inputEvent = {
                         userName = it
                         scope.launch {
-                            validationCheck =
+                            validationCheck = if (loginRegisterViewModel.socialType == "")
                                 userName.isNotEmpty() && email.isNotEmpty() &&
                                         passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
+                            else userName.isNotEmpty() && email.isNotEmpty()
                         }
                     },
                     focusState = isNameInputFocus,
@@ -613,9 +622,10 @@ private fun RegisterPage(
                             inputEvent = {
                                 email = it
                                 scope.launch {
-                                    validationCheck =
+                                    validationCheck = if (loginRegisterViewModel.socialType == "")
                                         userName.isNotEmpty() && email.isNotEmpty() &&
                                                 passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
+                                    else userName.isNotEmpty() && email.isNotEmpty()
                                 }
                             },
                             focusState = isEmailInputFocus,
@@ -645,9 +655,10 @@ private fun RegisterPage(
                         inputEvent = {
                             passwordFirst = it
                             scope.launch {
-                                validationCheck =
+                                validationCheck = if (loginRegisterViewModel.socialType == "")
                                     userName.isNotEmpty() && email.isNotEmpty() &&
                                             passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
+                                else userName.isNotEmpty() && email.isNotEmpty()
                             }
                         },
                         focusState = isPasswordFirstInputFocus,
@@ -672,9 +683,10 @@ private fun RegisterPage(
                         inputEvent = {
                             passwordSecond = it
                             scope.launch {
-                                validationCheck =
+                                validationCheck = if (loginRegisterViewModel.socialType == "")
                                     userName.isNotEmpty() && email.isNotEmpty() &&
                                             passwordFirst.isNotEmpty() && passwordSecond.isNotEmpty()
+                                else userName.isNotEmpty() && email.isNotEmpty()
                             }
                         },
                         focusState = isPasswordSecondInputFocus,
@@ -709,7 +721,8 @@ private fun RegisterPage(
                         isPasswordSecondInputFocus = false
                         isPhoneNumberInputFocus = true
                     },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    defaultText = loginRegisterViewModel.socialPhone
                 )
             }
 

@@ -1,6 +1,9 @@
 package com.sdm.ecomileage.screens.event
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,16 +12,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -28,13 +37,27 @@ import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.SecomiBottomBar
 import com.sdm.ecomileage.components.SecomiMainFloatingActionButton
+import com.sdm.ecomileage.data.DataOrException
+import com.sdm.ecomileage.model.event.currentEvent.response.AttendanceInfoResponse
+import com.sdm.ecomileage.model.event.currentEvent.response.Attn
+import com.sdm.ecomileage.model.event.currentEvent.response.Comment
 import com.sdm.ecomileage.navigation.SecomiScreens
+import com.sdm.ecomileage.screens.loginRegister.AutoLoginLogic
 import com.sdm.ecomileage.ui.theme.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.time.*
+import java.util.Calendar
 
 
 @Composable
-fun EventScreen(navController: NavController, systemUiController: SystemUiController) {
+fun EventScreen(
+    navController: NavController,
+    systemUiController: SystemUiController,
+    eventViewModel: EventViewModel = hiltViewModel()
+) {
+
     SideEffect {
         systemUiController.setStatusBarColor(
             Color.White
@@ -47,12 +70,42 @@ fun EventScreen(navController: NavController, systemUiController: SystemUiContro
         }
     }
 
-    EventScaffold(navController)
+    val context = LocalContext.current
+
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
+
+    val eventInfo = produceState<DataOrException<AttendanceInfoResponse, Boolean, Exception>>(
+        initialValue = DataOrException(loading = true)
+    ) {
+        value = eventViewModel.getCurrentEventInfo()
+    }.value
+
+    if (eventInfo.loading == true)
+        CircularProgressIndicator(color = LoginButtonColor)
+    else if (eventInfo.data?.result != null) {
+        eventInfo.data?.code?.let {
+            if (it == 200) return@let
+            else {
+                AutoLoginLogic(
+                    isLoading = { isLoading = true },
+                    navController = navController,
+                    context = context,
+                    screen = SecomiScreens.EventScreen.name
+                )
+            }
+        }
+        EventScaffold(eventInfo, navController)
+    }
 }
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-private fun EventScaffold(navController: NavController) {
+private fun EventScaffold(
+    eventInfo: DataOrException<AttendanceInfoResponse, Boolean, Exception>,
+    navController: NavController
+) {
     val pagerState = rememberPagerState()
     val pages = listOf("이벤트 참여", "퀴즈 챌린지")
     val scope = rememberCoroutineScope()
@@ -68,7 +121,6 @@ private fun EventScaffold(navController: NavController) {
         isFloatingActionButtonDocked = true,
         floatingActionButtonPosition = FabPosition.Center
     ) {
-
         Column {
             TabRow(
                 selectedTabIndex = pagerState.currentPage,
@@ -97,9 +149,9 @@ private fun EventScaffold(navController: NavController) {
                 state = pagerState
             ) { index ->
                 if (pages[index] == "이벤트 참여")
-                    EventAttendScaffold(navController)
+                    EventAttendScaffold(eventInfo, navController)
                 else if (pages[index] == "퀴즈 챌린지")
-                    QuizChallengeScaffold(navController)
+                    QuizChallengeScaffold(eventInfo.data!!.result.commentList, navController)
             }
         }
     }
@@ -107,12 +159,20 @@ private fun EventScaffold(navController: NavController) {
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-private fun EventAttendScaffold(navController: NavController) {
-    val isEventCurrent = remember {
-        mutableStateOf(true)
-    }
-    val pagerState = rememberPagerState()
+private fun EventAttendScaffold(
+    eventInfo: DataOrException<AttendanceInfoResponse, Boolean, Exception>,
+    navController: NavController,
+    eventViewModel: EventViewModel = hiltViewModel()
+) {
     val configuration = LocalConfiguration.current
+
+    val localAttnList = SnapshotStateList<Attn>()
+    eventInfo.data!!.result.attnList.forEach {
+        localAttnList.add(it)
+    }
+    val currentWeek = SimpleDateFormat("u").format(System.currentTimeMillis()).toInt()
+    var isClicked by remember { mutableStateOf(false) }
+
 
     Scaffold(
         modifier = Modifier.fillMaxSize()
@@ -146,58 +206,82 @@ private fun EventAttendScaffold(navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 repeat(4) {
-                    Surface(
-                        modifier = Modifier.size(70.dp),
-                        shape = CircleShape,
-                        color = BottomUnSelectedColor,
-                        contentColor = Color.White
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
+                    Box(contentAlignment = Alignment.Center) {
+                        Surface(
+                            modifier = Modifier.size(70.dp),
+                            shape = CircleShape,
+                            color = BottomUnSelectedColor,
+                            contentColor = Color.White
                         ) {
-                            Text(
-                                text = "출석",
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 17.sp
-                            )
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "출석",
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 17.sp
+                                )
+                            }
                         }
+
+                        if (it == (currentWeek - 1) && isClicked)
+                            DropDown {
+                                Log.d("EventScreen", "EventAttendScaffold: $it ${currentWeek}")
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_attandance),
+                                    contentDescription = "",
+                                    modifier = Modifier.size(60.dp)
+                                )
+                            }
                     }
                 }
             }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
+                    .padding(horizontal = 50.dp)
                     .padding(top = 5.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
+
                 repeat(3) {
-                    Surface(
-                        modifier = Modifier.size(70.dp),
-                        shape = CircleShape,
-                        color = BottomUnSelectedColor,
-                        contentColor = Color.White
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
+                    Box(contentAlignment = Alignment.Center) {
+                        Surface(
+                            modifier = Modifier.size(70.dp),
+                            shape = CircleShape,
+                            color = BottomUnSelectedColor,
+                            contentColor = Color.White
                         ) {
-                            Text(
-                                text = "출석",
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 17.sp
-                            )
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "출석",
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 17.sp
+                                )
+                            }
                         }
+                        if (it == (currentWeek - 5) && isClicked)
+                            DropDown {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_attandance),
+                                    contentDescription = "",
+                                    modifier = Modifier.size(60.dp)
+                                )
+                            }
                     }
+
                 }
             }
             Button(
-                onClick = { /*TODO*/ },
+                onClick = { isClicked = true },
                 modifier = Modifier
                     .width((configuration.screenWidthDp * 0.9).dp)
                     .height(70.dp)
@@ -221,7 +305,10 @@ private fun EventAttendScaffold(navController: NavController) {
 }
 
 @Composable
-private fun QuizChallengeScaffold(navController: NavController) {
+private fun QuizChallengeScaffold(
+    commentList: List<Comment>,
+    navController: NavController
+) {
     val configuration = LocalConfiguration.current
     var inputValue by remember {
         mutableStateOf("")
@@ -280,6 +367,48 @@ private fun QuizChallengeScaffold(navController: NavController) {
                 color = UnselectedButtonColor,
                 thickness = 1.dp
             )
+        }
+    }
+}
+
+
+@Composable
+private fun DropDown(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    var isOpen by remember { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = Unit){
+        delay(50)
+        isOpen = true
+    }
+
+    val alpha = animateFloatAsState(
+        targetValue = if (isOpen) 1f else 0f,
+        animationSpec = tween(
+            durationMillis = 1000
+        )
+    )
+
+    val rotateX = animateFloatAsState(
+        targetValue = if (isOpen) 0f else 90f,
+        animationSpec = tween(
+            durationMillis = 1000
+        )
+    )
+
+    Column {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .graphicsLayer {
+                    transformOrigin = TransformOrigin(0.5f, 0f)
+                    rotationX = rotateX.value
+                }
+                .alpha(alpha.value)
+        ) {
+            content()
         }
     }
 }

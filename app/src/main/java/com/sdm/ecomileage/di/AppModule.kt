@@ -116,4 +116,15 @@ object AppModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(AppSettingsAPI::class.java)
+
+    @Provides
+    @Singleton
+    fun provideEventAPI(): EventAPI =
+        Retrofit
+            .Builder()
+            .baseUrl(Constants.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(EventAPI::class.java)
+
 }
