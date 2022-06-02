@@ -33,7 +33,7 @@ class HomeRepository @Inject constructor(private val api: HomeInfoAPI) {
         return DataOrException(data = response)
     }
 
-    suspend fun postHomeFeed(
+    suspend fun postHomeFeed (
         token: String,
         body: HomeAddRequest
     ): DataOrException<HomeAddResponse, Boolean, Exception> {

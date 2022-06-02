@@ -69,8 +69,8 @@ import com.sdm.ecomileage.model.homeAdd.request.NewActivityInfo
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.bitmapToString
-import com.sdm.ecomileage.utils.currentUUIDUtil
 import com.sdm.ecomileage.utils.currentLoginedUserId
+import com.sdm.ecomileage.utils.currentUUIDUtil
 import com.sdm.ecomileage.utils.uploadAlarm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -208,7 +208,6 @@ private fun HomeAddScaffold(
                 Spacer(modifier = Modifier.height(40.dp))
 
                 CategoryField(
-                    isNotEmptyImageList,
                     selectedCategory,
                     showCategoryDialog
                 ) { showCategoryDialog = it }
@@ -220,7 +219,6 @@ private fun HomeAddScaffold(
                     keyboardAction,
                     contentPlaceholderText,
                     Modifier.height(150.dp),
-                    isNotEmptyImageList
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -230,7 +228,6 @@ private fun HomeAddScaffold(
                     focusRequester,
                     tagList,
                     tagPlaceholderText,
-                    isNotEmptyImageList
                 )
             }
 
@@ -242,8 +239,8 @@ private fun HomeAddScaffold(
                         showShortToastMessage(context, "사진을 입력해주세요.")
                     else if (selectedCategory.value == "카테고리 선택")
                         showShortToastMessage(context, "카테고리를 선택해주세요.")
-                    else if (inputComment.value.length < 10)
-                        showShortToastMessage(context, "내용은 10자 이상 작성해주세요.")
+                    else if (inputComment.value.length < 20)
+                        showShortToastMessage(context, "내용은 20자 이상 작성해주세요.")
                     else {
                         isAlarm = true
                     }
@@ -326,7 +323,7 @@ private fun HomeAddScaffold(
 
                                         var startImageToList = System.currentTimeMillis()
                                         imageList.forEach { image ->
-                                            if (image != null){
+                                            if (image != null) {
                                                 imageData.add(
                                                     Image(
                                                         status = "I",
@@ -340,7 +337,10 @@ private fun HomeAddScaffold(
                                                 image.recycle()
                                             }
                                         }.let {
-                                            Log.d("TimeCheck", "HomeAddScaffold: Image To List Time${System.currentTimeMillis() - startImageToList}")
+                                            Log.d(
+                                                "TimeCheck",
+                                                "HomeAddScaffold: Image To List Time${System.currentTimeMillis() - startImageToList}"
+                                            )
 
                                             if (selectedCategory.value == "일상생활")
                                                 viewModel.postHomeFeedInfo(
@@ -362,7 +362,10 @@ private fun HomeAddScaffold(
                                                         it.loading == true -> canUploadNetworkStatus =
                                                             false
                                                         it.data?.code == 200 -> {
-                                                            Log.d("TimeCheck", "HomeAddScaffold: total = ${System.currentTimeMillis() - startTime}")
+                                                            Log.d(
+                                                                "TimeCheck",
+                                                                "HomeAddScaffold: total = ${System.currentTimeMillis() - startTime}"
+                                                            )
                                                             withContext(Dispatchers.Main) {
                                                                 navController.navigate(SecomiScreens.HomeScreen.name) {
                                                                     launchSingleTop
@@ -488,7 +491,6 @@ private fun TagInputField(
     focusRequester: FocusRequester,
     tagList: SnapshotStateList<String>,
     tagPlaceholderText: String,
-    isNotEmptyImageList: Boolean
 ) {
     Surface(
         modifier = Modifier
@@ -498,69 +500,55 @@ private fun TagInputField(
         color = Color.White,
         elevation = 4.dp
     ) {
-        if (isNotEmptyImageList)
-            BasicTextField(
-                value = tagInputElement.value,
-                onValueChange = { tagInputElement.value = it },
+        BasicTextField(
+            value = tagInputElement.value,
+            onValueChange = { tagInputElement.value = it },
+            modifier = Modifier
+                .fillMaxSize()
+                .onKeyEvent {
+                    if (it.key.keyCode == Key.Backspace.keyCode && tagInputElement.value.isEmpty())
+                        tagList.removeLastOrNull()
+                    false
+                }
+                .focusRequester(focusRequester = focusRequester),
+            textStyle = TextStyle(
+                fontSize = 15.sp,
+                letterSpacing = 0.1.sp,
+                textAlign = TextAlign.Start
+            ),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions {
+                tagList.add(tagInputElement.value)
+                tagInputElement.value = ""
+                focusRequester.requestFocus()
+            }
+        ) { innerTextField ->
+            Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .onKeyEvent {
-                        if (it.key.keyCode == Key.Backspace.keyCode && tagInputElement.value.isEmpty())
-                            tagList.removeLastOrNull()
-                        false
-                    }
-                    .focusRequester(focusRequester = focusRequester),
-                textStyle = TextStyle(
-                    fontSize = 15.sp,
-                    letterSpacing = 0.1.sp,
-                    textAlign = TextAlign.Start
-                ),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions {
-                    tagList.add(tagInputElement.value)
-                    tagInputElement.value = ""
-                    focusRequester.requestFocus()
-                }
-            ) { innerTextField ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    AddedTagListRow(tagList)
-                    Box(
-                        modifier = Modifier.padding(top = 5.dp),
-                    ) {
-                        if (tagInputElement.value.isEmpty() && tagList.isEmpty())
-                            Text(
-                                text = tagPlaceholderText, style = LocalTextStyle.current.copy(
-                                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
-                                    fontSize = 15.sp
-                                )
-                            )
-                        innerTextField()
-                    }
-                }
-            }
-        else
-            Card(
-                modifier = Modifier
-                    .fillMaxSize(),
-                backgroundColor = BeforeUploadTint
+                    .padding(bottom = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
             ) {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                AddedTagListRow(tagList)
+                Box(
+                    modifier = Modifier.padding(top = 5.dp),
                 ) {
-                    Text(text = "사진을 업로드해주세요.", color = BeforeUploadTextColor)
+                    if (tagInputElement.value.isEmpty() && tagList.isEmpty())
+                        Text(
+                            text = tagPlaceholderText, style = LocalTextStyle.current.copy(
+                                color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
+                                fontSize = 15.sp
+                            )
+                        )
+                    innerTextField()
                 }
             }
+        }
+
     }
 }
 
@@ -620,7 +608,6 @@ fun ContentInputField(
     keyboardAction: () -> Unit,
     placeholderText: String,
     modifier: Modifier = Modifier,
-    isNotEmptyImageList: Boolean = true
 ) {
     Surface(
         shape = RoundedCornerShape(5),
@@ -628,50 +615,33 @@ fun ContentInputField(
         border = null,
         elevation = 4.dp
     ) {
-        if (isNotEmptyImageList)
-            BasicTextField(
-                value = inputComment.value,
-                onValueChange = { inputComment.value = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-                    .then(modifier),
-                textStyle = MaterialTheme.typography.body1,
-                keyboardOptions = KeyboardOptions.Default,
-                keyboardActions = KeyboardActions(onDone = { keyboardAction() }),
-                maxLines = 6,
-            ) { innerTextField ->
-                if (inputComment.value.isEmpty())
-                    Text(
-                        text = placeholderText, style = LocalTextStyle.current.copy(
-                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
-                            fontSize = 15.sp
-                        )
+        BasicTextField(
+            value = inputComment.value,
+            onValueChange = { inputComment.value = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp)
+                .then(modifier),
+            textStyle = MaterialTheme.typography.body1,
+            keyboardOptions = KeyboardOptions.Default,
+            keyboardActions = KeyboardActions(onDone = { keyboardAction() }),
+            maxLines = 6,
+        ) { innerTextField ->
+            if (inputComment.value.isEmpty())
+                Text(
+                    text = placeholderText, style = LocalTextStyle.current.copy(
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
+                        fontSize = 15.sp
                     )
-                innerTextField()
-            }
-        else
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .then(modifier),
-                backgroundColor = BeforeUploadTint
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "사진을 업로드해주세요.", color = BeforeUploadTextColor)
-                }
-            }
+                )
+            innerTextField()
+        }
 
     }
 }
 
 @Composable
 private fun CategoryField(
-    isNotEmptyImageList: Boolean,
     selectedCategory: MutableState<String>,
     showCategoryDialog: Boolean,
     callCategoryDialog: (Boolean) -> Unit
@@ -681,10 +651,10 @@ private fun CategoryField(
             .fillMaxWidth()
             .height(45.dp)
             .clickable {
-                if (isNotEmptyImageList) callCategoryDialog(!showCategoryDialog)
+                callCategoryDialog(!showCategoryDialog)
             },
         shape = RoundedCornerShape(10),
-        color = if (!isNotEmptyImageList) BeforeUploadTint else Color.White,
+        color = Color.White,
         border = null,
         elevation = 4.dp
     ) {
@@ -696,8 +666,8 @@ private fun CategoryField(
                 .padding(start = 10.dp, end = 10.dp)
         ) {
             Text(
-                text = if (!isNotEmptyImageList) "사진을 업로드해주세요." else selectedCategory.value,
-                color = if (!isNotEmptyImageList) BeforeUploadTextColor else if (selectedCategory.value == "카테고리 선택") PlaceholderColor else Color.Black,
+                text = selectedCategory.value,
+                color = if (selectedCategory.value == "카테고리 선택") PlaceholderColor else Color.Black,
                 fontSize = 16.sp,
                 letterSpacing = 0.15.sp,
                 textAlign = TextAlign.Start
@@ -804,7 +774,6 @@ private fun HomeAddedImagedRow(
 
     val pagerState = rememberPagerState()
     var source: ImageDecoder.Source
-
 
     LaunchedEffect(key1 = imageUri.value) {
         if (imageUri.value != null) {

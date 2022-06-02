@@ -179,12 +179,12 @@ fun AutoLoginLogic(
                 currentLoginedUserId = lastLoginedUserIdUtil
 
                 navController.navigate(screen) {
-                    popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
+                    popUpTo(SecomiScreens.LoginScreen.name)
                 }
             } ?: withContext(Dispatchers.Main) {
                 showShortToastMessage(context, "로그인을 다시 시도해주세요.")
                 navController.navigate(SecomiScreens.LoginScreen.name) {
-                    popUpTo(screen) { inclusive = true }
+                    popUpTo(screen)
                 }
             }
         }

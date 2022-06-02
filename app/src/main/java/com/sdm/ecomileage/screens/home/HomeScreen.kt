@@ -69,7 +69,6 @@ fun HomeScreen(
         value = homeViewModel.getHomeInfo()
     }.value
 
-
     if (homeInfo.loading == true)
         CircularProgressIndicator(color = LoginButtonColor)
     else if (homeInfo.data?.result != null) {

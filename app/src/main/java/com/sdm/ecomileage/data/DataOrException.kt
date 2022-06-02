@@ -5,9 +5,3 @@ data class DataOrException<T, Boolean, E : Exception>(
     var loading: Boolean? = null,
     var e: E? = null
 )
-
-data class Report(
-    val reportFeedNo:Int,
-    val reportType: String,
-    val reportContent: String
-)

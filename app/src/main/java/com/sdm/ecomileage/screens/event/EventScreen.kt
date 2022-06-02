@@ -57,7 +57,6 @@ fun EventScreen(
     systemUiController: SystemUiController,
     eventViewModel: EventViewModel = hiltViewModel()
 ) {
-
     SideEffect {
         systemUiController.setStatusBarColor(
             Color.White
@@ -195,8 +194,7 @@ private fun EventAttendScaffold(
                     .padding(horizontal = 20.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "2022.05.23", fontWeight = FontWeight.Bold)
-                Text(text = "2022.05.29", fontWeight = FontWeight.Bold)
+
             }
             Row(
                 modifier = Modifier
