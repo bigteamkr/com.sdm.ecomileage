@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -68,6 +69,9 @@ fun HomeScreen(
     ) {
         value = homeViewModel.getHomeInfo()
     }.value
+
+
+
 
     if (homeInfo.loading == true)
         CircularProgressIndicator(color = LoginButtonColor)
@@ -156,6 +160,7 @@ private fun HomeMainContent(
 ) {
     var scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
 
     val pagingData = homeViewModel.pager.collectAsLazyPagingItems()
 
@@ -177,6 +182,7 @@ private fun HomeMainContent(
     var isCurrentFeedReporting by remember {
         mutableStateOf(false)
     }
+
 
     var reportListValue: String?
     val isRefreshing by homeViewModel.isRefreshing.collectAsState()
@@ -249,7 +255,6 @@ private fun HomeMainContent(
             }
 
             items(pagingData) { data ->
-
                 data?.let {
                     isCurrentFeedReporting =
                         homeViewModel.isFeedIncludedReportingList(data.feedsno)
@@ -257,6 +262,14 @@ private fun HomeMainContent(
                     var isShowingDropDownMenu by remember {
                         mutableStateOf(false)
                     }
+
+                    var isOpenBigImage by remember {
+                        mutableStateOf(false)
+                    }
+                    var currentImageIndex by remember {
+                        mutableStateOf(0)
+                    }
+
 
                     Box {
                         MainFeedCardStructure(
@@ -297,7 +310,8 @@ private fun HomeMainContent(
                             deleteFeedAction = {
                                 scope.launch {
                                     homeViewModel.refresh {
-                                        pagingData.refresh().let { homeViewModel.invalidateDataSource() }
+                                        pagingData.refresh()
+                                            .let { homeViewModel.invalidateDataSource() }
                                     }
                                 }
                             },
@@ -326,11 +340,28 @@ private fun HomeMainContent(
                             isCurrentReportingFeedsNo = isCurrentFeedReporting,
                             reportYN = data.reportyn,
                             currentScreen = SecomiScreens.HomeDetailScreen.name,
-                            destinationScreen = null
+                            destinationScreen = null,
+                            openBigImage = {
+                                currentImageIndex = it
+                                isOpenBigImage = true
+                            }
+                        )
+                    }
+
+                    if (isOpenBigImage) {
+                        customBigImageDialog(
+                            imageList = data.imageList,
+                            configuration = configuration,
+                            currentIndex = currentImageIndex,
+                            closeAction = {
+                                isOpenBigImage = it
+                            }
                         )
                     }
                 }
             }
+
+
         }
     }
 
@@ -362,6 +393,10 @@ private fun HomeMainContent(
             }
         )
     }
+
+
+
+
     Spacer(modifier = Modifier.height(56.dp))
 }
 

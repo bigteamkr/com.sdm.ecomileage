@@ -36,7 +36,6 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 
                 SecomiApp()
-
                 KakaoSdk.init(this, kakaoNativeAppKey)
                 NaverIdLoginSDK.initialize(
                     this,

@@ -850,6 +850,7 @@ private fun HomeAddedImagedRow(
                             painter = painterResource(id = R.drawable.ic_cancel_upload),
                             contentDescription = "Cancel Uploading image",
                             modifier = Modifier.clickable {
+                                dotIndicatorSize.value = imageList.size
                                 deleteImage(page)
                             }
                         )
@@ -869,11 +870,13 @@ private fun HomeAddedImagedRow(
 
 
 @Composable
-private fun DotsIndicator(
+fun DotsIndicator(
     totalDots: Int,
     selectedIndex: Int,
     selectedColor: Color,
-    unSelectedColor: Color
+    unSelectedColor: Color,
+    dotsSize: Int = 5,
+    dotsSpacing: Int = 2
 ) {
     LazyRow(
         modifier = Modifier
@@ -884,21 +887,21 @@ private fun DotsIndicator(
             if (index == selectedIndex) {
                 Box(
                     modifier = Modifier
-                        .size(5.dp)
+                        .size(dotsSize.dp)
                         .clip(CircleShape)
                         .background(selectedColor)
                 )
             } else {
                 Box(
                     modifier = Modifier
-                        .size(5.dp)
+                        .size(dotsSize.dp)
                         .clip(CircleShape)
                         .background(unSelectedColor)
                 )
             }
 
             if (index != totalDots - 1) {
-                Spacer(modifier = Modifier.width(2.dp))
+                Spacer(modifier = Modifier.width(dotsSpacing.dp))
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.sdm.ecomileage.components
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.util.Log
@@ -21,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -64,11 +66,12 @@ import com.sdm.ecomileage.R
 import com.sdm.ecomileage.model.registerPage.searchLocation.areaResponse.Search
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.homeAdd.ContentInputField
+import com.sdm.ecomileage.screens.homeAdd.DotsIndicator
 import com.sdm.ecomileage.screens.loginRegister.LoginRegisterViewModel
 import com.sdm.ecomileage.screens.myPage.MyPageViewModel
 import com.sdm.ecomileage.ui.theme.*
-import com.sdm.ecomileage.utils.currentUUIDUtil
 import com.sdm.ecomileage.utils.currentLoginedUserId
+import com.sdm.ecomileage.utils.currentUUIDUtil
 import kotlinx.coroutines.launch
 
 @Composable
@@ -452,7 +455,8 @@ fun MainFeedCardStructure(
     reportingCancelAction: (Int) -> Unit,
     currentScreen: String,
     destinationScreen: String?,
-    showIndicator: Boolean = true
+    showIndicator: Boolean = true,
+    openBigImage: (Int) -> Unit = {}
 ) {
     var isReportingCard by remember { mutableStateOf(isCurrentReportingFeedsNo) }
     LaunchedEffect(key1 = isCurrentReportingFeedsNo) {
@@ -490,7 +494,8 @@ fun MainFeedCardStructure(
                 contentText,
                 hashtagList,
                 destinationScreen,
-                showIndicator
+                showIndicator,
+                openBigImage = openBigImage
             )
 
         }
@@ -523,7 +528,8 @@ fun MainCardFeed(
     destinationScreen: String?,
     showIndicator: Boolean,
     isOnEducation: Boolean = false,
-    sizeModifier: Modifier = Modifier
+    sizeModifier: Modifier = Modifier,
+    openBigImage: (Int) -> Unit = {}
 ) {
     val heightModifier = if (currentScreen == SecomiScreens.EducationScreen.name) 230.dp else 355.dp
 
@@ -558,7 +564,8 @@ fun MainCardFeed(
                     currentScreen,
                     educationTitle,
                     educationTime,
-                    showIndicator = showIndicator
+                    showIndicator = showIndicator,
+                    openBigImage = openBigImage
                 )
             }
             CardWriterInformation(
@@ -708,8 +715,14 @@ fun CardWriterInformation(
                                                     ).let {
                                                         if (it.data?.code == 200) deleteFeedAction()
                                                         else {
-                                                            Log.d("component", "CardWriterInformation: ${it.data?.message} ${it.data?.code}")
-                                                            showShortToastMessage(context, "${it.data?.message}")
+                                                            Log.d(
+                                                                "component",
+                                                                "CardWriterInformation: ${it.data?.message} ${it.data?.code}"
+                                                            )
+                                                            showShortToastMessage(
+                                                                context,
+                                                                "${it.data?.message}"
+                                                            )
                                                         }
                                                     }
                                                 }
@@ -831,8 +844,14 @@ fun CardImageRow(
     indicatorSurfaceSize: Dp? = null,
     indicatorTextSize: TextUnit? = null,
     showIndicator: Boolean = true,
+    openBigImage: (Int) -> Unit = {},
 ) {
     val pagerState = rememberPagerState()
+
+    LaunchedEffect(key1 = pagerState.currentPage) {
+        Log.d("customBigImageDialog", "CardImageRow: ${pagerState.currentPage}")
+    }
+
     Box(
         contentAlignment = Alignment.BottomCenter
     ) {
@@ -855,7 +874,15 @@ fun CardImageRow(
                     Image(
                         painter = rememberImagePainter(imageList[page]),
                         contentDescription = "FeedImageList",
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable {
+                                Log.d(
+                                    "customBigImageDialog",
+                                    "CardImageRow: Clickable ${pagerState.currentPage}"
+                                )
+                                openBigImage(pagerState.currentPage)
+                            },
                         contentScale = ContentScale.Crop
                     )
                     if (educationTitle != null) Text(
@@ -1566,6 +1593,92 @@ fun MileageSwipeButton() {
                 ),
                 strokeWidth = 1.dp.toPx()
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalPagerApi::class)
+@Composable
+fun customBigImageDialog(
+    imageList: List<String>,
+    configuration: Configuration,
+    currentIndex: Int,
+    closeAction: (Boolean) -> Unit
+) {
+    val pagerState = rememberPagerState()
+    var isOpen by remember {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(key1 = true) {
+        pagerState.scrollToPage(currentIndex)
+    }
+
+    Dialog(
+        onDismissRequest = { closeAction(!isOpen) },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        )
+    ) {
+        Surface(
+            modifier = Modifier
+                .size(
+                    width = configuration.screenWidthDp.dp,
+                    height = configuration.screenHeightDp.dp
+                ),
+            color = Color.Black
+        ) {
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Top
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close, contentDescription = "",
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .size(24.dp)
+                        .clickable {
+                            closeAction(!isOpen)
+                        },
+                    tint = Color.White
+                )
+
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    HorizontalPager(
+                        count = imageList.size,
+                        state = pagerState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.8f),
+                        itemSpacing = 0.dp
+                    ) { page ->
+                        Image(
+                            painter = rememberImagePainter(imageList[page]),
+                            contentDescription = "FeedImageList",
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+
+                    Surface(
+                        modifier = Modifier.padding(top = 40.dp),
+                        color = Color.Black
+                    ) {
+                        DotsIndicator(
+                            totalDots = imageList.size,
+                            selectedIndex = pagerState.currentPage,
+                            selectedColor = Color.White,
+                            unSelectedColor = BottomSheetGreyColor,
+                            dotsSize = 13,
+                            dotsSpacing = 10
+                        )
+                    }
+                }
+            }
         }
     }
 }
