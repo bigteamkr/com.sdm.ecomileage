@@ -54,7 +54,11 @@ fun EducationScreen(
     educationViewModel: EducationViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+
     var isLoading by remember {
+        mutableStateOf(false)
+    }
+    var isFail by remember {
         mutableStateOf(false)
     }
 
@@ -82,8 +86,9 @@ fun EducationScreen(
         }
     }
 
-    if (homeInfo.loading == true || educationInfo.loading == true)
+    if (homeInfo.loading == true || educationInfo.loading == true){
         CircularProgressIndicator()
+    }
     else if (homeInfo.data?.result != null && educationInfo.data?.challengeList != null) {
 
         if (homeInfo.data?.code != 200 || educationInfo.data?.code != 200)
@@ -95,10 +100,22 @@ fun EducationScreen(
             )
 
         EducationScaffold(navController, homeInfo, educationInfo)
+    } else {
+        isFail = true
     }
 
-    if (isLoading)
-        CircularProgressIndicator(color = LoginButtonColor)
+    if (isFail) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(color = LoginButtonColor)
+        }
+        showShortToastMessage(context, "데이터를 정상적으로 받지 못하였습니다.").let {
+            navController.popBackStack()
+        }
+    }
 }
 
 @Composable
@@ -184,24 +201,25 @@ private fun EducationScaffold(
                         contentText = data.videocontent,
                         hashtagList = null,
                         destinationScreen = null,
-                        isOnEducation = true
+                        isOnEducation = true,
                     )
-                }.let {
-                    if (popUpState)
-                        CustomEducationVideoDialog(
-                            data.videourl,
-                            data.thumnailurl,
-                            data.point,
-                            data.educationsno,
-                            data.educationyn,
-                            data.manageprofile,
-                            data.manageid,
-                            data.managename,
-                            navController
-                        ) {
-                            popUpState = false
-                        }
                 }
+
+                if (popUpState)
+                    CustomEducationVideoDialog(
+                        data.videourl,
+                        data.thumnailurl,
+                        data.point,
+                        data.educationsno,
+                        data.educationyn,
+                        data.manageprofile,
+                        data.manageid,
+                        data.managename,
+                        navController
+                    ) {
+                        popUpState = false
+                    }
+
                 if (index == educationInfo.data!!.challengeList.lastIndex)
                     Spacer(modifier = Modifier.height(70.dp))
             }

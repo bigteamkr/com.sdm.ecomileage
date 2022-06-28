@@ -105,6 +105,14 @@ private fun HomeScaffold(
     }
     val scrollState = rememberLazyListState()
 
+    val configuration = LocalConfiguration.current
+
+
+    configuration.screenWidthDp
+    configuration.screenHeightDp
+
+
+
     Scaffold(
         topBar = {
             SecomiTopAppBar(
@@ -360,8 +368,6 @@ private fun HomeMainContent(
                     }
                 }
             }
-
-
         }
     }
 

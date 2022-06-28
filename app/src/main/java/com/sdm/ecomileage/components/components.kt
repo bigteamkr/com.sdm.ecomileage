@@ -529,7 +529,7 @@ fun MainCardFeed(
     showIndicator: Boolean,
     isOnEducation: Boolean = false,
     sizeModifier: Modifier = Modifier,
-    openBigImage: (Int) -> Unit = {}
+    openBigImage: (Int) -> Unit = {},
 ) {
     val heightModifier = if (currentScreen == SecomiScreens.EducationScreen.name) 230.dp else 355.dp
 
@@ -551,7 +551,8 @@ fun MainCardFeed(
         backgroundColor = Color.White
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
@@ -848,10 +849,6 @@ fun CardImageRow(
 ) {
     val pagerState = rememberPagerState()
 
-    LaunchedEffect(key1 = pagerState.currentPage) {
-        Log.d("customBigImageDialog", "CardImageRow: ${pagerState.currentPage}")
-    }
-
     Box(
         contentAlignment = Alignment.BottomCenter
     ) {
@@ -875,17 +872,19 @@ fun CardImageRow(
                         painter = rememberImagePainter(imageList[page]),
                         contentDescription = "FeedImageList",
                         modifier = Modifier
-                            .fillMaxSize()
-                            .clickable {
-                                Log.d(
-                                    "customBigImageDialog",
-                                    "CardImageRow: Clickable ${pagerState.currentPage}"
-                                )
-                                openBigImage(pagerState.currentPage)
-                            },
+                            .fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
-                    if (educationTitle != null) Text(
+                    if (educationTitle == null)
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable {
+                                    openBigImage(pagerState.currentPage)
+                                },
+                            color = Color.Transparent
+                        ) {}
+                    else Text(
                         text = educationTitle,
                         style = MaterialTheme.typography.h4,
                         color = Color.White

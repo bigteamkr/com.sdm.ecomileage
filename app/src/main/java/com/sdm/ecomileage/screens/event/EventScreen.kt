@@ -37,6 +37,7 @@ import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.SecomiBottomBar
 import com.sdm.ecomileage.components.SecomiMainFloatingActionButton
+import com.sdm.ecomileage.components.showShortToastMessage
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.event.currentEvent.response.AttendanceInfoResponse
 import com.sdm.ecomileage.model.event.currentEvent.response.Attn
@@ -47,8 +48,6 @@ import com.sdm.ecomileage.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.time.*
-import java.util.Calendar
 
 
 @Composable
@@ -74,6 +73,10 @@ fun EventScreen(
     var isLoading by remember {
         mutableStateOf(false)
     }
+    var isFail by remember {
+        mutableStateOf(false)
+    }
+
 
     val eventInfo = produceState<DataOrException<AttendanceInfoResponse, Boolean, Exception>>(
         initialValue = DataOrException(loading = true)
@@ -81,12 +84,15 @@ fun EventScreen(
         value = eventViewModel.getCurrentEventInfo()
     }.value
 
-    if (eventInfo.loading == true)
-        CircularProgressIndicator(color = LoginButtonColor)
+    if (eventInfo.loading == true){
+        isLoading = true
+        Log.d("Event", "EventScreen: ${eventInfo.data}")
+    }
     else if (eventInfo.data?.result != null) {
         eventInfo.data?.code?.let {
-            if (it == 200) return@let
-            else {
+            if (it == 200) {
+                return@let
+            } else {
                 AutoLoginLogic(
                     isLoading = { isLoading = true },
                     navController = navController,
@@ -95,7 +101,23 @@ fun EventScreen(
                 )
             }
         }
+        isLoading = false
         EventScaffold(eventInfo, navController)
+    } else {
+        isFail = true
+    }
+
+    if (isFail) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(color = LoginButtonColor)
+        }
+        showShortToastMessage(context, "데이터를 정상적으로 받지 못하였습니다.").let {
+            navController.popBackStack()
+        }
     }
 }
 
@@ -156,7 +178,6 @@ private fun EventScaffold(
     }
 }
 
-@OptIn(ExperimentalPagerApi::class)
 @Composable
 private fun EventAttendScaffold(
     eventInfo: DataOrException<AttendanceInfoResponse, Boolean, Exception>,
@@ -377,7 +398,7 @@ private fun DropDown(
 ) {
     var isOpen by remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = Unit){
+    LaunchedEffect(key1 = Unit) {
         delay(50)
         isOpen = true
     }

@@ -120,18 +120,22 @@ private fun DiaryScaffold(
                         } else educationViewModel.postDiary(educationNo, inputComment.value)
                             .let {
                                 if (it.data?.code == 200) {
-                                    showLongToastMessage(
-                                        context,
-                                        "소감일기 제출이 완료되었습니다.\n마일리지가 적립됩니다."
-                                    )
+                                    withContext(Dispatchers.Main) {
+                                        showLongToastMessage(
+                                            context,
+                                            "소감일기 제출이 완료되었습니다.\n마일리지가 적립됩니다."
+                                        )
+                                    }
                                     navController.navigate(SecomiScreens.EducationScreen.name) {
                                         launchSingleTop
                                     }
                                 } else {
-                                    showLongToastMessage(
-                                        context,
-                                        "소감일기 제출에 실패했습니다. ${it.data?.message}"
-                                    )
+                                    withContext(Dispatchers.Main) {
+                                        showLongToastMessage(
+                                            context,
+                                            "소감일기 제출에 실패했습니다. ${it.data?.message}"
+                                        )
+                                    }
                                 }
                             }
                     }

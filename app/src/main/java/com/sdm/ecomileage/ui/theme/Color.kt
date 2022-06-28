@@ -64,7 +64,6 @@ val ProfileIconColor = Color(0xFF04A964)
 val RegisterGreyColor = Color(0xFFA4A4A4)
 val BottomSheetGreyColor = Color(0xFF878C94)
 
-
 // Finding Account Color
 val FindingAccountErrorColor = Color(0xFFE56857)
 val SendingEmailMessageColor = Color(0xFF0BC207)

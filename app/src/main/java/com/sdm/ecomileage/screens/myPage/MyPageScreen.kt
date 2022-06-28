@@ -70,6 +70,9 @@ fun MyPageScreen(
         }
     }
 
+    var isFail by remember {
+        mutableStateOf(false)
+    }
     val myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>
     val userFeedInfo: DataOrException<UserFeedInfoResponse, Boolean, Exception>
 
@@ -93,6 +96,8 @@ fun MyPageScreen(
                 )
             }
             PageScaffold(navController, userId, myFeedInfo)
+        } else {
+            isFail = true
         }
 
     } else {
@@ -115,6 +120,21 @@ fun MyPageScreen(
                 )
             }
             PageScaffold(navController, userId!!, userFeedInfo = userFeedInfo)
+        } else {
+            isFail = true
+        }
+    }
+
+    if (isFail) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(color = LoginButtonColor)
+        }
+        showShortToastMessage(context, "데이터를 정상적으로 받지 못하였습니다.").let {
+            navController.popBackStack()
         }
     }
 }
