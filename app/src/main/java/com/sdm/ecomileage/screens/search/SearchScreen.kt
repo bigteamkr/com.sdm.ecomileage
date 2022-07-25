@@ -186,8 +186,8 @@ private fun SearchScaffold(
                             profileImage = data.profileimg,
                             profileName = data.userName,
                             reactionIcon = listOf(
-                                R.drawable.ic_like_off,
-                                R.drawable.ic_like_on
+                                R.drawable.ic_new_like_off,
+                                R.drawable.ic_new_like_on
                             ),
                             reactionData = data.likeCount,
                             reactionTint = LikeColor,
@@ -198,8 +198,7 @@ private fun SearchScaffold(
                                 }
                             },
                             otherIcons = mapOf(
-                                "comment" to R.drawable.ic_comment,
-                                "more" to R.drawable.ic_more
+                                "comment" to R.drawable.ic_new_comment
                             ),
                             hashtagList = data.hashtags,
                             navController = navController,

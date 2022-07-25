@@ -1,7 +1,10 @@
 package com.sdm.ecomileage.screens.settings
 
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,8 +31,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.canhub.cropper.CropImageContract
-import com.canhub.cropper.CropImageContractOptions
-import com.canhub.cropper.CropImageOptions
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.SecomiBottomBar
@@ -43,6 +44,12 @@ import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.loginRegister.AutoLoginLogic
 import com.sdm.ecomileage.screens.loginRegister.LoginRegisterViewModel
 import com.sdm.ecomileage.ui.theme.*
+import com.sdm.ecomileage.utils.bitmapToString
+import com.sdm.ecomileage.utils.isAutoLoginUtil
+import com.sdm.ecomileage.utils.setIsAutoLogin
+import com.sdm.ecomileage.utils.setRefreshToken
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -108,9 +115,11 @@ private fun AppSettingsScaffold(navController: NavController, result: Result) {
         topBar = {
             SecomiTopAppBar(
                 title = "환경설정",
+                backgroundColor = TopBarColorOrigin,
                 navigationIcon = painterResource(id = R.drawable.ic_back_arrow),
                 currentScreen = SecomiScreens.SettingsScreen.name,
-                navController = navController
+                navController = navController,
+                contentColor = Color.White
             )
         },
         bottomBar = {
@@ -131,7 +140,7 @@ private fun AppSettingsScaffold(navController: NavController, result: Result) {
             Spacer(modifier = Modifier.height(10.dp))
             SettingsProfileName(result.userName)
             Spacer(modifier = Modifier.height(5.dp))
-            MileageRow(result.userPoint.toString())
+            LogOutRow(navController)
             UserInformationRow(result.userDept, result.userAddress, "")
             ConnectedSocialAccountRow(result.userSSOType, result.userSSOID)
             MileageTypeRow(pointSaveType) { pointSaveType = it }
@@ -378,13 +387,28 @@ private fun UserInformationRow(
 }
 
 @Composable
-private fun MileageRow(point: String) {
+private fun LogOutRow(navController: NavController) {
+    var isClicked by remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(key1 = isClicked) {
+        setIsAutoLogin(false)
+        setRefreshToken("")
+        isAutoLoginUtil = false
+    }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .height(55.dp)
             .padding(horizontal = 10.dp)
-            .padding(top = 10.dp),
+            .padding(top = 10.dp)
+            .clickable {
+                navController.navigate(SecomiScreens.LoginScreen.name + "/0") {
+                    popUpTo(SecomiScreens.SettingsScreen.name) { inclusive = true }
+                }
+            },
         shape = RoundedCornerShape(10),
         elevation = 2.dp
     ) {
@@ -395,31 +419,16 @@ private fun MileageRow(point: String) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = "마일리지", color = UnableUploadButtonColor)
+            Text(text = "", color = UnableUploadButtonColor)
             Row(
                 modifier = Modifier.fillMaxWidth(0.57f),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = point + " EP",
+                    text = "로그아웃",
                     textAlign = TextAlign.Start,
                 )
-                Surface(
-                    modifier = Modifier
-                        .width(70.dp)
-                        .height(30.dp),
-                    shape = RoundedCornerShape(30),
-                    color = MileageChangeButtonColor,
-                    contentColor = Color.White
-                ) {
-                    Text(
-                        text = "전환신청",
-                        modifier = Modifier
-                            .padding(top = 5.dp),
-                        textAlign = TextAlign.Center
-                    )
-                }
             }
         }
     }
@@ -449,6 +458,10 @@ private fun SettingsProfile(
 ) {
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    var source: ImageDecoder.Source
+
     var dropdownOpen by remember {
         mutableStateOf(false)
     }
@@ -474,8 +487,16 @@ private fun SettingsProfile(
 
     val imagePickerLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
-            val cropOptions = CropImageContractOptions(uri, CropImageOptions())
-            imageCropLauncher.launch(cropOptions)
+//            val cropOptions = CropImageContractOptions(uri, CropImageOptions())
+//            imageCropLauncher.launch(cropOptions)
+            imageUri = uri
+
+            if (profileImgBitmap != null) {
+                val image = bitmapToString(profileImgBitmap!!)
+                scope.launch {
+                    loginRegisterViewModel.putMemberUpdate(profileImg = image)
+                }
+            }
         }
 
     val imageCameraLauncher =
@@ -485,8 +506,29 @@ private fun SettingsProfile(
                 profileImgBitmap = takenPhoto
                 //Todo : API 연결하기
 
+                if (profileImgBitmap != null) {
+                    val image = bitmapToString(profileImgBitmap!!)
+                    scope.launch {
+                        loginRegisterViewModel.putMemberUpdate(profileImg = image)
+                    }
+                }
+
             } else showShortToastMessage(context, "카메라 촬영을 취소하셨습니다.")
         }
+
+    LaunchedEffect(key1 = imageUri) {
+        if (imageUri != null) {
+            if (Build.VERSION.SDK_INT < 28) {
+                profileImgBitmap =
+                    MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+
+            } else {
+                source = ImageDecoder.createSource(context.contentResolver, imageUri!!)
+                profileImgBitmap = ImageDecoder.decodeBitmap(source)
+            }
+        }
+    }
+
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -514,6 +556,7 @@ private fun SettingsProfile(
 //                navController = navController,
 //                isNonClickable = true
 //            )
+
             Box {
                 Image(
                     painter = painterResource(id = R.drawable.ic_camera),
@@ -533,6 +576,15 @@ private fun SettingsProfile(
                     DropdownMenuItem(onClick = { imagePickerLauncher.launch("image/*") }) {
                         Text(text = "갤러리에서 추가하기")
                     }
+                    if (profileImgBitmap != null)
+                        DropdownMenuItem(onClick = {
+                            profileImgBitmap = null
+                            scope.launch(Dispatchers.IO) {
+                                loginRegisterViewModel.putMemberUpdate()
+                            }
+                        }) {
+                            Text(text = "기본사진으로 설정하기")
+                        }
                 }
             }
         }

@@ -1,5 +1,6 @@
 package com.sdm.ecomileage.screens.splash
 
+import android.widget.ProgressBar
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -22,6 +23,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -29,6 +32,7 @@ import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.SplashColor
+import com.sdm.ecomileage.ui.theme.SplashTextColor
 import com.sdm.ecomileage.ui.theme.SplashTopBarColor
 import com.sdm.ecomileage.utils.AppSettings
 import com.sdm.ecomileage.utils.currentUUIDUtil
@@ -126,24 +130,39 @@ private fun SplashAppName() {
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Text(
-            text = "S E C O M I",
+            text = "GREEN STAR",
             style = MaterialTheme.typography.h4,
             fontSize = 34.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Justify,
-            letterSpacing = 5.5.sp,
-            color = Color.White,
+            letterSpacing = 6.sp,
+            color = SplashTextColor,
         )
+
+//        Spacer(modifier = Modifier.height(10.dp))
+//
+//        Text(
+//            text = "서대문구",
+//            style = MaterialTheme.typography.subtitle1,
+//            letterSpacing = 4.sp,
+//            fontSize = 15.sp,
+//            textAlign = TextAlign.Justify,
+//            color = SplashTextColor
+//        )
+//
+//        Spacer(modifier = Modifier.height(10.dp))
+
 
         Text(
             text = "당신의 에코 라이프를 펼쳐보세요",
             modifier = Modifier.padding(start = 1.5.dp),
             style = MaterialTheme.typography.subtitle1,
-            letterSpacing = 4.sp,
-            fontSize = 12.sp,
+            letterSpacing = 1.5.sp,
+            fontSize = 17.sp,
             textAlign = TextAlign.Justify,
-            color = Color.White
+            color = SplashTextColor
         )
     }
 }

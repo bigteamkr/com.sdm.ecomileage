@@ -1,32 +1,50 @@
 package com.sdm.ecomileage.screens.myPage
 
+import android.content.Context
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -37,7 +55,6 @@ import com.google.accompanist.systemuicontroller.SystemUiController
 import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.*
 import com.sdm.ecomileage.components.appBarComponents.MoreVertComponent
-import com.sdm.ecomileage.data.ChallengeList
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.myPage.myFeedInfo.response.MyFeedInfoResponse
 import com.sdm.ecomileage.model.myPage.userFeedInfo.response.UserFeedInfoResponse
@@ -47,8 +64,8 @@ import com.sdm.ecomileage.screens.homeDetail.HomeDetailViewModel
 import com.sdm.ecomileage.screens.loginRegister.AutoLoginLogic
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.UserReportOptions
-import com.sdm.ecomileage.utils.currentUUIDUtil
 import com.sdm.ecomileage.utils.currentLoginedUserId
+import com.sdm.ecomileage.utils.currentUUIDUtil
 import kotlinx.coroutines.launch
 
 @Composable
@@ -84,7 +101,7 @@ fun MyPageScreen(
         }.value
 
         if (myFeedInfo.loading == true)
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = LoginButtonColor)
         else if (myFeedInfo.data?.result != null) {
             myFeedInfo.data?.code?.let {
                 if (it == 200) return@let
@@ -108,7 +125,7 @@ fun MyPageScreen(
         }.value
 
         if (userFeedInfo.loading == true)
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = LoginButtonColor)
         else if (userFeedInfo.data?.result != null) {
             userFeedInfo.data?.code?.let {
                 if (it == 200) return@let
@@ -171,6 +188,7 @@ private fun PageScaffold(
                 title = "",
                 currentScreen = SecomiScreens.MyPageScreen.name,
                 navController = navController,
+                backgroundColor = TopBarColorOrigin,
                 navigationIcon = painterResource(id = R.drawable.ic_back_arrow),
                 actionIconsList = listOf {
                     MoreVertComponent(
@@ -200,7 +218,8 @@ private fun PageScaffold(
         },
         floatingActionButton = { SecomiMainFloatingActionButton(navController) },
         isFloatingActionButtonDocked = true,
-        floatingActionButtonPosition = FabPosition.Center
+        floatingActionButtonPosition = FabPosition.Center,
+        backgroundColor = BasicBackgroundColor
     ) {
         if (userId == "myPage" || userId == currentLoginedUserId)
             MyPageLayout(navController, myFeedInfo)
@@ -244,7 +263,7 @@ private fun MyPageLayout(
     }
 
     Column(
-        modifier = Modifier.padding(top = 5.dp, start = 15.dp, end = 15.dp)
+        modifier = Modifier.padding(top = 5.dp)
     ) {
 
         MyPageFilterButton(selectedButton) {
@@ -254,8 +273,580 @@ private fun MyPageLayout(
         if (selectedButton == "내 게시물") {
             MyFeedLayout(navController, myFeedInfo!!)
         }
-        if (selectedButton == "내 챌린지") {
-            MyChallengeLayout()
+        if (selectedButton == "내 활동") {
+            MyWorkLayout(navController = navController)
+        }
+    }
+}
+
+@Composable
+private fun MyWorkLayout(navController: NavController) {
+    val context = LocalContext.current
+    val tintColor = IconTintColor
+
+    val spacing = with(LocalDensity.current) {
+        (25.sp.toDp()) / 2
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 15.dp),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 5.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            LazyRow() {
+                item { visitInfo(spacing = spacing) }
+                item { mileageInfo(spacing = spacing) }
+                item { writeInfo() }
+                item { eduInfo(radius = 31.dp) }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            mileageHistoryCard(context)
+        }
+
+        Button(
+            modifier = Modifier
+                .fillMaxWidth(),
+            onClick = { showShortToastMessage(context, "준비 중입니다.") },
+            colors = ButtonDefaults.buttonColors(backgroundColor = IconTintColor),
+            shape = RoundedCornerShape(topStartPercent = 20, topEndPercent = 20),
+            elevation = ButtonDefaults.elevation(11.dp),
+            contentPadding = PaddingValues(bottom = 50.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "마일리지 전환하기",
+                    color = Color.White,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontFamily = FontFamily.SansSerif,
+                )
+
+                Icon(
+                    imageVector = Icons.Default.ArrowForward,
+                    contentDescription = "마일리지 전환하기 화살표 아이콘",
+                    tint = Color.White
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun mileageHistoryCard(context: Context) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 15.dp),
+        shape = RoundedCornerShape(17.dp),
+        elevation = 11.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "마일리지 내역",
+                    color = CardContentColor,
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 1.2.sp,
+                    fontSize = 20.sp,
+                    maxLines = 1
+                )
+
+                Text(
+                    text = "전체보기",
+                    modifier = Modifier
+                        .clickable {
+                            showShortToastMessage(context, "준비 중입니다.")
+                        },
+                    color = PlaceholderColor,
+                    letterSpacing = 1.25.sp,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            }
+
+            LazyColumn {
+                item {
+                    mileageHistoryItem(
+                        tintColor = IconTintColor,
+                        history = "출석체크",
+                        "2022.05.06",
+                        type = true,
+                        20
+                    )
+                }
+                item {
+                    mileageHistoryItem(
+                        tintColor = UsedMileageColor,
+                        history = "마일리지 전환",
+                        "2022.05.05",
+                        type = false,
+                        100
+                    )
+                }
+                item {
+                    mileageHistoryItem(
+                        tintColor = IconTintColor,
+                        history = "영상시청",
+                        "2022.05.04",
+                        type = true,
+                        20
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun mileageHistoryItem(
+    tintColor: Color,
+    history: String,
+    period: String,
+    type: Boolean,
+    point: Int
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_mileage), contentDescription = "",
+                tint = tintColor
+            )
+
+            Spacer(modifier = Modifier.width(20.dp))
+
+            Column(
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    text = history,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = FontFamily.SansSerif,
+                    letterSpacing = 1.0.sp,
+                    color = CardContentColor
+                )
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                Text(
+                    text = period,
+                    fontSize = 12.sp,
+                    color = PlaceholderColor,
+                    fontWeight = FontWeight.Normal,
+                    fontFamily = FontFamily.SansSerif,
+                    letterSpacing = 1.0.sp
+                )
+            }
+        }
+
+        Text(
+            text = (if (type) "+" else "-") + point,
+            modifier = Modifier.padding(bottom = 10.dp),
+            fontWeight = FontWeight.Medium,
+            fontSize = 20.sp,
+            fontFamily = FontFamily.SansSerif,
+            letterSpacing = 1.0.sp,
+            color = CardContentColor
+        )
+    }
+}
+
+@Composable
+private fun writeInfo(
+    tintColor: Color = IconTintColor
+) {
+    Card(
+        modifier = Modifier
+            .width(170.dp)
+            .padding(start = 7.5.dp, top = 15.dp, bottom = 15.dp, end = 7.5.dp),
+        shape = RoundedCornerShape(17.dp),
+        elevation = 12.dp
+    ) {
+        Column(
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "",
+                    modifier = Modifier.size(27.dp),
+                    tint = tintColor
+                )
+            }
+
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "223",
+                        color = CardContentColor,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = 1.2.sp,
+                        fontSize = 24.sp,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = "게시글",
+                        color = PlaceholderColor,
+                        letterSpacing = 0.75.sp,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "1000",
+                        color = CardContentColor,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = 1.2.sp,
+                        fontSize = 24.sp,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = "댓글",
+                        color = PlaceholderColor,
+                        letterSpacing = 0.75.sp,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "글 작성기록",
+                    color = PlaceholderColor,
+                    letterSpacing = 1.25.sp,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun mileageInfo(
+    tintColor: Color = IconTintColor,
+    spacing: Dp
+) {
+    Card(
+        modifier = Modifier
+            .width(162.5.dp)
+            .padding(vertical = 15.dp)
+            .padding(horizontal = 7.5.dp),
+        shape = RoundedCornerShape(17.dp),
+        elevation = 12.dp
+    ) {
+        Column(
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_mileage),
+                    contentDescription = "",
+                    modifier = Modifier.size(27.dp),
+                    tint = tintColor
+                )
+            }
+
+            Spacer(modifier = Modifier.height(spacing))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 15.dp),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "115000",
+                    color = CardContentColor,
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 1.2.sp,
+                    fontSize = 28.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(spacing))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "마일리지",
+                    color = PlaceholderColor,
+                    letterSpacing = 1.25.sp,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun visitInfo(
+    tintColor: Color = IconTintColor,
+    spacing: Dp
+) {
+
+    Card(
+        modifier = Modifier
+            .width(170.dp)
+            .padding(vertical = 15.dp)
+            .padding(start = 15.dp, end = 7.5.dp),
+        shape = RoundedCornerShape(17.dp),
+        elevation = 12.dp
+    ) {
+        Column(
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_star),
+                    contentDescription = "",
+                    modifier = Modifier.size(27.dp),
+                    tint = tintColor
+                )
+            }
+
+            Spacer(modifier = Modifier.height(spacing))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 20.dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "223",
+                    color = CardContentColor,
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 1.2.sp,
+                    fontSize = 28.sp,
+                    maxLines = 1
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "일",
+                    color = PlaceholderColor,
+                    letterSpacing = 0.75.sp,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            }
+
+            Spacer(modifier = Modifier.height(spacing))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "방문수",
+                    color = PlaceholderColor,
+                    letterSpacing = 1.25.sp,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun eduInfo(
+    tintColor: Color = IconTintColor,
+    radius: Dp
+) {
+
+    Card(
+        modifier = Modifier
+            .width(170.dp)
+            .padding(vertical = 15.dp)
+            .padding(start = 7.5.dp, end = 15.dp),
+        shape = RoundedCornerShape(17.dp),
+        elevation = 12.dp
+    ) {
+        Column(
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_education),
+                    contentDescription = "",
+                    modifier = Modifier.size(27.dp),
+                    tint = tintColor
+                )
+            }
+
+            CircularProgressBar(0.7f, radius = radius)
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "교육 시청률",
+                    color = PlaceholderColor,
+                    letterSpacing = 1.25.sp,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun CircularProgressBar(
+    percentage: Float,
+    fontSize: TextUnit = 20.sp,
+    radius: Dp = 50.dp,
+    color: Color = IconTintColor,
+    strokeWidth: Dp = 8.dp,
+    animDuration: Int = 1000,
+    animDelay: Int = 0
+) {
+    var animationPlayed by remember {
+        mutableStateOf(false)
+    }
+    val curPercentage = animateFloatAsState(
+        targetValue = if (animationPlayed) percentage else 0f,
+        animationSpec = tween(
+            durationMillis = animDuration,
+            delayMillis = animDelay
+        )
+    )
+
+    LaunchedEffect(key1 = true) {
+        animationPlayed = true
+    }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .padding(start = 20.dp)
+            .size(radius * 2f)
+    ) {
+        Canvas(modifier = Modifier.size(radius * 2f)) {
+            drawCircle(
+                color = BottomSheetDividerColor,
+                radius = radius.toPx(),
+                style = Stroke(strokeWidth.toPx())
+            )
+
+            drawArc(
+                color = color,
+                -270f,
+                360f * curPercentage.value,
+                useCenter = false,
+                style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round)
+            )
+
+        }
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = (curPercentage.value * 100).toInt().toString() + "%",
+                modifier = Modifier.padding(5.dp),
+                color = CardContentColor,
+                fontSize = fontSize,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.1.sp,
+                maxLines = 1
+            )
+            if (curPercentage.value == 1.toFloat()) {
+                Text(
+                    text = "%",
+                    modifier = Modifier.padding(start = 5.dp, end = 5.dp),
+                    color = CardContentColor,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.1.sp,
+                    maxLines = 1
+                )
+            }
         }
     }
 }
@@ -336,7 +927,7 @@ private fun MyFeedLayout(
     navController: NavController,
     myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>
 ) {
-    Column {
+    Column(modifier = Modifier.padding(start = 15.dp, end = 15.dp)) {
         Text(
             text = "오늘",
             fontSize = 12.sp,
@@ -348,129 +939,59 @@ private fun MyFeedLayout(
     }
 }
 
-
-@Composable
-private fun MyChallengeLayout() {
-    Column() {
-        Text(
-            text = "항목 당 일일 1회씩만 도전 가능합니다.",
-            fontSize = 14.sp,
-            modifier = Modifier.padding(start = 10.dp, top = 10.dp, bottom = 5.dp),
-            color = IndicationColor
-        )
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(bottom = 70.dp)
-        ) {
-            items(ChallengeList) { photo ->
-                var text = when (photo) {
-                    R.drawable.image_empty_dish -> "빈그릇 챌린지"
-                    R.drawable.image_public_transport -> "대중교통 챌린지"
-                    R.drawable.image_thermos -> "개인 텀블러 챌린지"
-                    R.drawable.image_label_detach -> "라벨지 떼기 챌린지"
-                    R.drawable.image_basket -> "장바구니 챌린지"
-                    R.drawable.image_pull_a_plug -> "코드뽑기 챌린지"
-                    R.drawable.image_empty_bottle -> "용기내 챌린지"
-                    R.drawable.image_upcycling -> "업사이클링 챌린지"
-                    else -> "챌린지"
-                }
-                val pointString = AnnotatedString(
-                    "5 ",
-                    spanStyle = SpanStyle(
-                        color = Color.White,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-                val epString = AnnotatedString(
-                    "EP",
-                    spanStyle = SpanStyle(
-                        color = Color.White,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Normal
-                    )
-                )
-
-                Box(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .fillMaxSize()
-                        .clickable { },
-                    contentAlignment = Alignment.BottomStart
-                ) {
-                    Image(
-                        painter = painterResource(id = photo),
-                        contentDescription = "",
-                        modifier =
-                        Modifier
-                            .fillMaxSize()
-                    )
-                    Column(
-                        modifier = Modifier.padding(start = 15.dp, bottom = 10.dp)
-                    ) {
-                        Text(
-                            text = text,
-                            color = Color.White,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = pointString + epString,
-                            modifier = Modifier.padding(top = 1.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
 @Composable
 private fun MyPageFilterButton(
     selectedButton: String,
     onClick: (String) -> Unit
 ) {
+    val firstButtonName = "내 게시물"
+    val secondButtonName = "내 활동"
+
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 15.dp)
             .padding(top = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Button(
             onClick = {
-                onClick("내 게시물")
+                onClick(firstButtonName)
             },
             modifier = Modifier
-                .width(175.dp)
+                .width(165.dp)
                 .height(35.dp)
                 .padding(start = 5.dp),
             shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(backgroundColor = if (selectedButton == "내 게시물") PointColor else UnselectedButtonColor)
+            colors = ButtonDefaults.buttonColors(backgroundColor = if (selectedButton == firstButtonName) PointColor else UnselectedButtonColor),
+            elevation = ButtonDefaults.elevation(12.dp)
         ) {
             Text(
-                text = "내 게시물",
-                color = if (selectedButton == "내 게시물") Color.White else Color.Black,
-                fontWeight = if (selectedButton == "내 게시물") FontWeight.SemiBold else FontWeight.Normal,
+                text = firstButtonName,
+                color = if (selectedButton == firstButtonName) Color.White else Color.Black,
+                fontWeight = if (selectedButton == firstButtonName) FontWeight.SemiBold else FontWeight.Normal,
                 textAlign = TextAlign.Center
             )
         }
+
         Button(
             onClick = {
-                onClick("내 챌린지")
+                onClick(secondButtonName)
             },
             modifier = Modifier
-                .width(175.dp)
+                .width(155.dp)
                 .height(35.dp)
                 .padding(end = 5.dp),
             shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(backgroundColor = if (selectedButton == "내 챌린지") PointColor else UnselectedButtonColor)
+            colors = ButtonDefaults.buttonColors(backgroundColor = if (selectedButton == secondButtonName) PointColor else UnselectedButtonColor),
+            elevation = ButtonDefaults.elevation(12.dp)
         ) {
             Text(
-                text = "내 챌린지",
-                color = if (selectedButton == "내 챌린지") Color.White else Color.Black,
-                fontWeight = if (selectedButton == "내 챌린지") FontWeight.SemiBold else FontWeight.Normal,
+                text = secondButtonName,
+                color = if (selectedButton == secondButtonName) Color.White else Color.Black,
+                fontWeight = if (selectedButton == secondButtonName) FontWeight.SemiBold else FontWeight.Normal,
                 textAlign = TextAlign.Center
             )
         }
@@ -482,6 +1003,8 @@ private fun MyPageTopBar(
     navController: NavController,
     myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+
     val pointString = buildAnnotatedString {
         withStyle(
             style = SpanStyle(
@@ -508,7 +1031,7 @@ private fun MyPageTopBar(
             .fillMaxWidth()
             .height(85.dp)
             .background(
-                Brush.verticalGradient(TopBarColor)
+                Brush.verticalGradient(TopBarColorOrigin)
             ),
         backgroundColor = Color.Transparent,
         elevation = 0.dp
@@ -528,7 +1051,9 @@ private fun MyPageTopBar(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_back_arrow),
                     contentDescription = "뒤로가기",
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier
+                        .size(18.dp)
+                        .clickable { navController.popBackStack() },
                     tint = Color.White
                 )
 
@@ -538,18 +1063,24 @@ private fun MyPageTopBar(
                         contentDescription = "setting",
                         modifier = Modifier
                             .size(25.dp)
-                            .clickable {
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null
+                            ) {
                                 navController.navigate(SecomiScreens.SettingsScreen.name)
                             },
                         tint = Color.White
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Image(
-                        painter = painterResource(id = R.drawable.ic_push_on),
-                        contentDescription = "push on",
+                        painter = painterResource(id = R.drawable.ic_push_off),
+                        contentDescription = "push off",
                         modifier = Modifier
                             .size(25.dp)
-                            .clickable {
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null
+                            ) {
                                 navController.navigate(SecomiScreens.NoticeScreen.name) {
                                     popUpTo(SecomiScreens.MyPageScreen.name) { inclusive = true }
                                 }
@@ -605,11 +1136,25 @@ fun MyFeedList(
     navController: NavController,
     myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>,
     homeViewModel: HomeViewModel = hiltViewModel(),
-    homeDetailViewModel: HomeDetailViewModel = hiltViewModel()
+    myPageViewModel: MyPageViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
+    val configuration = LocalConfiguration.current
+    var deleteFeedNo: Int? = null
+    var expanded by remember {
+        mutableStateOf(false)
+    }
+    var deleteNotice by remember {
+        mutableStateOf(false)
+    }
+    val deletedArticle = remember {
+        SnapshotStateList<Int>()
+    }
 
-    LazyVerticalGrid(columns = GridCells.Fixed(2)) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        contentPadding = PaddingValues(top = 10.dp, bottom = 30.dp)
+    ) {
         itemsIndexed(myFeedInfo.data!!.result.feedList) { index, data ->
             var likeYN by remember {
                 mutableStateOf(data.likeyn)
@@ -618,35 +1163,47 @@ fun MyFeedList(
                 mutableStateOf(false)
             }
 
-            MyFeedCard(
-                navController = navController,
-                feedNo = data.feedsno,
-                currentScreen = SecomiScreens.MyPageScreen.name,
-                contentImageList = data.imageList,
-                onClick = {
-                    isShowingFeedPopUp = true
-                },
-                onReactionClick = {
-                    likeYN = it
-                    scope.launch {
-                        homeViewModel.postFeedLike(data.feedsno, likeYN).let {
-                            Log.d(
-                                "myPage myList postLike",
-                                "MyFeedCard: ${it.data?.message}"
-                            )
-                        }
-                    }
-                },
-                reportDialogCallAction = {},
-                otherIcons = mapOf(
-                    "comment" to R.drawable.ic_comment,
-                    "empty" to 70,
-                    "more" to R.drawable.ic_more
-                ),
-                likeYN = likeYN,
-                likeCount = data.likeCount,
-                commentCount = data.commentCount.toString()
-            )
+            AnimatedVisibility(
+                visible = !deletedArticle.contains(data.feedsno),
+                enter = EnterTransition.None,
+                exit = fadeOut(tween(500))
+            ) {
+
+                Box {
+                    MyFeedCard(
+                        navController = navController,
+                        feedNo = data.feedsno,
+                        currentScreen = SecomiScreens.MyPageScreen.name,
+                        contentImageList = data.imageList,
+                        onClick = {
+                            isShowingFeedPopUp = true
+                        },
+                        onReactionClick = {
+                            likeYN = it
+                            scope.launch {
+                                homeViewModel.postFeedLike(data.feedsno, likeYN).let {
+                                    Log.d(
+                                        "myPage myList postLike",
+                                        "MyFeedCard: ${it.data?.message}"
+                                    )
+                                }
+                            }
+                        },
+                        reportDialogCallAction = {
+                            deleteFeedNo = data.feedsno
+                            deleteNotice = true
+                        },
+                        otherIcons = mapOf(
+                            "comment" to R.drawable.ic_new_comment,
+                            "more" to R.drawable.ic_more
+                        ),
+                        likeYN = likeYN,
+                        likeCount = data.likeCount,
+                        commentCount = data.commentCount.toString()
+                    )
+                }
+            }
+
 
             if (index == myFeedInfo.data!!.result.feedList.lastIndex)
                 Spacer(modifier = Modifier.height(230.dp))
@@ -665,8 +1222,8 @@ fun MyFeedList(
                         profileId = data.userid,
                         profileName = data.userName,
                         reactionIcon = listOf(
-                            R.drawable.ic_like_off,
-                            R.drawable.ic_like_on
+                            R.drawable.ic_new_like_off,
+                            R.drawable.ic_new_like_on
                         ),
                         reactionData = data.likeCount,
                         onReactionClick = {
@@ -683,8 +1240,8 @@ fun MyFeedList(
                         likeYN = data.likeyn,
                         colorIcon = null,
                         otherIcons = mapOf(
-                            "comment" to R.drawable.ic_comment,
-                            "more" to R.drawable.ic_more
+                            "comment" to R.drawable.ic_new_comment,
+                            "more" to R.drawable.ic_new_burger
                         ),
                         navController = navController,
                         reportDialogCallAction = {},
@@ -701,6 +1258,64 @@ fun MyFeedList(
                 }
             }
 
+            if (deleteNotice) {
+                Dialog(onDismissRequest = {
+                    deleteNotice = false
+                    deleteFeedNo = null
+                }) {
+                    Surface(
+                        modifier = Modifier
+                            .width((configuration.screenWidthDp * 0.5).dp)
+                            .height((configuration.screenHeightDp * 0.25).dp)
+                            .padding(10.dp),
+                        shape = RoundedCornerShape(5.dp),
+                        color = Color.White
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(10.dp),
+                            verticalArrangement = Arrangement.SpaceAround,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(text = "정말로\n삭제하시겠습니까?")
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceAround
+                            ) {
+                                Button(
+                                    onClick = {
+                                        if (deleteFeedNo != null)
+                                            scope.launch { myPageViewModel.deleteMyFeed(feedNo = deleteFeedNo!!) }
+                                        deletedArticle.add(deleteFeedNo!!)
+                                        deleteNotice = false
+                                    },
+                                    colors = ButtonDefaults.buttonColors(backgroundColor = LoginButtonColor)
+                                ) {
+                                    Text(
+                                        text = "네",
+                                        fontWeight = FontWeight.SemiBold,
+                                        style = MaterialTheme.typography.caption,
+                                        color = Color.White
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(20.dp))
+
+                                Button(
+                                    onClick = { deleteNotice = false },
+                                    colors = ButtonDefaults.buttonColors(backgroundColor = UnableUploadButtonColor)
+                                ) {
+                                    Text(
+                                        text = "아니오",
+                                        fontWeight = FontWeight.SemiBold,
+                                        style = MaterialTheme.typography.caption,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -718,7 +1333,10 @@ fun UserFeedList(
         mutableStateOf(false)
     }
 
-    LazyVerticalGrid(columns = GridCells.Fixed(2)) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        contentPadding = PaddingValues(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 30.dp)
+    ) {
         itemsIndexed(userFeedInfo.data!!.result.feedList) { index, data ->
             var likeYN by remember {
                 mutableStateOf(data.likeyn)
@@ -731,7 +1349,7 @@ fun UserFeedList(
                 navController = navController,
                 feedNo = data.feedsno,
                 onClick = { isShowingFeedPopUp = true },
-                currentScreen = SecomiScreens.MyPageScreen.name,
+                currentScreen = SecomiScreens.MyPageScreen.name + "/UserFeedList",
                 contentImageList = data.imageList,
                 onReactionClick = {
                     likeYN = it
@@ -741,9 +1359,11 @@ fun UserFeedList(
                         }
                     }
                 },
-                reportDialogCallAction = {},
+                reportDialogCallAction = {
+                    isShowingReporting = true
+                },
                 otherIcons = mapOf(
-                    "comment" to R.drawable.ic_comment,
+                    "comment" to R.drawable.ic_new_comment,
                     "empty" to 55,
                     "more" to R.drawable.ic_more
                 ),
@@ -770,8 +1390,8 @@ fun UserFeedList(
                         profileId = data.userid,
                         profileName = data.userName,
                         reactionIcon = listOf(
-                            R.drawable.ic_like_off,
-                            R.drawable.ic_like_on
+                            R.drawable.ic_new_like_off,
+                            R.drawable.ic_new_like_on
                         ),
                         reactionData = data.likeCount,
                         onReactionClick = {
@@ -788,7 +1408,7 @@ fun UserFeedList(
                         likeYN = data.likeyn,
                         colorIcon = null,
                         otherIcons = mapOf(
-                            "comment" to R.drawable.ic_comment,
+                            "comment" to R.drawable.ic_new_comment,
                             "more" to R.drawable.ic_more
                         ),
                         navController = navController,
@@ -840,11 +1460,13 @@ fun MyFeedCard(
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
+    var expanded by remember {
+        mutableStateOf(false)
+    }
 
     Card(
         modifier = Modifier
             .padding(5.dp)
-            .padding(vertical = 5.dp)
             .fillMaxWidth()
             .clickable {
                 onClick()
@@ -856,81 +1478,104 @@ fun MyFeedCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(10.dp)
                     .height(heightModifier)
             ) {
                 CardImageRow(
                     contentImageList,
                     currentScreen,
-                    showIndicator = false
+                    showIndicator = false,
+                    radius = 6
                 )
             }
 
             Row(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .padding(vertical = 5.dp)
-                    .padding(start = 5.dp),
+                    .padding(horizontal = 10.dp)
+                    .padding(bottom = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                CustomReaction(
-                    modifier = Modifier.size(18.dp),
-                    textPadding = 30.dp,
-                    iconResourceList = listOf(
-                        R.drawable.ic_like_off,
-                        R.drawable.ic_like_on
-                    ),
-                    reactionData = likeCount,
-                    onClickReaction = {
-                        onReactionClick(!likeYN)
-                        scope.launch {
-                            homeViewModel.postFeedLike(feedsNo = feedNo, !likeYN)
-                        }
-                    },
-                    tintColor = LikeColor,
-                    likeYN = likeYN
-                )
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CustomReaction(
+                        modifier = Modifier.size(18.dp),
+                        textPadding = 30.dp,
+                        iconResourceList = listOf(
+                            R.drawable.ic_new_like_off,
+                            R.drawable.ic_new_like_on
+                        ),
+                        reactionData = likeCount,
+                        onClickReaction = {
+                            onReactionClick(!likeYN)
+                            scope.launch {
+                                homeViewModel.postFeedLike(feedsNo = feedNo, !likeYN)
+                            }
+                        },
+                        tintColor = LikeColor,
+                        likeYN = likeYN
+                    )
+
+                    if (otherIcons?.get("comment") != null) {
+                        Text(
+                            text = commentCount,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(start = 5.dp),
+                            style = MaterialTheme.typography.subtitle2,
+                            color = CardIconsColor
+                        )
+
+                        Icon(
+                            painter = painterResource(otherIcons["comment"]!!),
+                            contentDescription = "댓글창으로 이동하기",
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .size(18.dp)
+                                .clickable {
+                                    navController.navigate(SecomiScreens.HomeDetailScreen.name + "/$feedNo") {
+                                        launchSingleTop
+                                        popUpTo(currentScreen)
+                                    }
+                                },
+                            tint = CardIconsColor
+                        )
+                    }
+
+                }
 
                 otherIcons?.forEach { (key, icon) ->
                     when (key) {
-                        "comment" -> {
-                            Icon(
-                                painter = painterResource(icon),
-                                contentDescription = "댓글창으로 이동하기",
-                                modifier = Modifier
-                                    .padding(start = 10.dp)
-                                    .size(18.dp)
-                                    .clickable {
-                                        navController.navigate(SecomiScreens.HomeDetailScreen.name + "/$feedNo") {
-                                            launchSingleTop
-                                            popUpTo(currentScreen)
-                                        }
-                                    },
-                                tint = CardIconsColor
-                            )
-                            Text(
-                                text = commentCount,
-                                fontSize = 14.sp,
-                                modifier = Modifier.padding(start = 5.dp),
-                                style = MaterialTheme.typography.subtitle2,
-                                color = CardIconsColor
-                            )
-                        }
-                        "empty" -> {
-                            Spacer(modifier = Modifier.width(icon.dp))
-                        }
                         "more" -> {
-                            Icon(
-                                painter = painterResource(icon),
-                                contentDescription = "설정창 열기",
-                                modifier = Modifier
-                                    .padding(start = 10.dp)
-                                    .size(18.dp)
-                                    .clickable {
-                                        if (reportDialogCallAction != null)
-                                            reportDialogCallAction(true)
-                                    },
-                                tint = CardIconsColor
-                            )
+                            Box {
+                                Icon(
+                                    painter = painterResource(icon),
+                                    contentDescription = "설정창 열기",
+                                    modifier = Modifier
+                                        .size(18.dp)
+                                        .clickable {
+                                            if (reportDialogCallAction != null && currentScreen == SecomiScreens.MyPageScreen.name + "/UserFeedList")
+                                                reportDialogCallAction(true)
+                                            else
+                                                expanded = true
+                                        },
+                                    tint = CardIconsColor
+                                )
+
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }) {
+                                    DropdownMenuItem(onClick = {
+                                        reportDialogCallAction!!(true)
+                                        expanded = false
+                                    }) {
+                                        Text(text = "삭제하기")
+                                    }
+                                }
+                            }
                         }
                     }
                 }

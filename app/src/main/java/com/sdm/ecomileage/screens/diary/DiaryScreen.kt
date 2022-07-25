@@ -40,6 +40,7 @@ fun DiaryScreen(
     navController: NavController,
     systemUiController: SystemUiController,
     educationNo: Int?,
+    thumbnail: String,
 ) {
     SideEffect {
         systemUiController.setStatusBarColor(Color.White)
@@ -48,13 +49,14 @@ fun DiaryScreen(
     if (educationNo == null)
         Text(text = "잘못된 접근입니다.")
     else
-        DiaryScaffold(navController, educationNo)
+        DiaryScaffold(navController, educationNo, thumbnail)
 }
 
 @Composable
 private fun DiaryScaffold(
     navController: NavController,
     educationNo: Int,
+    thumbnail: String,
     educationViewModel: EducationViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -94,8 +96,8 @@ private fun DiaryScaffold(
             ) {
                 Surface(shape = RoundedCornerShape(5)) {
                     Image(
-                        painter = rememberImagePainter("http://blog.jinbo.net/attach/615/200937431.jpg"),
-                        contentDescription = "샘플이라네",
+                        painter = rememberImagePainter(thumbnail),
+                        contentDescription = "썸네일",
                         modifier = Modifier
                             .fillMaxWidth(0.6f)
                             .fillMaxHeight(0.25f)

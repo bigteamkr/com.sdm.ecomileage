@@ -86,10 +86,9 @@ fun EducationScreen(
         }
     }
 
-    if (homeInfo.loading == true || educationInfo.loading == true){
+    if (homeInfo.loading == true || educationInfo.loading == true) {
         CircularProgressIndicator()
-    }
-    else if (homeInfo.data?.result != null && educationInfo.data?.challengeList != null) {
+    } else if (homeInfo.data?.result != null && educationInfo.data?.challengeList != null) {
 
         if (homeInfo.data?.code != 200 || educationInfo.data?.code != 200)
             AutoLoginLogic(
@@ -129,19 +128,20 @@ private fun EducationScaffold(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
         topBar = {
             SecomiTopAppBar(
                 title = homeInfo.data!!.result.userDept,
                 navController = navController,
                 currentScreen = SecomiScreens.EducationScreen.name,
-                backgroundColor = TopBarColor,
+                backgroundColor = TopBarColorOrigin,
                 actionIconsList = listOf {
                     AlarmComponent(
                         navController = navController,
-                        currentScreens = SecomiScreens.EducationScreen.name
+                        currentScreens = SecomiScreens.EducationScreen.name,
+                        tint = Color.White
                     )
-                }
+                },
+                contentColor = Color.White
             )
         },
         bottomBar = {
@@ -152,58 +152,52 @@ private fun EducationScaffold(
         },
         floatingActionButton = { SecomiMainFloatingActionButton(navController) },
         isFloatingActionButtonDocked = true,
-        floatingActionButtonPosition = FabPosition.Center
+        floatingActionButtonPosition = FabPosition.Center,
+        backgroundColor = BasicBackgroundColor
     ) {
-
         LazyColumn(
-            modifier = Modifier
-                .padding(horizontal = 5.dp)
-                .fillMaxSize()
+            modifier = Modifier.background(BasicBackgroundColor)
         ) {
             itemsIndexed(educationInfo.data!!.challengeList) { index, data ->
                 var popUpState by remember {
                     mutableStateOf(false)
                 }
 
-                Surface(
-                    modifier = Modifier.clickable {
-                        popUpState = true
-                    }
-                ) {
-                    MainCardFeed(
-                        contentImageList = listOf(data.thumnailurl),
-                        showIndicator = false,
-                        profileImage = data.manageprofile,
-                        profileId = data.manageid,
-                        profileName = data.managename,
-                        educationTitle = data.title,
-                        educationTime = "2:39",
-                        reactionIcon = null,
-                        reactionData = null,
-                        onReactionClick = null,
-                        reactionTint = null,
-                        likeYN = null,
-                        colorIcon = {
-                            Row(modifier = Modifier.padding(end = 10.dp)) {
-                                CustomIconText(
-                                    iconResource = R.drawable.ic_mileage,
-                                    contentDescription = "마일리지 포인트",
-                                    tintColor = MileageColor,
-                                    textData = data.point.toString()
-                                )
-                            }
-                        },
-                        otherIcons = null,
-                        navController = navController,
-                        reportDialogCallAction = null,
-                        currentScreen = SecomiScreens.EducationScreen.name,
-                        feedNo = data.educationsno,
-                        contentText = data.videocontent,
-                        hashtagList = null,
-                        destinationScreen = null,
-                        isOnEducation = true,
-                    )
-                }
+                MainCardFeed(
+                    contentImageList = listOf(data.thumnailurl),
+                    showIndicator = false,
+                    profileImage = data.manageprofile,
+                    profileId = data.manageid,
+                    profileName = data.managename,
+                    educationTitle = data.title,
+                    educationTime = "2:39",
+                    reactionIcon = null,
+                    reactionData = null,
+                    onReactionClick = null,
+                    reactionTint = null,
+                    likeYN = null,
+                    colorIcon = {
+                        Row(modifier = Modifier.padding(end = 10.dp)) {
+                            CustomIconText(
+                                iconResource = R.drawable.ic_mileage,
+                                contentDescription = "마일리지 포인트",
+                                tintColor = MileageColor,
+                                textData = data.point.toString()
+                            )
+                        }
+                    },
+                    otherIcons = null,
+                    navController = navController,
+                    reportDialogCallAction = null,
+                    currentScreen = SecomiScreens.EducationScreen.name,
+                    feedNo = data.educationsno,
+                    contentText = data.videocontent,
+                    hashtagList = null,
+                    destinationScreen = null,
+                    isOnEducation = true,
+                    educationClick = Modifier.clickable { popUpState = true }
+                )
+
 
                 if (popUpState)
                     CustomEducationVideoDialog(
@@ -215,7 +209,7 @@ private fun EducationScaffold(
                         data.manageprofile,
                         data.manageid,
                         data.managename,
-                        navController
+                        navController,
                     ) {
                         popUpState = false
                     }
@@ -240,11 +234,10 @@ private fun CustomEducationVideoDialog(
     manageName: String,
     navController: NavController,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
-    dismissEvent: (Unit) -> Unit
+    dismissEvent: (Unit) -> Unit,
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
-
 
     val exoPlayer = ExoPlayer.Builder(context).build().apply {
         this.prepare()
@@ -262,8 +255,6 @@ private fun CustomEducationVideoDialog(
     var isFullScreen by remember {
         mutableStateOf(false)
     }
-
-
 
     exoPlayer.setMediaItem(mediaItem)
     styledPlayerView.player = exoPlayer
@@ -350,7 +341,8 @@ private fun CustomEducationVideoDialog(
         educationYN,
         isEnded,
         currentPlayTime,
-        { currentPlayTime = it }
+        { currentPlayTime = it },
+        thumbnailUrl
     )
 
     if (isFullScreen)
@@ -376,7 +368,8 @@ private fun EducationDialog(
     educationYN: Boolean,
     isEnded: Boolean,
     currentPlayTime: Long,
-    onClickCurrentPlayTime: (Long) -> Unit
+    onClickCurrentPlayTime: (Long) -> Unit,
+    thumbnailUrl: String
 ) {
     val context = LocalContext.current
 
@@ -496,7 +489,7 @@ private fun EducationDialog(
                         Button(
                             onClick = {
                                 dismissEvent(exoPlayer.release())
-                                navController.navigate(SecomiScreens.DiaryScreen.name + "/$educationNo") {
+                                navController.navigate(SecomiScreens.DiaryScreen.name + "/$educationNo" + "/$thumbnailUrl") {
                                     launchSingleTop
                                 }
                             },

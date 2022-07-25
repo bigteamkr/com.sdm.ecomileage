@@ -205,7 +205,7 @@ private fun HomeDetailScaffold(
                         navigationIcon = painterResource(id = R.drawable.ic_back_arrow),
                         navController = navController,
                         currentScreen = SecomiScreens.HomeDetailScreen.name,
-                        backgroundColor = TopBarColor
+                        backgroundColor = TopBarColorWhite
                     )
 
 

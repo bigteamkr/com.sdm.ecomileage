@@ -178,8 +178,10 @@ fun AutoLoginLogic(
                 setRefreshToken(response.refreshToken)
                 currentLoginedUserId = lastLoginedUserIdUtil
 
-                navController.navigate(screen) {
-                    popUpTo(SecomiScreens.LoginScreen.name)
+                Log.d("AUTO Login", "AutoLoginLogic: success AUTO Login, go to home")
+
+                navController.navigate(SecomiScreens.HomeScreen.name) {
+                    popUpTo(SecomiScreens.LoginScreen.name) { inclusive = true }
                 }
             } ?: withContext(Dispatchers.Main) {
                 showShortToastMessage(context, "로그인을 다시 시도해주세요.")
@@ -1149,7 +1151,11 @@ private fun LoginScaffold(
 
                             if (isSaveId) {
                                 scope.launch {
-                                    setIsSaveId(isSaveId, currentLoginedUserId)
+                                    setIsSaveId(true, currentLoginedUserId)
+                                }
+                            } else {
+                                scope.launch {
+                                    setIsSaveId(false, "")
                                 }
                             }
 
@@ -1157,7 +1163,7 @@ private fun LoginScaffold(
                                 scope.launch {
                                     setIsAutoLogin(true)
                                 }
-                            else if (!isAutoLogin)
+                            else
                                 scope.launch {
                                     setIsAutoLogin(false)
                                 }

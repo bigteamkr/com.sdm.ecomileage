@@ -2,6 +2,7 @@ package com.sdm.ecomileage.components.appBarComponents
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.Icon
@@ -16,33 +17,43 @@ import com.sdm.ecomileage.navigation.SecomiScreens
 
 @Composable
 fun SearchComponent(navController: NavController, currentScreens: String) {
+    val interactionSource = remember { MutableInteractionSource() }
+
     Icon(
         painter = painterResource(id = R.drawable.ic_search),
         contentDescription = "검색하기",
         modifier = Modifier
-            .size(30.dp)
-            .clickable {
+            .size(25.dp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
                 navController.navigate(SecomiScreens.SearchScreen.name) {
                     popUpTo(currentScreens) { inclusive = true }
                 }
             },
-        tint = Color.White
+        tint = Color.Black
     )
 }
 
 @Composable
 fun RankingComponent(navController: NavController, currentScreens: String) {
+    val interactionSource = remember { MutableInteractionSource() }
+
     Icon(
         painter = painterResource(id = R.drawable.ic_ranking),
         contentDescription = "랭킹화면으로 가기",
         modifier = Modifier
-            .size(30.dp)
-            .clickable {
+            .size(25.dp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
                 navController.navigate(SecomiScreens.MileageRanking.name) {
                     launchSingleTop = true
                 }
             },
-        tint = Color.White
+        tint = Color.Black
     )
 }
 
@@ -50,16 +61,22 @@ fun RankingComponent(navController: NavController, currentScreens: String) {
 fun AlarmComponent(
     navController: NavController,
     pushImage: Int = R.drawable.ic_push_off,
-    currentScreens: String
+
+    currentScreens: String,
+    tint: Color = Color.Black
 ) {
-    Image(
+    val interactionSource = remember { MutableInteractionSource() }
+
+    Icon(
         painter = painterResource(id = pushImage),
         contentDescription = "랭킹화면으로 가기",
         modifier = Modifier
-            .size(30.dp)
-            .clickable {
-
-            }
+            .size(25.dp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) { },
+        tint = tint
     )
 }
 

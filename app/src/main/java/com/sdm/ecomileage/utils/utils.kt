@@ -54,7 +54,6 @@ suspend fun setRefreshToken(refreshToken: String) {
     }.let {
         refreshTokenUtil = it.refreshToken
     }
-
 }
 
 suspend fun setUUID() {

@@ -14,12 +14,18 @@ val SplashColor = listOf(
     Color(0xFFBFFA70)
 )
 val SplashTopBarColor = Color(0xFFB1F875)
+val SplashTextColor = Color(0xFFFFFFFF)
 
 // Bar Color
-val TopBarColor = listOf(
+val TopBarColorOrigin = listOf(
     Color(0xFF51C872),
-    Color(0xFF57DE96),
+    Color(0xFF57DE96)
 )
+val TopBarColorWhite = listOf(
+    Color.White,
+    Color.White
+)
+val BasicBackgroundColor = Color(0xFFF0F0F3)
 val StatusBarGreenColor = Color(0xFF51C872)
 val BottomSelectedColor = Color(0xFF2DDA93)
 val BottomUnSelectedColor = Color(0xFFC4C4C4)
@@ -27,12 +33,14 @@ val LeavesColor = Color(0xFFADFF9D)
 val BottomSheetDividerColor = Color(0xFFCCCCCC)
 val BottomSheetCheckColor = Color(0xFF9C9C9C)
 val BottomSheetSearchBackgroundColor = Color(0xFFF2F2F2)
+val CardContentColor = Color(0xFF1A1A1A)
+val CardCommentColor = Color(0xFF000106)
 
 // Home Color
-val LikeColor = Color(0xFFF97884)
+val LikeColor = Color(0xFFE7217A)
 val PointColor = Color(0xFF4EDE99)
-val TagColor = Color(0xFF0096EB)
-val CardIconsColor = Color(0xFFC6C6C6)
+val TagColor = Color(0xFFA7BEAE)
+val CardIconsColor = Color(0xFF040506)
 val IndicatorBlackTransparentColor = Color(0x80000000)
 val ReportedNotificationColor = Color(0xFF159B3A)
 
@@ -71,6 +79,7 @@ val SurfaceGreyColor = Color(0xFFE4E4E4)
 
 // Education Color
 val MileageColor = Color(0xFF329336)
+val ThumbnailAlpha = Color(0x80030303)
 
 // Ranking Color
 val RankingTitleColor = Color(0xFF6B6B6B)
@@ -79,7 +88,7 @@ val RankingPeriodColor = Color(0xFF999999)
 // Search Color
 val SearchIconColor = Color(0xFF2DDA93)
 
-// Event Color
+// Event Colorx
 val SelectedTabColor = Color(0xFF00A127)
 val UnSelectedTabColor = Color(0xFF616161)
 
@@ -89,6 +98,8 @@ val IndicationColor = Color(0xFF676767)
 val ReportedButtonColor = Color(0xFFFF6F6F)
 val MileageChangeButtonColor = Color(0xFF808080)
 val SettingsBackgroundColor = Color(0xFFF8FBFF)
+val IconTintColor = Color(0xFF2A8329)
+val UsedMileageColor = Color(0xFFF56071)
 
 // Mileage Color
 val MileageSwipeButtonSchoolColor = Color(0xFF59AF3B)

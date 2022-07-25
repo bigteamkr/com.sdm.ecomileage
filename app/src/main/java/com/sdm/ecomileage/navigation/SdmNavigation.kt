@@ -23,6 +23,7 @@ import com.sdm.ecomileage.screens.myPage.MyPageScreen
 import com.sdm.ecomileage.screens.notice.NoticeScreen
 import com.sdm.ecomileage.screens.ranking.RankingScreen
 import com.sdm.ecomileage.screens.search.SearchScreen
+import com.sdm.ecomileage.screens.selectTopic.SelectTopicScreen
 import com.sdm.ecomileage.screens.settings.SettingsScreen
 import com.sdm.ecomileage.screens.splash.SplashScreen
 
@@ -71,8 +72,16 @@ fun SdmNavigation() {
                 HomeDetailScreen(navController, systemUiController, feedNo = feedNo)
             }
         }
-        composable(SecomiScreens.HomeAddScreen.name) {
-            HomeAddScreen(navController, systemUiController)
+
+        composable(SecomiScreens.SelectTopicScreen.name) {
+            SelectTopicScreen(navController, systemUiController)
+        }
+
+        composable("${SecomiScreens.HomeAddScreen.name}/{selectedCategory}") { navBackStackEntry ->
+
+            val selectedCategory = navBackStackEntry.arguments?.getString("selectedCategory")
+
+            HomeAddScreen(navController, systemUiController, selectedCategory ?: "챌린지")
         }
 
 
@@ -104,14 +113,21 @@ fun SdmNavigation() {
             )
         }
 
-        composable("${SecomiScreens.DiaryScreen.name}/{educationNo}", arguments = listOf(
-            navArgument(name = "educationNo") {
-                type = NavType.IntType
-            }
-        )) { navBackStackEntry ->
-            navBackStackEntry.arguments?.getInt("educationNo").let { educationNo ->
-                DiaryScreen(navController, systemUiController, educationNo)
-            }
+        composable("${SecomiScreens.DiaryScreen.name}/{educationNo}&{thumbnail}",
+            arguments = listOf(
+                navArgument(name = "educationNo") {
+                    type = NavType.IntType
+                }
+            )) { navBackStackEntry ->
+            val educationNo = navBackStackEntry.arguments?.getInt("educationNo")
+            val thumbnail = navBackStackEntry.arguments?.getString("thumbnail")
+
+            DiaryScreen(
+                navController = navController,
+                systemUiController = systemUiController,
+                educationNo = educationNo,
+                thumbnail = thumbnail ?: "Error"
+            )
         }
 
 

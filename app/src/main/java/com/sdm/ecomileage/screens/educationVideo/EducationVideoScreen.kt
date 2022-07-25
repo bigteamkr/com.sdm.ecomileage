@@ -48,6 +48,9 @@ fun EducationVideoScreen(
     navController: NavController,
     educationViewModel: EducationViewModel = hiltViewModel()
 ) {
+
+    // Todo : 영상 전체화면 - 일단 밑의 코드로는 안됨.
+
     Log.d("EducationVideoScreen", "EducationVideoScreen: AHHHHHHHHHHHHHHHH")
 
     val context = LocalContext.current

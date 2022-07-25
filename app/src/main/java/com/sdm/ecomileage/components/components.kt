@@ -10,6 +10,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -44,6 +45,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -79,10 +81,11 @@ fun SecomiTopAppBar(
     title: String,
     navigationIcon: Painter? = null,
     currentScreen: String,
-    backgroundColor: List<Color> = TopBarColor,
+    backgroundColor: List<Color> = TopBarColorWhite,
     actionIconsList: List<@Composable () -> Unit>? = null,
     navController: NavController,
-    contentColor: Color = Color.White
+    contentColor: Color = Color.Black,
+    homeFriendList: (() -> Unit)? = null
 ) {
     // navigation Icon = start(left) icon
     // actionIconsList = end(right) icons
@@ -97,130 +100,134 @@ fun SecomiTopAppBar(
         backgroundColor = Color.Transparent,
         elevation = 0.dp
     ) {
-        Box(
-            contentAlignment = Alignment.Center
-        ) {
-            if (backgroundColor == TopBarColor)
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_topbar_leaves_2),
-                    contentDescription = "top bar decoration",
-                    modifier = Modifier.size(80.dp),
-                    tint = LeavesColor
-                )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .padding(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+        Column {
+            Box(
+                contentAlignment = Alignment.Center
             ) {
-                // Left - Title or Icons
                 Row(
                     modifier = Modifier
-                        .padding(start = 12.dp)
-                        .fillMaxHeight(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (navigationIcon != null) {
-                        Icon(
-                            painter = navigationIcon,
-                            contentDescription = "navigation Icon (back or cancel)",
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .size(20.dp)
-                                .clickable {
-                                    navController.popBackStack()
-                                },
-                            tint = contentColor
-                        )
-                    }
-
-                    when (currentScreen) {
-                        SecomiScreens.HomeScreen.name -> {
-                            AppBarTitleText(title, Modifier, contentColor, 15.sp)
-                        }
-                        SecomiScreens.EducationScreen.name -> {
-                            AppBarTitleText(title, Modifier, contentColor, 15.sp)
-                        }
-                    }
-                }
-
-                //Center title or empty
-                Row(
-                    modifier = Modifier
-                        .fillMaxHeight(),
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .padding(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    when (currentScreen) {
-                        SecomiScreens.HomeAddScreen.name -> {
-                            AppBarTitleText(
-                                title,
-                                Modifier.padding(end = 25.dp),
-                                contentColor,
-                                18.sp
+                    // Left - Title or Icons
+                    Row(
+                        modifier = Modifier
+                            .padding(start = 12.dp)
+                            .fillMaxHeight(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (navigationIcon != null) {
+                            Icon(
+                                painter = navigationIcon,
+                                contentDescription = "navigation Icon (back or cancel)",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .size(20.dp)
+                                    .clickable {
+                                        navController.popBackStack()
+                                    },
+                                tint = contentColor
                             )
                         }
 
-                        SecomiScreens.HomeDetailScreen.name -> {
-                            AppBarTitleText(
-                                title,
-                                Modifier.padding(end = 25.dp),
-                                contentColor,
-                                18.sp
-                            )
-                        }
-
-                        SecomiScreens.RankingScreen.name -> {
-                            AppBarTitleText(
-                                title,
-                                Modifier.padding(end = 25.dp),
-                                contentColor,
-                                18.sp
-                            )
-                        }
-
-                        SecomiScreens.DiaryScreen.name -> {
-                            AppBarTitleText(
-                                title,
-                                Modifier.padding(end = 25.dp),
-                                contentColor,
-                                18.sp
-                            )
-                        }
-
-                        SecomiScreens.SettingsScreen.name -> {
-                            AppBarTitleText(
-                                title,
-                                Modifier.padding(end = 25.dp),
-                                contentColor,
-                                18.sp
-                            )
-                        }
-
-                        SecomiScreens.MileageRanking.name -> {
-                            AppBarTitleText(
-                                title,
-                                Modifier.padding(start = 67.dp),
-                                contentColor,
-                                18.sp
-                            )
+                        when (currentScreen) {
+                            SecomiScreens.HomeScreen.name -> {
+                                AppBarTitleText(
+                                    title,
+                                    Modifier.padding(start = 8.dp),
+                                    contentColor,
+                                    17.sp
+                                )
+                            }
+                            SecomiScreens.EducationScreen.name -> {
+                                AppBarTitleText(title, Modifier.padding(start = 8.dp), contentColor, 17.sp)
+                            }
+                            SecomiScreens.SelectTopicScreen.name -> {
+                                AppBarTitleText(title, Modifier, contentColor, 17.sp)
+                            }
                         }
                     }
-                }
 
-                // Right - Icons or empty
-                Row(
-                    modifier = Modifier
-                        .padding(end = 5.dp)
-                        .fillMaxHeight(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    actionIconsList?.forEach { it ->
-                        it()
-                        Spacer(modifier = Modifier.width(5.dp))
+                    //Center title or empty
+                    Row(
+                        modifier = Modifier
+                            .fillMaxHeight(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        when (currentScreen) {
+                            SecomiScreens.HomeAddScreen.name -> {
+                                AppBarTitleText(
+                                    title,
+                                    Modifier.padding(end = 25.dp),
+                                    contentColor,
+                                    18.sp
+                                )
+                            }
+
+                            SecomiScreens.HomeDetailScreen.name -> {
+                                AppBarTitleText(
+                                    title,
+                                    Modifier.padding(end = 25.dp),
+                                    contentColor,
+                                    18.sp
+                                )
+                            }
+
+                            SecomiScreens.RankingScreen.name -> {
+                                AppBarTitleText(
+                                    title,
+                                    Modifier.padding(end = 25.dp),
+                                    contentColor,
+                                    18.sp
+                                )
+                            }
+
+                            SecomiScreens.DiaryScreen.name -> {
+                                AppBarTitleText(
+                                    title,
+                                    Modifier.padding(end = 25.dp),
+                                    contentColor,
+                                    18.sp
+                                )
+                            }
+
+                            SecomiScreens.SettingsScreen.name -> {
+                                AppBarTitleText(
+                                    title,
+                                    Modifier.padding(end = 25.dp),
+                                    contentColor,
+                                    18.sp
+                                )
+                            }
+
+                            SecomiScreens.MileageRanking.name -> {
+                                AppBarTitleText(
+                                    title,
+                                    Modifier.padding(start = 67.dp),
+                                    contentColor,
+                                    18.sp
+                                )
+                            }
+                        }
+                    }
+
+                    // Right - Icons or empty
+                    Row(
+                        modifier = Modifier
+                            .padding(end = 10.dp)
+                            .fillMaxHeight(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        actionIconsList?.forEachIndexed { index, it ->
+                            it()
+                            if (index != actionIconsList.lastIndex) {
+                                Spacer(modifier = Modifier.width(15.dp))
+                            }
+                        }
                     }
                 }
             }
@@ -241,8 +248,9 @@ private fun AppBarTitleText(
         color = contentColor,
         fontSize = fontSize,
         style = MaterialTheme.typography.h4,
-        fontWeight = FontWeight.SemiBold,
-        maxLines = 1
+        fontWeight = FontWeight.Normal,
+        maxLines = 1,
+        letterSpacing = 1.0.sp
     )
 }
 
@@ -250,7 +258,7 @@ private fun AppBarTitleText(
 fun SecomiMainFloatingActionButton(navController: NavController) {
     FloatingActionButton(
         onClick = {
-            navController.navigate(SecomiScreens.HomeAddScreen.name)
+            navController.navigate(SecomiScreens.SelectTopicScreen.name)
         },
         shape = CircleShape,
         backgroundColor = PointColor,
@@ -307,10 +315,13 @@ fun CustomReaction(
         Text(
             text = "$_reactionData",
             modifier = Modifier
-                .padding(start = textPadding),
+                .padding(
+                    end = textPadding
+                ),
             style = MaterialTheme.typography.subtitle2,
-            fontWeight = FontWeight.Normal,
-            color = tintColor
+            fontWeight = FontWeight.ExtraBold,
+            color = tintColor,
+            fontSize = 14.sp
         )
     }
 }
@@ -323,10 +334,22 @@ fun CustomIconText(
     tintColor: Color,
     textData: String
 ) {
-    Box(
+    Row(
         modifier = Modifier,
-        contentAlignment = Alignment.Center
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        Text(
+            text = textData,
+            modifier = Modifier
+                .then(modifier),
+            style = MaterialTheme.typography.subtitle2,
+            fontWeight = FontWeight.Normal,
+            color = tintColor
+        )
+
+        Spacer(modifier = Modifier.width(5.dp))
+
         Icon(
             painter = painterResource(id = iconResource),
             contentDescription = contentDescription,
@@ -334,15 +357,6 @@ fun CustomIconText(
             tint = tintColor
         )
 
-        Text(
-            text = textData,
-            modifier = Modifier
-                .padding(start = (45 + (textData.length * 2)).dp, bottom = 3.dp)
-                .then(modifier),
-            style = MaterialTheme.typography.subtitle2,
-            fontWeight = FontWeight.Normal,
-            color = tintColor
-        )
     }
 }
 
@@ -354,6 +368,7 @@ fun ProfileName(
     textAlign: TextAlign = TextAlign.Center,
     fontStyle: TextStyle = TextStyle.Default,
     fontWeight: FontWeight = FontWeight.Normal,
+    letterSpacing: TextUnit = TextUnit.Unspecified,
     color: Color = Color.Black
 ) {
     Text(
@@ -366,7 +381,8 @@ fun ProfileName(
         textAlign = textAlign,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        color = color
+        color = color,
+        letterSpacing = letterSpacing
     )
 }
 
@@ -446,6 +462,7 @@ fun MainFeedCardStructure(
     reportYN: Boolean,
     onReactionClick: (Boolean) -> Unit,
     otherIcons: Map<String, Int>,
+    commentCount: Int? = null,
     hashtagList: List<String>?,
     navController: NavController,
     feedNo: Int,
@@ -486,6 +503,7 @@ fun MainFeedCardStructure(
                 followYN,
                 null,
                 otherIcons,
+                commentCount,
                 navController,
                 deleteFeedAction,
                 reportDialogCallAction,
@@ -497,7 +515,6 @@ fun MainFeedCardStructure(
                 showIndicator,
                 openBigImage = openBigImage
             )
-
         }
     }
 }
@@ -518,6 +535,7 @@ fun MainCardFeed(
     followYN: Boolean? = null,
     colorIcon: @Composable() (() -> Unit)?,
     otherIcons: Map<String, Int>?,
+    commentCount: Int? = null,
     navController: NavController,
     deleteFeedAction: (() -> Unit)? = null,
     reportDialogCallAction: ((Offset) -> Unit)?,
@@ -530,8 +548,9 @@ fun MainCardFeed(
     isOnEducation: Boolean = false,
     sizeModifier: Modifier = Modifier,
     openBigImage: (Int) -> Unit = {},
+    educationClick: Modifier = Modifier,
 ) {
-    val heightModifier = if (currentScreen == SecomiScreens.EducationScreen.name) 230.dp else 355.dp
+    val heightModifier = if (currentScreen == SecomiScreens.EducationScreen.name) 230.dp else 300.dp
 
     val navigatingModifier = if (destinationScreen != null) Modifier.clickable {
         navController.navigate(destinationScreen) {
@@ -542,17 +561,20 @@ fun MainCardFeed(
 
     Card(
         modifier = Modifier
-            .padding(5.dp)
+            .padding(10.dp)
             .padding(start = 5.dp, end = 5.dp)
             .fillMaxWidth()
             .then(navigatingModifier)
-            .then(sizeModifier),
-        shape = RoundedCornerShape(10.dp),
-        backgroundColor = Color.White
+            .then(sizeModifier)
+            .then(educationClick),
+        shape = RoundedCornerShape(15.dp),
+        backgroundColor = Color.White,
+        elevation = 12.dp
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(10.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
@@ -569,6 +591,23 @@ fun MainCardFeed(
                     openBigImage = openBigImage
                 )
             }
+            CardContent(
+                contentText,
+                hashtagList,
+                profileId,
+                feedNo,
+                followYN,
+                deleteFeedAction,
+                reportDialogCallAction,
+                currentScreen
+            )
+            Divider(
+                modifier = Modifier
+                    .padding(horizontal = 2.dp)
+                    .padding(top = 13.dp)
+                    .fillMaxWidth()
+                    .height(0.3.dp)
+            )
             CardWriterInformation(
                 profileImage,
                 profileId,
@@ -581,6 +620,7 @@ fun MainCardFeed(
                 followYN,
                 colorIcon,
                 otherIcons,
+                commentCount,
                 navController,
                 deleteFeedAction,
                 reportDialogCallAction,
@@ -588,7 +628,6 @@ fun MainCardFeed(
                 feedNo,
                 isOnEducation
             )
-            CardContent(contentText, hashtagList)
         }
     }
 }
@@ -606,6 +645,7 @@ fun CardWriterInformation(
     followYN: Boolean? = null,
     colorIcon: (@Composable () -> Unit)?,
     otherIcons: (Map<String, Int>)?,
+    commentCount: Int? = null,
     navController: NavController,
     deleteFeedAction: (() -> Unit)? = null,
     reportDialogCallAction: ((Offset) -> Unit)?,
@@ -614,6 +654,8 @@ fun CardWriterInformation(
     isOnEducation: Boolean = false,
     myPageViewModel: MyPageViewModel = hiltViewModel()
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var expandedDropdown by remember {
@@ -625,10 +667,9 @@ fun CardWriterInformation(
 
     Row(
         modifier = Modifier
-            .padding(5.dp)
-            .padding(top = 5.dp)
+            .padding(vertical = 5.dp)
             .fillMaxWidth()
-            .height(30.dp),
+            .height(50.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -639,26 +680,33 @@ fun CardWriterInformation(
                 userId = profileId,
                 image = profileImage,
                 modifier = Modifier
-                    .size(35.dp)
-                    .padding(start = 5.dp),
+                    .size(45.dp)
+                    .padding(
+                        start = 5.dp,
+                        top = 5.dp
+                    ),
                 navController = navController,
                 isNonClickable = isOnEducation
             )
             ProfileName(
                 name = profileName,
-                fontSize = 15.sp,
-                modifier = Modifier.padding(start = 8.dp, bottom = 2.dp),
+                fontSize = 16.sp,
+                modifier = Modifier.padding(start = 8.dp),
                 fontStyle = MaterialTheme.typography.body2,
-                fontWeight = FontWeight.Normal
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 1.2.sp
             )
         }
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             if (onReactionClick != null && reactionIcon != null && reactionData != null && reactionTint != null && likeYN != null)
                 CustomReaction(
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier
+                        .size(30.dp)
+                        .padding(end = 5.dp),
                     iconResourceList = reactionIcon,
                     reactionData = reactionData,
                     onClickReaction = { onReactionClick(it) },
@@ -674,115 +722,39 @@ fun CardWriterInformation(
             otherIcons?.forEach { (key, icon) ->
                 when (key) {
                     "comment" -> {
-                        Icon(
-                            painter = painterResource(icon),
-                            contentDescription = "댓글창으로 이동하기",
-                            modifier = Modifier
-                                .padding(start = 10.dp)
-                                .clickable {
-                                    feedNo?.let {
-                                        navController.navigate(SecomiScreens.HomeDetailScreen.name + "/$feedNo") {
-                                            launchSingleTop
-                                            popUpTo(currentScreen)
-                                        }
-                                    }
-                                },
-                            tint = CardIconsColor
-                        )
-                    }
-                    "more" -> {
-                        Box {
+                        Box(
+                            contentAlignment = Alignment.Center
+                        ) {
                             Icon(
                                 painter = painterResource(icon),
-                                contentDescription = "설정창 열기",
+                                contentDescription = "댓글창으로 이동하기",
                                 modifier = Modifier
-                                    .padding(start = 10.dp)
-                                    .clickable {
-                                        expandedDropdown = true
+                                    .size(29.dp)
+                                    .padding(start = 5.dp, bottom = 2.dp)
+                                    .clickable(
+                                        interactionSource = interactionSource,
+                                        indication = null
+                                    ) {
+                                        feedNo?.let {
+                                            navController.navigate(SecomiScreens.HomeDetailScreen.name + "/$feedNo") {
+                                                launchSingleTop
+                                                popUpTo(currentScreen)
+                                            }
+                                        }
                                     },
                                 tint = CardIconsColor
                             )
-                            DropdownMenu(
-                                expanded = expandedDropdown,
-                                onDismissRequest = { expandedDropdown = !expandedDropdown }
-                            ) {
-                                when (profileId) {
-                                    currentLoginedUserId -> {
-                                        DropdownMenuItem(onClick = {
-                                            if (deleteFeedAction != null && feedNo != null) {
-                                                scope.launch {
-                                                    myPageViewModel.deleteMyFeed(
-                                                        feedNo
-                                                    ).let {
-                                                        if (it.data?.code == 200) deleteFeedAction()
-                                                        else {
-                                                            Log.d(
-                                                                "component",
-                                                                "CardWriterInformation: ${it.data?.message} ${it.data?.code}"
-                                                            )
-                                                            showShortToastMessage(
-                                                                context,
-                                                                "${it.data?.message}"
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            } else {
-                                                Log.d("component", "CardWriterInformation: $feedNo")
-                                                showShortToastMessage(context, "오류가 발생하였습니다.")
-                                            }
-                                        }) {
-                                            Text(text = "삭제하기")
-                                        }
-                                    }
-                                    else -> {
-                                        if (followInfo == false)
-                                            DropdownMenuItem(onClick = {
-                                                scope.launch {
-                                                    myPageViewModel.putNewFollowInfo(
-                                                        currentUUIDUtil,
-                                                        profileId,
-                                                        true
-                                                    ).let {
-                                                        if (it.data?.code == 200) followInfo = true
-                                                        else showShortToastMessage(
-                                                            context,
-                                                            "잠시 후 다시 시도해주세요."
-                                                        )
-                                                    }
-                                                }
-                                                expandedDropdown = false
-                                            }) {
-                                                Text(text = "팔로우하기")
-                                            }
-                                        else if (followInfo == true)
-                                            DropdownMenuItem(onClick = {
-                                                scope.launch {
-                                                    myPageViewModel.putNewFollowInfo(
-                                                        currentUUIDUtil,
-                                                        profileId,
-                                                        false
-                                                    ).let {
-                                                        if (it.data?.code == 200) followInfo = false
-                                                        else showShortToastMessage(
-                                                            context,
-                                                            "잠시 후 다시 시도해주세요."
-                                                        )
-                                                    }
-                                                }
-                                                expandedDropdown = false
-                                            }) {
-                                                Text(text = "팔로우 취소하기")
-                                            }
-                                        DropdownMenuItem(onClick = {
-                                            expandedDropdown = false
-                                            reportDialogCallAction?.invoke(Offset.Zero)
-                                        }) {
-                                            Text(text = "신고하기")
-                                        }
-                                    }
-                                }
-                            }
+                            Text(
+                                text = commentCount?.toString() ?: "0",
+                                modifier = Modifier
+                                    .padding(
+                                        end = 35.dp
+                                    ),
+                                style = MaterialTheme.typography.subtitle2,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = CardIconsColor,
+                                fontSize = 14.sp
+                            )
                         }
                     }
                 }
@@ -795,8 +767,26 @@ fun CardWriterInformation(
 @Composable
 private fun CardContent(
     contentText: String?,
-    hashtagList: List<String>?
+    hashtagList: List<String>?,
+    profileId: String,
+    feedNo: Int?,
+    followYN: Boolean? = null,
+    deleteFeedAction: (() -> Unit)? = null,
+    reportDialogCallAction: ((Offset) -> Unit)? = null,
+    currentScreen: String,
+    myPageViewModel: MyPageViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val interactionSource = remember { MutableInteractionSource() }
+
+    var expandedDropdown by remember {
+        mutableStateOf(false)
+    }
+    var followInfo by remember {
+        mutableStateOf(followYN)
+    }
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start
@@ -805,33 +795,146 @@ private fun CardContent(
             Text(
                 text = contentText,
                 modifier = Modifier.padding(
-                    start = 12.dp,
-                    end = 10.dp,
-                    top = 7.dp
+                    start = 5.dp,
+                    end = 55.dp,
+                    top = 20.dp
                 ),
+                color = CardContentColor,
                 style = MaterialTheme.typography.body2,
-                fontSize = 14.sp,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                fontSize = 15.sp,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                letterSpacing = 1.15.sp,
+                softWrap = true
             )
 
-        if (!hashtagList.isNullOrEmpty()) {
-            Row(Modifier.padding(start = 12.dp, end = 10.dp, top = 7.dp)) {
-                hashtagList.forEachIndexed { index, tag ->
-                    Text(
-                        text = "#$tag",
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            color = TagColor,
-                            textAlign = TextAlign.Justify
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            if (!hashtagList.isNullOrEmpty()) {
+                Row(Modifier.padding(start = 5.dp, top = 7.dp)) {
+                    hashtagList.forEachIndexed { index, tag ->
+                        val modifier =
+                            if (index != hashtagList.lastIndex) Modifier.padding(end = 7.dp) else Modifier
+                        Text(
+                            text = "#$tag",
+                            modifier = modifier,
+                            style = TextStyle(
+                                fontSize = 13.sp,
+                                color = CardContentColor,
+                                textAlign = TextAlign.Justify
+                            )
                         )
-                    )
-                    if (index != hashtagList.lastIndex)
-                        Spacer(modifier = Modifier.width(5.dp))
+                    }
                 }
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-        } else Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+            } else Spacer(modifier = Modifier.height(20.dp))
+
+            if (currentScreen != SecomiScreens.EducationScreen.name)
+                Box {
+                    Surface(
+                        modifier = Modifier.padding(end = 6.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_new_burger),
+                            contentDescription = "설정창 열기",
+                            modifier = Modifier
+                                .size(25.dp)
+                                .padding(top = 3.dp)
+                                .clickable(
+                                    interactionSource = interactionSource,
+                                    indication = null
+                                ) {
+                                    expandedDropdown = true
+                                },
+                            tint = CardIconsColor
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = expandedDropdown,
+                        onDismissRequest = { expandedDropdown = !expandedDropdown }
+                    ) {
+                        when (profileId) {
+                            currentLoginedUserId -> {
+                                DropdownMenuItem(onClick = {
+                                    if (deleteFeedAction != null && feedNo != null) {
+                                        scope.launch {
+                                            myPageViewModel.deleteMyFeed(
+                                                feedNo
+                                            ).let {
+                                                if (it.data?.code == 200) deleteFeedAction()
+                                                else {
+                                                    Log.d(
+                                                        "component",
+                                                        "CardWriterInformation: ${it.data?.message} ${it.data?.code}"
+                                                    )
+                                                    showShortToastMessage(
+                                                        context,
+                                                        "${it.data?.message}"
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        Log.d("component", "CardWriterInformation: $feedNo")
+                                        showShortToastMessage(context, "오류가 발생하였습니다.")
+                                    }
+                                }) {
+                                    Text(text = "삭제하기")
+                                }
+                            }
+                            else -> {
+                                if (followInfo == false)
+                                    DropdownMenuItem(onClick = {
+                                        scope.launch {
+                                            myPageViewModel.putNewFollowInfo(
+                                                currentUUIDUtil,
+                                                profileId,
+                                                true
+                                            ).let {
+                                                if (it.data?.code == 200) followInfo = true
+                                                else showShortToastMessage(
+                                                    context,
+                                                    "잠시 후 다시 시도해주세요."
+                                                )
+                                            }
+                                        }
+                                        expandedDropdown = false
+                                    }) {
+                                        Text(text = "팔로우하기")
+                                    }
+                                else if (followInfo == true)
+                                    DropdownMenuItem(onClick = {
+                                        scope.launch {
+                                            myPageViewModel.putNewFollowInfo(
+                                                currentUUIDUtil,
+                                                profileId,
+                                                false
+                                            ).let {
+                                                if (it.data?.code == 200) followInfo = false
+                                                else showShortToastMessage(
+                                                    context,
+                                                    "잠시 후 다시 시도해주세요."
+                                                )
+                                            }
+                                        }
+                                        expandedDropdown = false
+                                    }) {
+                                        Text(text = "팔로우 취소하기")
+                                    }
+                                DropdownMenuItem(onClick = {
+                                    expandedDropdown = false
+                                    reportDialogCallAction?.invoke(Offset.Zero)
+                                }) {
+                                    Text(text = "신고하기")
+                                }
+                            }
+                        }
+                    }
+                }
+        }
     }
 }
 
@@ -846,79 +949,120 @@ fun CardImageRow(
     indicatorTextSize: TextUnit? = null,
     showIndicator: Boolean = true,
     openBigImage: (Int) -> Unit = {},
+    radius: Int = 11,
 ) {
     val pagerState = rememberPagerState()
 
-    Box(
-        contentAlignment = Alignment.BottomCenter
+    Surface(
+        shape = RoundedCornerShape(radius.dp)
     ) {
-        HorizontalPager(
-            count = imageList.size,
-            state = pagerState,
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-        ) { page ->
-            Column(
-                Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Bottom,
-                horizontalAlignment = Alignment.End
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+        Box(
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            HorizontalPager(
+                count = imageList.size,
+                state = pagerState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+            ) { page ->
+                Column(
+                    Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Bottom,
+                    horizontalAlignment = Alignment.End
                 ) {
-                    Image(
-                        painter = rememberImagePainter(imageList[page]),
-                        contentDescription = "FeedImageList",
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                    if (educationTitle == null)
-                        Surface(
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = rememberImagePainter(imageList[page]),
+                            contentDescription = "FeedImageList",
                             modifier = Modifier
-                                .fillMaxSize()
-                                .clickable {
-                                    openBigImage(pagerState.currentPage)
-                                },
-                            color = Color.Transparent
-                        ) {}
-                    else Text(
-                        text = educationTitle,
-                        style = MaterialTheme.typography.h4,
-                        color = Color.White
+                                .fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                        if (educationTitle == null)
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clickable {
+                                        openBigImage(pagerState.currentPage)
+                                    },
+                                color = Color.Transparent
+                            ) {}
+                        else
+                            Surface(
+                                modifier = Modifier.fillMaxSize(),
+                                color = ThumbnailAlpha
+                            ) {
+                                Column(
+                                    verticalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 20.dp, top = 20.dp, end = 20.dp),
+                                        horizontalArrangement = Arrangement.Start
+                                    ) {
+                                        Text(
+                                            text = educationTitle,
+                                            style = MaterialTheme.typography.h1,
+                                            color = Color.White,
+                                            fontFamily = FontFamily.Monospace,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 20.sp,
+                                            softWrap = true,
+                                            letterSpacing = 1.2.sp
+                                        )
+                                    }
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(end = 20.dp, bottom = 20.dp),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_play_circle),
+                                            contentDescription = "",
+                                            modifier = Modifier.size(24.dp),
+                                            tint = Color.White
+                                        )
+                                    }
+                                }
+                            }
+                    }
+                    if (educationTime != null)
+                        Text(
+                            text = educationTime,
+                            modifier = Modifier.padding(end = 10.dp, bottom = 10.dp),
+                            color = Color.White
+                        )
+                }
+            }
+
+            if (showIndicator)
+                Surface(
+                    modifier = Modifier
+                        .padding(2.dp)
+                        .padding(bottom = 10.dp),
+                    shape = RoundedCornerShape(50),
+                    color = IndicatorBlackTransparentColor
+                ) {
+                    Text(
+                        text = "${pagerState.currentPage + 1}/${imageList.size}",
+                        modifier = Modifier.padding(
+                            start = 17.dp,
+                            end = 17.dp,
+                            top = 7.dp,
+                            bottom = 7.dp
+                        ),
+                        fontSize = indicatorTextSize ?: TextUnit.Unspecified,
+                        color = Color.White,
+                        style = MaterialTheme.typography.caption
                     )
                 }
-                if (educationTime != null) Text(
-                    text = educationTime,
-                    modifier = Modifier.padding(end = 10.dp, bottom = 10.dp),
-                    color = Color.White
-                )
-            }
         }
-
-        if (showIndicator)
-            Surface(
-                modifier = Modifier
-                    .padding(2.dp)
-                    .padding(bottom = 10.dp),
-                shape = RoundedCornerShape(50),
-                color = IndicatorBlackTransparentColor
-            ) {
-                Text(
-                    text = "${pagerState.currentPage + 1}/${imageList.size}",
-                    modifier = Modifier.padding(
-                        start = 17.dp,
-                        end = 17.dp,
-                        top = 7.dp,
-                        bottom = 7.dp
-                    ),
-                    fontSize = indicatorTextSize ?: TextUnit.Unspecified,
-                    color = Color.White,
-                    style = MaterialTheme.typography.caption
-                )
-            }
     }
 }
 
@@ -931,7 +1075,7 @@ fun SecomiBottomBar(
     BottomAppBar(
         backgroundColor = Color.White,
         cutoutShape = CircleShape,
-        elevation = 12.dp
+        elevation = 5.dp
     ) {
         val selectedIconName = remember {
             mutableStateOf(currentScreen)

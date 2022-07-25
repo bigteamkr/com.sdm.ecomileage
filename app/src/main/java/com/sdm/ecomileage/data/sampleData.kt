@@ -224,6 +224,7 @@ val CardSampleImage = listOf(
 )
 
 val ChallengeList = listOf(
+    R.drawable.image_daily,
     R.drawable.image_empty_dish,
     R.drawable.image_public_transport,
     R.drawable.image_thermos,
@@ -231,5 +232,6 @@ val ChallengeList = listOf(
     R.drawable.image_basket,
     R.drawable.image_pull_a_plug,
     R.drawable.image_empty_bottle,
+    R.drawable.image_back,
     R.drawable.image_upcycling
 )

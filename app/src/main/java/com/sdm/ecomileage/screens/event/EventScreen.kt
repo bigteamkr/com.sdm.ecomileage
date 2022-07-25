@@ -45,6 +45,7 @@ import com.sdm.ecomileage.model.event.currentEvent.response.Comment
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.loginRegister.AutoLoginLogic
 import com.sdm.ecomileage.ui.theme.*
+import com.sdm.ecomileage.utils.isAutoLoginUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -77,32 +78,36 @@ fun EventScreen(
         mutableStateOf(false)
     }
 
-
     val eventInfo = produceState<DataOrException<AttendanceInfoResponse, Boolean, Exception>>(
         initialValue = DataOrException(loading = true)
     ) {
         value = eventViewModel.getCurrentEventInfo()
     }.value
 
-    if (eventInfo.loading == true){
+    if (eventInfo.loading == true) {
         isLoading = true
         Log.d("Event", "EventScreen: ${eventInfo.data}")
-    }
-    else if (eventInfo.data?.result != null) {
-        eventInfo.data?.code?.let {
-            if (it == 200) {
-                return@let
-            } else {
+    } else if (eventInfo.data?.code != null) {
+        if (eventInfo.data?.code == 200) {
+            EventScaffold(eventInfo, navController)
+            isLoading = false
+        } else {
+            Log.d("AUTO Login", "EventScreen: Fail data?")
+            showShortToastMessage(context, "데이터를 정상적으로 받지 못하였습니다.")
+
+            if (isAutoLoginUtil) {
                 AutoLoginLogic(
                     isLoading = { isLoading = true },
                     navController = navController,
                     context = context,
-                    screen = SecomiScreens.EventScreen.name
+                    screen = SecomiScreens.LoginScreen.name + "/0"
                 )
+            } else {
+                navController.navigate(SecomiScreens.LoginScreen.name + "/0") {
+                    popUpTo(SecomiScreens.EventScreen.name) { inclusive = true }
+                }
             }
         }
-        isLoading = false
-        EventScaffold(eventInfo, navController)
     } else {
         isFail = true
     }
@@ -115,8 +120,19 @@ fun EventScreen(
         ) {
             CircularProgressIndicator(color = LoginButtonColor)
         }
-        showShortToastMessage(context, "데이터를 정상적으로 받지 못하였습니다.").let {
-            navController.popBackStack()
+        Log.d("AUTO Login", "EventScreen: did you fail to get any data?")
+        showShortToastMessage(context, "데이터를 받지 못하였습니다.")
+        if (isAutoLoginUtil) {
+            AutoLoginLogic(
+                isLoading = { isLoading = true },
+                navController = navController,
+                context = context,
+                screen = SecomiScreens.LoginScreen.name + "/0"
+            )
+        } else {
+            navController.navigate(SecomiScreens.LoginScreen.name + "/0") {
+                popUpTo(SecomiScreens.EventScreen.name) { inclusive = true }
+            }
         }
     }
 }
@@ -192,7 +208,6 @@ private fun EventAttendScaffold(
     }
     val currentWeek = SimpleDateFormat("u").format(System.currentTimeMillis()).toInt()
     var isClicked by remember { mutableStateOf(false) }
-
 
     Scaffold(
         modifier = Modifier.fillMaxSize()

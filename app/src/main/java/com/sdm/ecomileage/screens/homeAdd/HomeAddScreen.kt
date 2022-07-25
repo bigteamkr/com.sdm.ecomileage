@@ -9,7 +9,9 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,6 +40,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -81,6 +84,7 @@ import kotlinx.coroutines.withContext
 fun HomeAddScreen(
     navController: NavController,
     systemUiController: SystemUiController,
+    selectedCategory: String,
     viewModel: HomeAddViewModel = hiltViewModel()
 ) {
     SideEffect {
@@ -95,7 +99,7 @@ fun HomeAddScreen(
         }
     }
 
-    HomeAddScaffold(navController, viewModel)
+    HomeAddScaffold(navController, selectedCategory, viewModel)
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -103,25 +107,23 @@ fun HomeAddScreen(
 @Composable
 private fun HomeAddScaffold(
     navController: NavController,
+    selectedCategory: String,
     viewModel: HomeAddViewModel
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
 
-    var selectedCategory = rememberSaveable {
-        mutableStateOf("카테고리 선택")
-    }
-    var showCategoryDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
-    if (showCategoryDialog)
-        CategoryDialog(
-            selectedCategory,
-            showCategoryDialog = showCategoryDialog
-        ) { category, show ->
-            if (category != null) selectedCategory.value = category
-            showCategoryDialog = show
-        }
+//    var showCategoryDialog by rememberSaveable {
+//        mutableStateOf(false)
+//    }
+//    if (showCategoryDialog)
+//        CategoryDialog(
+//            selectedCategory,
+//            showCategoryDialog = showCategoryDialog
+//        ) { category, show ->
+//            if (category != null) selectedCategory.value = category
+//            showCategoryDialog = show
+//        }
     val imageList = remember {
         mutableStateListOf<Bitmap?>(null)
     }
@@ -157,6 +159,19 @@ private fun HomeAddScaffold(
         mutableStateOf(false)
     }
 
+    val tag = when (selectedCategory) {
+        "일상생활" -> R.drawable.image_daily
+        "빈그릇 챌린지" -> R.drawable.image_empty_dish
+        "대중교통 챌린지" -> R.drawable.image_public_transport
+        "개인 텀블러 챌린지" -> R.drawable.image_thermos
+        "라벨지 떼기 챌린지" -> R.drawable.image_label_detach
+        "장바구니 챌린지" -> R.drawable.image_basket
+        "코드뽑기 챌린지" -> R.drawable.image_pull_a_plug
+        "용기 재활용 챌린지" -> R.drawable.image_empty_bottle
+        "업사이클링 챌린지" -> R.drawable.image_upcycling
+        else -> R.drawable.image_daily
+    }
+
     LaunchedEffect(key1 = isClickedImage) {
         isNotEmptyImageList = imageList[0] != null
     }
@@ -175,70 +190,77 @@ private fun HomeAddScaffold(
             )
         }
     ) {
-        Column(
-            modifier = Modifier
-                .padding(top = 15.dp)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Column(
-                modifier = Modifier.padding(start = 15.dp, end = 15.dp)
+        Column() {
+            Card(
+                modifier = Modifier.padding(15.dp),
+                shape = RoundedCornerShape(11.dp),
+                elevation = 11.dp
             ) {
-                HomeAddedImagedRow(
-                    imageList,
-                    deleteImage = { index ->
-                        imageList.removeAt(index)
-                        isClickedImage = !isClickedImage
-                    },
-                    addImage = { bitmap ->
-                        if (imageList.lastIndex == 0) {
-                            imageList.add(
-                                index = 0, bitmap
-                            )
+                Column(
+                    modifier = Modifier
+                        .padding(start = 15.dp, end = 15.dp)
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.9f),
+                    verticalArrangement = Arrangement.SpaceAround,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    HomeAddedImagedRow(
+                        imageList,
+                        deleteImage = { index ->
+                            imageList.removeAt(index)
                             isClickedImage = !isClickedImage
-                        } else {
-                            imageList.add(
-                                index = imageList.lastIndex, bitmap
-                            )
-                            isClickedImage = !isClickedImage
+                        },
+                        addImage = { bitmap ->
+                            if (imageList.lastIndex == 0) {
+                                imageList.add(
+                                    index = 0, bitmap
+                                )
+                                isClickedImage = !isClickedImage
+                            } else {
+                                imageList.add(
+                                    index = imageList.lastIndex, bitmap
+                                )
+                                isClickedImage = !isClickedImage
+                            }
                         }
-                    }
-                )
-                Spacer(modifier = Modifier.height(40.dp))
+                    )
 
-                CategoryField(
-                    selectedCategory,
-                    showCategoryDialog
-                ) { showCategoryDialog = it }
+//                    Spacer(modifier = Modifier.height(40.dp))
 
-                Spacer(modifier = Modifier.height(20.dp))
+//                CategoryField(
+//                    selectedCategory,
+//                    showCategoryDialog
+//                ) { showCategoryDialog = it }
+//
+//                Spacer(modifier = Modifier.height(20.dp))
 
-                ContentInputField(
-                    inputComment,
-                    keyboardAction,
-                    contentPlaceholderText,
-                    Modifier.height(150.dp),
-                )
+                    ContentInputField(
+                        inputComment,
+                        keyboardAction,
+                        contentPlaceholderText,
+                        Modifier.height(150.dp),
+                    )
 
-                Spacer(modifier = Modifier.height(20.dp))
+//                    Spacer(modifier = Modifier.height(20.dp))
 
-                TagInputField(
-                    tagInputElement,
-                    focusRequester,
-                    tagList,
-                    tagPlaceholderText,
-                )
+                    TagInputField(
+                        tagInputElement,
+                        focusRequester,
+                        tagList,
+                        tagPlaceholderText,
+                    )
+
+                    Spacer(modifier = Modifier.height(1.dp))
+                }
+
             }
 
-            //Todo : imageList Upload && scope 아래 스파게티 로직 해결하기
+            //Todo : imageList Upload && scope 아래 스파게티 로직 해결하기 -- .. 사실 이게 최적일지도?
 
             Button(
                 onClick = {
                     if (!isNotEmptyImageList)
                         showShortToastMessage(context, "사진을 입력해주세요.")
-                    else if (selectedCategory.value == "카테고리 선택")
-                        showShortToastMessage(context, "카테고리를 선택해주세요.")
                     else if (inputComment.value.length < 20)
                         showShortToastMessage(context, "내용은 20자 이상 작성해주세요.")
                     else {
@@ -342,7 +364,7 @@ private fun HomeAddScaffold(
                                                 "HomeAddScaffold: Image To List Time${System.currentTimeMillis() - startImageToList}"
                                             )
 
-                                            if (selectedCategory.value == "일상생활")
+                                            if (selectedCategory == "일상생활")
                                                 viewModel.postHomeFeedInfo(
                                                     HomeAddRequest(
                                                         NewActivityInfo = listOf(
@@ -390,14 +412,14 @@ private fun HomeAddScaffold(
                                                         }
                                                     }
                                                 } else {
-                                                val categoryNum = when (selectedCategory.value) {
+                                                val categoryNum = when (selectedCategory) {
                                                     "빈그릇 챌린지" -> 1
                                                     "대중교통 챌린지" -> 2
                                                     "개인 텀블러 챌린지" -> 3
-                                                    "라벨 떼기 챌린지" -> 4
+                                                    "라벨지 떼기 챌린지" -> 4
                                                     "장바구니 챌린지" -> 5
-                                                    "코드 뽑기 챌린지" -> 6
-                                                    "용기내 챌린지" -> 7
+                                                    "코드뽑기 챌린지" -> 6
+                                                    "용기 재활용 챌린지" -> 7
                                                     "업사이클링 챌린지" -> 8
                                                     else -> 0
                                                 }
@@ -492,22 +514,35 @@ private fun TagInputField(
     tagList: SnapshotStateList<String>,
     tagPlaceholderText: String,
 ) {
+    val context = LocalContext.current
+    var isTagErase by remember {
+        mutableStateOf(false)
+    }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .height(45.dp),
         shape = RoundedCornerShape(10),
         color = Color.White,
-        elevation = 4.dp
+        border = BorderStroke(0.3.dp, PlaceholderColor)
+//        elevation = 4.dp
     ) {
         BasicTextField(
             value = tagInputElement.value,
-            onValueChange = { tagInputElement.value = it },
+            onValueChange = {
+                if (tagList.size >= 5) {
+                    showShortToastMessage(context, "태그는 5개까지 지정할 수 있습니다.")
+                    return@BasicTextField
+                }
+                tagInputElement.value = it
+            },
             modifier = Modifier
                 .fillMaxSize()
                 .onKeyEvent {
-                    if (it.key.keyCode == Key.Backspace.keyCode && tagInputElement.value.isEmpty())
+                    if (it.key.keyCode == Key.Backspace.keyCode) {
                         tagList.removeLastOrNull()
+                    }
                     false
                 }
                 .focusRequester(focusRequester = focusRequester),
@@ -521,6 +556,10 @@ private fun TagInputField(
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions {
+                if (tagList.size >= 5) {
+                    showShortToastMessage(context, "태그는 5개까지 지정할 수 있습니다.")
+                    return@KeyboardActions
+                }
                 tagList.add(tagInputElement.value)
                 tagInputElement.value = ""
                 focusRequester.requestFocus()
@@ -544,6 +583,7 @@ private fun TagInputField(
                                 fontSize = 15.sp
                             )
                         )
+
                     innerTextField()
                 }
             }
@@ -552,7 +592,6 @@ private fun TagInputField(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun AddedTagListRow(
     tagList: SnapshotStateList<String>
@@ -609,11 +648,15 @@ fun ContentInputField(
     placeholderText: String,
     modifier: Modifier = Modifier,
 ) {
+    val lineLimitation = with(LocalDensity.current) {
+        (15.sp * 3).toDp()
+    }
+
     Surface(
         shape = RoundedCornerShape(5),
         color = Color.White,
-        border = null,
-        elevation = 4.dp
+        border = BorderStroke(0.3.dp, PlaceholderColor),
+//        elevation = 4.dp
     ) {
         BasicTextField(
             value = inputComment.value,
@@ -621,6 +664,7 @@ fun ContentInputField(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(10.dp)
+                .padding(end = lineLimitation)
                 .then(modifier),
             textStyle = MaterialTheme.typography.body1,
             keyboardOptions = KeyboardOptions.Default,
@@ -634,6 +678,7 @@ fun ContentInputField(
                         fontSize = 15.sp
                     )
                 )
+
             innerTextField()
         }
 
@@ -683,58 +728,58 @@ private fun CategoryField(
     }
 }
 
-@Composable
-fun CategoryDialog(
-    selectedCategory: MutableState<String>,
-    showCategoryDialog: Boolean,
-    onClick: (String?, Boolean) -> Unit
-) {
-    val items = listOf(
-        "일상생활",
-        "빈그릇 챌린지",
-        "대중교통 챌린지",
-        "개인 텀블러 챌린지",
-        "라벨 떼기 챌린지",
-        "장바구니 챌린지",
-        "코드 뽑기 챌린지",
-        "용기내 챌린지",
-        "업사이클링 챌린지"
-    )
-
-    Surface(
-        modifier = Modifier
-            .padding(horizontal = 15.dp)
-            .fillMaxSize()
-    ) {
-        DropdownMenu(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    onClick(null, !showCategoryDialog)
-                },
-            expanded = showCategoryDialog,
-            onDismissRequest = {
-                onClick(null, !showCategoryDialog)
-            }
-        ) {
-            items.forEachIndexed { index, item ->
-                DropdownMenuItem(
-                    onClick = {
-                        Log.d("TAG", "CategoryDialog: ")
-                        selectedCategory.value = item
-                        onClick(item, !showCategoryDialog)
-                    },
-                    enabled = true
-                ) {
-                    Text(
-                        text = "${index + 1}. $item",
-                        style = MaterialTheme.typography.body1
-                    )
-                }
-            }
-        }
-    }
-}
+//@Composable
+//fun CategoryDialog(
+//    selectedCategory: MutableState<String>,
+//    showCategoryDialog: Boolean,
+//    onClick: (String?, Boolean) -> Unit
+//) {
+//    val items = listOf(
+//        "일상생활",
+//        "빈그릇 챌린지",
+//        "대중교통 챌린지",
+//        "개인 텀블러 챌린지",
+//        "라벨 떼기 챌린지",
+//        "장바구니 챌린지",
+//        "코드 뽑기 챌린지",
+//        "용기내 챌린지",
+//        "업사이클링 챌린지"
+//    )
+//
+//    Surface(
+//        modifier = Modifier
+//            .padding(horizontal = 15.dp)
+//            .fillMaxSize()
+//    ) {
+//        DropdownMenu(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .clickable {
+//                    onClick(null, !showCategoryDialog)
+//                },
+//            expanded = showCategoryDialog,
+//            onDismissRequest = {
+//                onClick(null, !showCategoryDialog)
+//            }
+//        ) {
+//            items.forEachIndexed { index, item ->
+//                DropdownMenuItem(
+//                    onClick = {
+//                        Log.d("TAG", "CategoryDialog: ")
+//                        selectedCategory.value = item
+//                        onClick(item, !showCategoryDialog)
+//                    },
+//                    enabled = true
+//                ) {
+//                    Text(
+//                        text = "${index + 1}. $item",
+//                        style = MaterialTheme.typography.body1
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
@@ -753,20 +798,40 @@ private fun HomeAddedImagedRow(
     val bitmap = remember {
         mutableStateOf<Bitmap?>(null)
     }
-    val imageCropLauncher =
-        rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
-            if (result.isSuccessful) {
-                imageUri.value = result.uriContent
-            } else {
-                val exception = result.error
-            }
-        }
+    val cameraBitmap = remember {
+        mutableStateOf<Bitmap?>(null)
+    }
+//    val imageCropLauncher =
+//        rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
+//            if (result.isSuccessful) {
+//                imageUri.value = result.uriContent
+//            } else {
+//                val exception = result.error
+//            }
+//        }
+//
 
     val imagePickerLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
-            val cropOptions = CropImageContractOptions(uri, CropImageOptions())
-            imageCropLauncher.launch(cropOptions)
+//            val cropOptions = CropImageContractOptions(uri, CropImageOptions())
+//            imageCropLauncher.launch(cropOptions)
+            if (uri != null) {
+                imageUri.value = uri
+            } else {
+                showShortToastMessage(context, "취소하였습니다.")
+                Log.d("HomeAdd", "HomeAddedImagedRow: Something is error")
+            }
         }
+
+    val imageCameraLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) { takenPhoto ->
+            if (takenPhoto != null) {
+                cameraBitmap.value = takenPhoto
+                //Todo : API 연결하기
+
+            } else showShortToastMessage(context, "카메라 촬영을 취소하셨습니다.")
+        }
+
 
     val dotIndicatorSize = remember {
         mutableStateOf(imageList.size)
@@ -775,7 +840,7 @@ private fun HomeAddedImagedRow(
     val pagerState = rememberPagerState()
     var source: ImageDecoder.Source
 
-    LaunchedEffect(key1 = imageUri.value) {
+    LaunchedEffect(key1 = imageUri.value, key2 = cameraBitmap.value) {
         if (imageUri.value != null) {
             if (Build.VERSION.SDK_INT < 28) {
                 bitmap.value =
@@ -788,82 +853,121 @@ private fun HomeAddedImagedRow(
                 addImage(bitmap.value)
                 dotIndicatorSize.value = imageList.size
             }
+        } else if (cameraBitmap.value != null) {
+            addImage(cameraBitmap.value)
+            dotIndicatorSize.value = imageList.size
         }
     }
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(5.dp),
+//        border = BorderStroke(0.3.dp, PlaceholderColor)
+//        elevation = 4.dp
     ) {
-        Row(
-            horizontalArrangement = Arrangement.Center
+        Column(
+            modifier = Modifier.padding(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            HorizontalPager(
-                count = imageList.size,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp),
-                state = pagerState,
-                itemSpacing = 0.dp,
-                contentPadding = PaddingValues(horizontal = 100.dp)
-                //Todo : ? padding 100 은 보이고 1은 안 보이는 이유는 무엇인가 ?
-            ) { page ->
-                if (imageList[page] == null)
-                    Surface(
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .width(200.dp)
-                            .fillMaxHeight()
-                            .clickable {
-                                imagePickerLauncher.launch("image/*")
-                            },
-                        shape = RoundedCornerShape(10),
-                        color = AddIconBackgroundColor,
-                        contentColor = Color.White
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_image_add),
-                            contentDescription = "HomeAdd Button",
-                            contentScale = ContentScale.Fit
-                        )
+            Row {
+                HorizontalPager(
+                    count = imageList.size,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp),
+                    state = pagerState,
+                    itemSpacing = 0.dp,
+                    contentPadding = PaddingValues(horizontal = 50.dp)
+                    //Todo : ? padding 100 은 보이고 1은 안 보이는 이유는 무엇인가 ?
+                ) { page ->
+                    var dropdownOpen by remember {
+                        mutableStateOf(false)
                     }
-                else
-                    Box(
-                        modifier = Modifier
-                            .size(170.dp),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        Surface(
+
+                    if (imageList[page] == null)
+                        Box(
+                            contentAlignment = Alignment.Center
+                        ){
+                            Surface(
+                                modifier = Modifier
+                                    .padding(10.dp)
+                                    .width(220.dp)
+                                    .fillMaxHeight()
+                                    .clickable {
+                                        dropdownOpen = true
+                                    },
+                                shape = RoundedCornerShape(10),
+                                color = AddIconBackgroundColor,
+                                contentColor = Color.White
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_image_add),
+                                    contentDescription = "HomeAdd Button",
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = dropdownOpen,
+                                onDismissRequest = { dropdownOpen = !dropdownOpen }) {
+                                DropdownMenuItem(onClick = {
+                                    imageCameraLauncher.launch()
+                                    dropdownOpen = false
+                                }) {
+                                    Text(text = "카메라에서 추가하기")
+
+                                }
+                                DropdownMenuItem(onClick = {
+                                    imagePickerLauncher.launch("image/*")
+                                    dropdownOpen = false
+                                }) {
+                                    Text(text = "갤러리에서 추가하기")
+
+                                }
+                            }
+                        }
+
+                    else
+                        Box(
                             modifier = Modifier
-                                .padding(10.dp)
-                                .fillMaxSize(),
-                            shape = RoundedCornerShape(10),
-                            color = Color.Transparent,
-                            contentColor = Color.White
+                                .size(220.dp),
+                            contentAlignment = Alignment.TopCenter
                         ) {
+                            Surface(
+                                modifier = Modifier
+                                    .padding(10.dp)
+                                    .fillMaxSize(),
+                                shape = RoundedCornerShape(10),
+                                color = Color.Transparent,
+                                contentColor = Color.White
+                            ) {
+                                Image(
+                                    painter = rememberImagePainter(imageList[page]),
+                                    contentDescription = "bitmap",
+                                    contentScale = ContentScale.FillBounds
+                                )
+                            }
+
                             Image(
-                                painter = rememberImagePainter(imageList[page]),
-                                contentDescription = "bitmap",
-                                contentScale = ContentScale.FillBounds
+                                painter = painterResource(id = R.drawable.ic_cancel_upload),
+                                contentDescription = "Cancel Uploading image",
+                                modifier = Modifier.clickable {
+                                    dotIndicatorSize.value = imageList.size
+                                    deleteImage(page)
+                                }
                             )
                         }
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_cancel_upload),
-                            contentDescription = "Cancel Uploading image",
-                            modifier = Modifier.clickable {
-                                dotIndicatorSize.value = imageList.size
-                                deleteImage(page)
-                            }
-                        )
-                    }
+                }
             }
+            Spacer(modifier = Modifier.height(5.dp))
+            DotsIndicator(
+                totalDots = dotIndicatorSize.value,
+                selectedIndex = pagerState.currentPage,
+                selectedColor = indicatorSelectedColor,
+                unSelectedColor = indicatorUnSelectedColor
+            )
         }
-        Spacer(modifier = Modifier.height(5.dp))
-        DotsIndicator(
-            totalDots = dotIndicatorSize.value,
-            selectedIndex = pagerState.currentPage,
-            selectedColor = indicatorSelectedColor,
-            unSelectedColor = indicatorUnSelectedColor
-        )
     }
 
 }

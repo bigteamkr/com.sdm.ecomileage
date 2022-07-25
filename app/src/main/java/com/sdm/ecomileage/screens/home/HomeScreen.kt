@@ -4,8 +4,10 @@ import android.annotation.SuppressLint
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.gestures.LocalOverScrollConfiguration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +19,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
@@ -35,12 +38,10 @@ import com.sdm.ecomileage.model.homeInfo.response.Friend
 import com.sdm.ecomileage.model.homeInfo.response.HomeInfoResponse
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.loginRegister.AutoLoginLogic
-import com.sdm.ecomileage.ui.theme.LikeColor
-import com.sdm.ecomileage.ui.theme.LoginButtonColor
-import com.sdm.ecomileage.ui.theme.StatusBarGreenColor
-import com.sdm.ecomileage.ui.theme.TopBarColor
+import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.MainFeedReportOptions
 import com.sdm.ecomileage.utils.doubleBackForFinish
+import com.sdm.ecomileage.utils.isAutoLoginUtil
 import kotlinx.coroutines.launch
 
 @Composable
@@ -51,6 +52,9 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     var isLoading by remember {
+        mutableStateOf(false)
+    }
+    var isFail by remember {
         mutableStateOf(false)
     }
 
@@ -71,27 +75,51 @@ fun HomeScreen(
     }.value
 
 
-
-
     if (homeInfo.loading == true)
         CircularProgressIndicator(color = LoginButtonColor)
-    else if (homeInfo.data?.result != null) {
+    else if (homeInfo.data?.code != null) {
         homeInfo.data?.code?.let {
-            if (it == 200) return@let
-            else {
-                AutoLoginLogic(
-                    isLoading = { isLoading = true },
-                    navController = navController,
-                    context = context,
-                    screen = SecomiScreens.HomeScreen.name
-                )
+            if (it == 200) {
+                Log.d("AUTO Login", "HomeScreen: WOW, I am Home")
+                HomeScaffold(navController, homeInfo)
+            } else {
+                showShortToastMessage(context, "오류가 발생했습니다, 다시 로그인을 시도해주세요.")
+                navController.navigate(SecomiScreens.LoginScreen.name + "/0") {
+                    popUpTo(SecomiScreens.HomeScreen.name) { inclusive = true }
+                }
             }
         }
-        HomeScaffold(navController, homeInfo)
+    } else {
+        isFail = true
     }
 
     if (isLoading)
         CircularProgressIndicator(color = LoginButtonColor)
+    if (isFail) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(color = LoginButtonColor)
+        }
+
+        Log.d("AUTO Login", "EventScreen: did you fail to get any data?")
+        showShortToastMessage(context, "데이터를 받지 못하였습니다.")
+
+        if (isAutoLoginUtil) {
+            AutoLoginLogic(
+                isLoading = { isLoading = true },
+                navController = navController,
+                context = context,
+                screen = SecomiScreens.LoginScreen.name + "/0"
+            )
+        } else {
+            navController.navigate(SecomiScreens.LoginScreen.name + "/0") {
+                popUpTo(SecomiScreens.HomeScreen.name) { inclusive = true }
+            }
+        }
+    }
 }
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -107,19 +135,13 @@ private fun HomeScaffold(
 
     val configuration = LocalConfiguration.current
 
-
-    configuration.screenWidthDp
-    configuration.screenHeightDp
-
-
-
     Scaffold(
         topBar = {
             SecomiTopAppBar(
                 title = homeInfoResponse.data!!.result.userDept,
                 navController = navController,
                 currentScreen = SecomiScreens.HomeScreen.name,
-                backgroundColor = TopBarColor,
+                backgroundColor = TopBarColorWhite,
                 actionIconsList = listOf(
                     {
                         SearchComponent(
@@ -151,11 +173,11 @@ private fun HomeScaffold(
         },
         floatingActionButton = { SecomiMainFloatingActionButton(navController) },
         isFloatingActionButtonDocked = true,
-        floatingActionButtonPosition = FabPosition.Center
+        floatingActionButtonPosition = FabPosition.Center,
+        backgroundColor = BasicBackgroundColor
     ) {
         Column {
-            HomeUserFeedRow(navController, homeInfoResponse.data!!.result.friendList)
-            HomeMainContent(navController, scrollState)
+            HomeMainContent(navController, scrollState, homeInfoResponse.data!!.result.friendList)
         }
     }
 }
@@ -164,6 +186,7 @@ private fun HomeScaffold(
 private fun HomeMainContent(
     navController: NavController,
     scrollState: LazyListState,
+    friendList: List<Friend>,
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     var scope = rememberCoroutineScope()
@@ -171,7 +194,6 @@ private fun HomeMainContent(
     val configuration = LocalConfiguration.current
 
     val pagingData = homeViewModel.pager.collectAsLazyPagingItems()
-
 
     var dropDownOffset by remember { mutableStateOf(DpOffset(0.dp, 0.dp)) }
 
@@ -191,187 +213,195 @@ private fun HomeMainContent(
         mutableStateOf(false)
     }
 
-
     var reportListValue: String?
     val isRefreshing by homeViewModel.isRefreshing.collectAsState()
 
     var visible by remember { mutableStateOf(true) }
     val density = LocalDensity.current
 
-    SwipeRefresh(
-        state = rememberSwipeRefreshState(isRefreshing),
-        onRefresh = {
-            scope.launch {
-                homeViewModel.refresh {
-                    pagingData.refresh().let { homeViewModel.invalidateDataSource() }
+    Surface(color = BasicBackgroundColor) {
+        SwipeRefresh(
+            state = rememberSwipeRefreshState(isRefreshing),
+            onRefresh = {
+                scope.launch {
+                    homeViewModel.refresh {
+                        pagingData.refresh().let { homeViewModel.invalidateDataSource() }
+                    }
                 }
             }
-        }
-    ) {
-        LazyColumn(
-            modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 75.dp),
-            state = scrollState
         ) {
-            pagingData.apply {
-                when {
-                    loadState.refresh is LoadState.Loading -> {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(16.dp)
-                            ) {}
-                        }
-                    }
-                    loadState.append is LoadState.Loading -> {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                CircularProgressIndicator(
+            LazyColumn(
+                state = scrollState
+            ) {
+                pagingData.apply {
+                    when {
+                        loadState.refresh is LoadState.Loading -> {
+                            item {
+                                Box(
                                     modifier = Modifier
-                                        .padding(12.dp)
-                                        .align(Alignment.Center), color = LoginButtonColor
-                                )
+                                        .fillMaxSize()
+                                        .padding(16.dp)
+                                ) {}
                             }
                         }
-                    }
-                    loadState.prepend is LoadState.Error -> {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                CircularProgressIndicator(
+                        loadState.append is LoadState.Loading -> {
+                            item {
+                                Box(
                                     modifier = Modifier
-                                        .padding(12.dp)
-                                        .align(Alignment.Center), color = LoginButtonColor
-                                )
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .padding(12.dp)
+                                            .align(Alignment.Center), color = LoginButtonColor
+                                    )
+                                }
                             }
                         }
-                    }
-                    loadState.refresh is LoadState.Loading -> {
-                        visible = false
-                    }
-                    else -> {
-                        visible = true
+                        loadState.prepend is LoadState.Error -> {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .padding(12.dp)
+                                            .align(Alignment.Center), color = LoginButtonColor
+                                    )
+                                }
+                            }
+                        }
+                        loadState.refresh is LoadState.Loading -> {
+                            visible = false
+                        }
+                        else -> {
+                            visible = true
+                        }
                     }
                 }
-            }
 
-            items(pagingData) { data ->
-                data?.let {
-                    isCurrentFeedReporting =
-                        homeViewModel.isFeedIncludedReportingList(data.feedsno)
+                item {
+                    HomeUserFeedRow(navController, friendList)
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
 
-                    var isShowingDropDownMenu by remember {
-                        mutableStateOf(false)
-                    }
+                items(pagingData) { data ->
 
-                    var isOpenBigImage by remember {
-                        mutableStateOf(false)
-                    }
-                    var currentImageIndex by remember {
-                        mutableStateOf(0)
-                    }
+                    data?.let {
+                        isCurrentFeedReporting =
+                            homeViewModel.isFeedIncludedReportingList(data.feedsno)
 
+                        var isShowingDropDownMenu by remember {
+                            mutableStateOf(false)
+                        }
 
-                    Box {
-                        MainFeedCardStructure(
-                            contentImageList = data.imageList,
-                            contentText = data.feedcontent,
-                            profileImage = data.profileimg,
-                            profileId = data.userid,
-                            profileName = data.userName,
-                            reactionIcon = listOf(
-                                R.drawable.ic_like_off,
-                                R.drawable.ic_like_on
-                            ),
-                            reactionData = data.likeCount,
-                            reactionTint = LikeColor,
-                            followYN = data.followyn,
-                            likeYN = data.likeyn,
-                            onReactionClick = {
-                                scope.launch {
-                                    homeViewModel.postFeedLike(data.feedsno, it).let {
-                                        Log.d(
-                                            "Home-Like",
-                                            "HomeMainContent: ${it.data?.code}"
-                                        )
-                                        Log.d(
-                                            "Home-Like",
-                                            "HomeMainContent: ${it.data?.message}"
-                                        )
-                                    }
-                                }
-                            },
-                            otherIcons = mapOf(
-                                "comment" to R.drawable.ic_comment,
-                                "more" to R.drawable.ic_more
-                            ),
-                            hashtagList = data.hashtags,
-                            navController = navController,
-                            feedNo = data.feedsno,
-                            deleteFeedAction = {
-                                scope.launch {
-                                    homeViewModel.refresh {
-                                        pagingData.refresh()
-                                            .let { homeViewModel.invalidateDataSource() }
-                                    }
-                                }
-                            },
-                            reportDialogCallAction = {
-                                reportDialogVisible = true
-                                reportTargetFeedNo = data.feedsno
-                                reportedTargetName = data.userName
-                            },
-                            reportingCancelAction = {
-                                reportListValue =
-                                    homeViewModel.getReportingFeedNoValueFromKey(data.feedsno)
-                                Log.d("HomeRepo", "HomeMainContent: $reportListValue")
+                        var isOpenBigImage by remember {
+                            mutableStateOf(false)
+                        }
+                        var currentImageIndex by remember {
+                            mutableStateOf(0)
+                        }
 
-                                if (reportListValue != null) {
+                        Box {
+                            MainFeedCardStructure(
+                                contentImageList = data.imageList,
+                                contentText = data.feedcontent,
+                                profileImage = data.profileimg,
+                                profileId = data.userid,
+                                profileName = data.userName,
+                                reactionIcon = listOf(
+                                    R.drawable.ic_new_like_off,
+                                    R.drawable.ic_new_like_on
+                                ),
+                                reactionData = data.likeCount,
+                                reactionTint = LikeColor,
+                                followYN = data.followyn,
+                                likeYN = data.likeyn,
+                                onReactionClick = {
                                     scope.launch {
-                                        homeViewModel.postReport(
-                                            data.feedsno,
-                                            reportListValue!!,
-                                            reportYN = false
-                                        )
-                                        Log.d("HomeRepo", "HomeMainContent: 뀽")
+                                        homeViewModel.postFeedLike(data.feedsno, it).let {
+                                            Log.d(
+                                                "Home-Like",
+                                                "HomeMainContent: ${it.data?.code}"
+                                            )
+                                            Log.d(
+                                                "Home-Like",
+                                                "HomeMainContent: ${it.data?.message}"
+                                            )
+                                        }
                                     }
-                                    homeViewModel.reportingFeedNoRemove(it)
-                                }
-                            },
-                            isCurrentReportingFeedsNo = isCurrentFeedReporting,
-                            reportYN = data.reportyn,
-                            currentScreen = SecomiScreens.HomeDetailScreen.name,
-                            destinationScreen = null,
-                            openBigImage = {
-                                currentImageIndex = it
-                                isOpenBigImage = true
-                            }
-                        )
-                    }
+                                },
+                                otherIcons = mapOf(
+                                    "comment" to R.drawable.ic_new_comment,
+                                    "more" to R.drawable.ic_new_burger
+                                ),
+                                hashtagList = data.hashtags,
+                                navController = navController,
+                                feedNo = data.feedsno,
+                                deleteFeedAction = {
+                                    scope.launch {
+                                        homeViewModel.refresh {
+                                            pagingData.refresh()
+                                                .let { homeViewModel.invalidateDataSource() }
+                                        }
+                                    }
+                                },
+                                reportDialogCallAction = {
+                                    reportDialogVisible = true
+                                    reportTargetFeedNo = data.feedsno
+                                    reportedTargetName = data.userName
+                                },
+                                reportingCancelAction = {
+                                    reportListValue =
+                                        homeViewModel.getReportingFeedNoValueFromKey(data.feedsno)
+                                    Log.d("HomeRepo", "HomeMainContent: $reportListValue")
 
-                    if (isOpenBigImage) {
-                        customBigImageDialog(
-                            imageList = data.imageList,
-                            configuration = configuration,
-                            currentIndex = currentImageIndex,
-                            closeAction = {
-                                isOpenBigImage = it
-                            }
-                        )
+                                    if (reportListValue != null) {
+                                        scope.launch {
+                                            homeViewModel.postReport(
+                                                data.feedsno,
+                                                reportListValue!!,
+                                                reportYN = false
+                                            )
+                                            Log.d("HomeRepo", "HomeMainContent: 뀽")
+                                        }
+                                        homeViewModel.reportingFeedNoRemove(it)
+                                    }
+                                },
+                                isCurrentReportingFeedsNo = isCurrentFeedReporting,
+                                reportYN = data.reportyn,
+                                currentScreen = SecomiScreens.HomeDetailScreen.name,
+                                destinationScreen = null,
+                                openBigImage = {
+                                    currentImageIndex = it
+                                    isOpenBigImage = true
+                                }
+                            )
+                        }
+
+                        if (isOpenBigImage) {
+                            customBigImageDialog(
+                                imageList = data.imageList,
+                                configuration = configuration,
+                                currentIndex = currentImageIndex,
+                                closeAction = {
+                                    isOpenBigImage = it
+                                }
+                            )
+                        }
                     }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(75.dp))
                 }
             }
         }
+
     }
-
-
 
     if (reportDialogVisible && reportTargetFeedNo != null) {
         CustomReportDialog(
@@ -399,10 +429,6 @@ private fun HomeMainContent(
             }
         )
     }
-
-
-
-
     Spacer(modifier = Modifier.height(56.dp))
 }
 
@@ -413,20 +439,26 @@ private fun HomeUserFeedRow(
 ) {
     val borderStroke = BorderStroke(width = 2.dp, color = Color.LightGray)
 
-    Surface(
-        modifier = Modifier
-            .padding(5.dp)
+    Card(
+        modifier = Modifier,
+        shape = RoundedCornerShape(
+            topStartPercent = 0, topEndPercent = 0,
+            bottomStartPercent = 20, bottomEndPercent = 20
+        ),
+        elevation = 10.dp
     ) {
         Column(
+            modifier = Modifier,
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             LazyRow(
                 modifier = Modifier
-                    .padding(start = 5.dp, top = 2.dp)
+                    .padding(start = 10.dp, top = 2.dp)
             ) {
                 items(friendListData) { data ->
                     Column(
+                        modifier = Modifier.padding(5.dp),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -437,13 +469,23 @@ private fun HomeUserFeedRow(
                             borderStroke = borderStroke,
                             navController
                         )
-                        ProfileName(
-                            name = data.nickname,
-                            fontStyle = MaterialTheme.typography.subtitle2,
-                            fontWeight = FontWeight.Normal,
-                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Surface(modifier = Modifier.padding(bottom = 2.dp)) {
+                            ProfileName(
+                                name = data.nickname,
+                                fontStyle = MaterialTheme.typography.subtitle2,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 12.sp,
+                                letterSpacing = 1.2.sp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
                     }
-                    Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier
+                        .width(15.dp) )
                 }
             }
         }

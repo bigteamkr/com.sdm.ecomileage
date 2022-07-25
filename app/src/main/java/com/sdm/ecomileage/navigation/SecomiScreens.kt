@@ -7,6 +7,7 @@ enum class SecomiScreens {
     HomeScreen,
     HomeDetailScreen,
     HomeAddScreen,
+    SelectTopicScreen,
     SearchScreen,
     EducationScreen,
     EducationVideoScreen,
