@@ -27,6 +27,7 @@ val TopBarColorWhite = listOf(
 )
 val BasicBackgroundColor = Color(0xFFF0F0F3)
 val StatusBarGreenColor = Color(0xFF51C872)
+val MileageChangeBackgroundColor = Color(0xFFF8FBFF)
 val BottomSelectedColor = Color(0xFF2DDA93)
 val BottomUnSelectedColor = Color(0xFFC4C4C4)
 val LeavesColor = Color(0xFFADFF9D)

@@ -161,7 +161,7 @@ class LoginRegisterViewModel @Inject constructor(private val repository: LoginRe
                         isinfoagree = "Y",
                         childagree = "Y",
                         profileImg = bitmapToString(defaultProfile!!.toBitmap()),
-                        userTown = userAddress,
+                        userTown = "",
                         userSchool = null,
                         userSSOType = socialType,
                         userSSOID = socialSSOID

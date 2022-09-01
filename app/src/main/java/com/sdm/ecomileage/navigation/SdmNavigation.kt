@@ -19,6 +19,8 @@ import com.sdm.ecomileage.screens.homeAdd.HomeAddScreen
 import com.sdm.ecomileage.screens.homeDetail.HomeDetailScreen
 import com.sdm.ecomileage.screens.loginRegister.LoginScreen
 import com.sdm.ecomileage.screens.mileage.MileageScreen
+import com.sdm.ecomileage.screens.mileageChange.MileageChangeScreen
+import com.sdm.ecomileage.screens.myHistoryPage.MyHistoryScreen
 import com.sdm.ecomileage.screens.myPage.MyPageScreen
 import com.sdm.ecomileage.screens.notice.NoticeScreen
 import com.sdm.ecomileage.screens.ranking.RankingScreen
@@ -144,6 +146,27 @@ fun SdmNavigation() {
             navBackStackEntry.arguments?.getString("userId").let { userId ->
                 MyPageScreen(navController, systemUiController, userId)
             }
+        }
+
+        composable("${SecomiScreens.MyHistoryScreen.name}/{point}", arguments = listOf(
+            navArgument(name = "point") {
+                type = NavType.IntType
+            }
+        )) { navBackStackEntry ->
+            navBackStackEntry.arguments?.getInt("point").let { point ->
+                MyHistoryScreen(
+                    navController = navController,
+                    systemUiController = systemUiController,
+                    point = point
+                )
+            }
+        }
+
+        composable(SecomiScreens.MileageChangeScreen.name) {
+            MileageChangeScreen(
+                navController = navController,
+                systemUiController = systemUiController
+            )
         }
 
         composable(SecomiScreens.RankingScreen.name) {

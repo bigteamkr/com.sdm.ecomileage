@@ -3,12 +3,17 @@ package com.sdm.ecomileage.screens.home
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.gestures.LocalOverScrollConfiguration
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -108,6 +113,7 @@ fun HomeScreen(
         showShortToastMessage(context, "데이터를 받지 못하였습니다.")
 
         if (isAutoLoginUtil) {
+            isFail = false
             AutoLoginLogic(
                 isLoading = { isLoading = true },
                 navController = navController,
@@ -134,6 +140,7 @@ private fun HomeScaffold(
     val scrollState = rememberLazyListState()
 
     val configuration = LocalConfiguration.current
+
 
     Scaffold(
         topBar = {
@@ -216,6 +223,9 @@ private fun HomeMainContent(
     var reportListValue: String?
     val isRefreshing by homeViewModel.isRefreshing.collectAsState()
 
+    var currentReportedList = remember { mutableStateListOf<Int>() }
+
+
     var visible by remember { mutableStateOf(true) }
     val density = LocalDensity.current
 
@@ -291,12 +301,6 @@ private fun HomeMainContent(
                 items(pagingData) { data ->
 
                     data?.let {
-                        isCurrentFeedReporting =
-                            homeViewModel.isFeedIncludedReportingList(data.feedsno)
-
-                        var isShowingDropDownMenu by remember {
-                            mutableStateOf(false)
-                        }
 
                         var isOpenBigImage by remember {
                             mutableStateOf(false)
@@ -316,6 +320,7 @@ private fun HomeMainContent(
                                     R.drawable.ic_new_like_off,
                                     R.drawable.ic_new_like_on
                                 ),
+                                commentCount = data.commentCount,
                                 reactionData = data.likeCount,
                                 reactionTint = LikeColor,
                                 followYN = data.followyn,
@@ -370,8 +375,9 @@ private fun HomeMainContent(
                                         }
                                         homeViewModel.reportingFeedNoRemove(it)
                                     }
+                                    currentReportedList.remove(it)
                                 },
-                                isCurrentReportingFeedsNo = isCurrentFeedReporting,
+                                isCurrentReportingFeedsNo = currentReportedList.contains(data.feedsno),
                                 reportYN = data.reportyn,
                                 currentScreen = SecomiScreens.HomeDetailScreen.name,
                                 destinationScreen = null,
@@ -411,6 +417,8 @@ private fun HomeMainContent(
                 if (selectedOptionCode == "00") showShortToastMessage(context, "신고 사유를 선택해주세요.")
                 else {
                     homeViewModel.reportingFeedAdd(reportTargetFeedNo!!, selectedOptionCode)
+                    currentReportedList.add(reportTargetFeedNo!!)
+
                     scope.launch {
                         homeViewModel.postReport(
                             feedsNo = reportTargetFeedNo!!,
@@ -421,6 +429,7 @@ private fun HomeMainContent(
                         reportTargetFeedNo = null
                     }
                     reportDialogVisible = false
+                    showShortToastMessage(context, "신고처리 되었습니다.")
                 }
             },
             dismissAction = {
@@ -437,26 +446,40 @@ private fun HomeUserFeedRow(
     navController: NavController,
     friendListData: List<Friend>
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+
     val borderStroke = BorderStroke(width = 2.dp, color = Color.LightGray)
+    var visible by remember { mutableStateOf(true) }
+
 
     Card(
-        modifier = Modifier,
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(
             topStartPercent = 0, topEndPercent = 0,
             bottomStartPercent = 20, bottomEndPercent = 20
         ),
         elevation = 10.dp
     ) {
-        Column(
-            modifier = Modifier,
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+        LazyRow(
+            modifier = Modifier
+                .padding(start = 10.dp, top = 2.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            LazyRow(
-                modifier = Modifier
-                    .padding(start = 10.dp, top = 2.dp)
-            ) {
-                items(friendListData) { data ->
+
+            if (friendListData.isEmpty()) {
+                item {
+                    Text(
+                        text = "팔로우가 없습니다.\n팔로우를 추가해보세요. \uD83D\uDE42",
+                        fontSize = 15.sp,
+                        color = PlaceholderColor
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+            }
+
+
+            items(friendListData) { data ->
+                AnimatedVisibility(visible = visible) {
                     Column(
                         modifier = Modifier.padding(5.dp),
                         verticalArrangement = Arrangement.Center,
@@ -484,10 +507,29 @@ private fun HomeUserFeedRow(
 
                         Spacer(modifier = Modifier.height(10.dp))
                     }
-                    Spacer(modifier = Modifier
-                        .width(15.dp) )
                 }
+                Spacer(
+                    modifier = Modifier
+                        .width(15.dp)
+                )
             }
+
+            item {
+                Icon(
+                    imageVector = if (visible) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = "",
+                    modifier = Modifier
+                        .padding(end = 15.dp)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null
+                        ) { visible = !visible },
+                    tint = CardContentColor
+                )
+            }
+
         }
+
     }
+
 }

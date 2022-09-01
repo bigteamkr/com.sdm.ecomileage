@@ -8,6 +8,8 @@ import com.sdm.ecomileage.model.myPage.newFollow.request.NewFollowInfoRequest
 import com.sdm.ecomileage.model.myPage.newFollow.response.NewFollowInfoResponse
 import com.sdm.ecomileage.model.myPage.userFeedInfo.request.UserFeedInfoRequest
 import com.sdm.ecomileage.model.myPage.userFeedInfo.response.UserFeedInfoResponse
+import com.sdm.ecomileage.model.myPage.userHistoryInfo.request.UserHistoryInfoRequest
+import com.sdm.ecomileage.model.myPage.userHistoryInfo.response.UserHistoryResponse
 import com.sdm.ecomileage.model.report.user.request.NewUserReportRequest
 import com.sdm.ecomileage.model.report.user.response.NewUserReportResponse
 import retrofit2.http.Body
@@ -44,4 +46,10 @@ interface MyPageAPI {
         @Header("token") token: String,
         @Body body: DeleteFeedRequest
     ): DeleteFeedResponse
+
+    @POST("AppHistoryInfo")
+    suspend fun getUserHistory(
+        @Header("token") token: String,
+        @Body body: UserHistoryInfoRequest
+    ) : UserHistoryResponse
 }

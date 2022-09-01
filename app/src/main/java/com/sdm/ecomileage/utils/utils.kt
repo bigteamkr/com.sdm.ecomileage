@@ -139,6 +139,13 @@ fun doubleBackForFinish(context: Context) {
     }
 }
 
+fun getRandomString(length: Int) : String {
+    val charset = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789!@#$%^&*"
+    return (1..length)
+        .map { charset.random() }
+        .joinToString("")
+}
+
 val termsFirst = "이용약관\n" +
         "\n" +
         "제1조 (목적)\n" +
@@ -618,7 +625,7 @@ val termsSecond = "개인정보처리방침\n" +
         "제13조(부칙)\n" +
         "이 개인정보 처리방침은 2022년 3월 22일부터 적용됩니다."
 
-val termsThird = "- 만 14세 미만의 어린이는 법률에 의거하여 보호자(법적대리인)의 동의가 필요합니다.\n" +
+const val termsThird = "- 만 14세 미만의 어린이는 법률에 의거하여 보호자(법적대리인)의 동의가 필요합니다.\n" +
         "\n" +
         "- 정보통신망이용촉진 및 정보보호등에 관한 법률 제31조 제1항에서 14세미만의 아동의 개인정보수집 시 부모의 동의를 얻도록 규정되어 있습니다. 동의 체크 후 부모님 동의 확인 인증을 진행해 주시기 바랍니다. \n" +
         "\n" +
@@ -626,7 +633,8 @@ val termsThird = "- 만 14세 미만의 어린이는 법률에 의거하여 보�
         "\n" +
         "-  만 14세 미만 아동의 개인정보 수집·이용에 대한 보호자(법정대리인) 동의"
 
-val uploadAlarm = "본인이 직접 촬영하거나\n제작한 게시물이 아닐 경우,\n마일리지 환수 등 불이익을 받을 수 있습니다."
+const val uploadAlarm = "본인이 직접 촬영하거나\n제작한 게시물이 아닐 경우,\n마일리지 환수 등 불이익을 받을 수 있습니다."
+const val noChangeMileageAlarm = "마일리지 포인트 5,000점 이상일 경우\n 전환 신청이 가능합니다"
 
 val MainFeedReportOptions =
     listOf("음란성 게시물", "폭력적 또는 불쾌한 게시물", "스팸 게시물", "사생활 침해/개인정보 유출 게시물", "불법적인 게시물")

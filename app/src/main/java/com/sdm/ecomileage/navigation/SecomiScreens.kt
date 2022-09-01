@@ -13,6 +13,8 @@ enum class SecomiScreens {
     EducationVideoScreen,
     EventScreen,
     MyPageScreen,
+    MyHistoryScreen,
+    MileageChangeScreen,
     RankingScreen,
     SettingsScreen,
     NoticeScreen,

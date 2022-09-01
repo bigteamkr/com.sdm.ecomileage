@@ -66,10 +66,12 @@ import com.sdm.ecomileage.components.RegisterBottomSheetMain
 import com.sdm.ecomileage.components.showLongToastMessage
 import com.sdm.ecomileage.components.showShortToastMessage
 import com.sdm.ecomileage.data.AppSettings
+import com.sdm.ecomileage.model.registerPage.searchLocation.areaResponse.Search
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
@@ -105,6 +107,11 @@ fun LoginScreen(
             context,
             SecomiScreens.HomeScreen.name
         )
+    }
+
+    // Auto Login 이 풀리는데, 혹시 ..?
+    LaunchedEffect(key1 = true) {
+        delay(200)
     }
 
     var tabIndex by remember { mutableStateOf(type) }
@@ -528,10 +535,23 @@ private fun RegisterPage(
         Log.d("social", "RegisterPage: ${loginRegisterViewModel.socialEmail}")
     }
 
+    var areaList: List<Search> = listOf()
+    var schoolList: List<com.sdm.ecomileage.model.registerPage.searchLocation.schoolResponse.Search> = listOf()
+    LaunchedEffect(key1 = true) {
+        loginRegisterViewModel.getSearchLocalArea("").data?.result?.searchList?.let {
+            areaList = it
+            Log.d("SheetMain", "RegisterBottomSheetMain: ??")
+        }
+        loginRegisterViewModel.getSearchLocalSchool("").data?.result?.searchList?.let {
+            schoolList = it
+            Log.d("SheetMain", "RegisterBottomSheetMain: ??")
+        }
+    }
+
     ModalBottomSheetLayout(
         sheetState = bottomSheetScaffoldState,
         sheetContent = {
-            RegisterBottomSheetMain(isAreaForBottomSheet) { id, name ->
+            RegisterBottomSheetMain(isAreaForBottomSheet, areaList, schoolList) { id, name ->
                 if (isAreaForBottomSheet) {
                     addressId = id.toString()
                     address = name
@@ -631,7 +651,8 @@ private fun RegisterPage(
                                 }
                             },
                             focusState = isEmailInputFocus,
-                            enabled = loginRegisterViewModel.socialEmail == "",
+//                            loginRegisterViewModel.socialEmail == "",
+                            enabled = true,
                             label = "이메일",
                             isFocus = {
                                 isNameInputFocus = false
@@ -715,7 +736,8 @@ private fun RegisterPage(
                     inputEvent = { phoneNumber = it },
                     focusState = isPhoneNumberInputFocus,
                     label = "전화번호(숫자만 적으세요)",
-                    enabled = loginRegisterViewModel.socialPhone == "",
+//                    loginRegisterViewModel.socialPhone == ""
+                    enabled = true,
                     isFocus = {
                         isNameInputFocus = false
                         isEmailInputFocus = false
@@ -823,20 +845,31 @@ private fun RegisterPage(
 
             Button(
                 onClick = {
-                    if (deptId.isEmpty()) deptId = "세코미 베타테스터"
-                    if (addressId.isEmpty()) addressId = "사랑시 서대문구 행복동"
+                    if (deptId.isEmpty()) deptId = "그린스타"
+                    if (addressId.isEmpty()) addressId = "서대문구"
 
                     if (passwordFirst != passwordSecond)
                         showShortToastMessage(context, "비밀번호가 일치하지 않습니다.")
-                    else if (userName.isEmpty() || email.isEmpty() || passwordFirst.isEmpty() || passwordSecond.isEmpty())
+                    else if (!validationCheck)
                         showShortToastMessage(context, "필수 입력정보가 부족합니다.")
                     else if (userName.length > 7)
                         showShortToastMessage(context, "성함은 7자 이내로 작성해주세요.")
-                    else if (loginRegisterViewModel.socialType != "")
+                    else if (loginRegisterViewModel.socialType != "") {
+                        passwordSecond = "abcd12345"
+                        passwordFirst = passwordSecond
+
+                        Log.d("Login", "RegisterPage: $userName")
+                        Log.d("Login", "RegisterPage: $email")
+                        Log.d("Login", "RegisterPage: $passwordSecond")
+                        Log.d("Login", "RegisterPage: $dept")
+                        Log.d("Login", "RegisterPage: $address")
+                        Log.d("Login", "RegisterPage: ${loginRegisterViewModel.socialSSOID}")
+                        Log.d("Login", "RegisterPage: ${loginRegisterViewModel.socialType}")
+
                         scope.launch {
                             loginRegisterViewModel.postSocialRegister(
                                 userName = userName,
-                                email = loginRegisterViewModel.socialEmail,
+                                email = email,
                                 userPwd = passwordSecond,
                                 userDept = dept,
                                 userAddress = address,
@@ -844,18 +877,27 @@ private fun RegisterPage(
                                 when {
                                     it.data?.code == 200 -> {
                                         showLongToastMessage(context, "${it.data?.message}")
-                                        currentLoginedUserId = loginRegisterViewModel.socialEmail
+                                        currentLoginedUserId = email
                                         currentUUIDUtil = appSettings.value.uuid
 
-                                        loginRegisterViewModel.getLogin(
+                                        loginRegisterViewModel.getSocialLogin(
                                             currentLoginedUserId,
-                                            passwordSecond,
+                                            loginRegisterViewModel.socialSSOID,
+                                            loginRegisterViewModel.socialType,
                                             appSettings.value.uuid
                                         ).let { loginResult ->
-                                            accessTokenUtil = loginResult.data!!.data.accessToken
+                                            if (loginResult.data?.code == 200) {
+                                                accessTokenUtil =
+                                                    loginResult.data!!.data.accessToken
+                                                onRegisterButtonClick(false)
+                                            } else {
+                                                Log.d(
+                                                    "Login",
+                                                    "RegisterPage: ?? ${loginResult.data?.message}"
+                                                )
+                                            }
                                         }
 
-                                        onRegisterButtonClick(false)
                                     }
                                     it.data?.code != 200 -> {
                                         Log.d("SocialRegister", "RegisterPage: ${it.data?.code}")
@@ -868,7 +910,8 @@ private fun RegisterPage(
                                 }
                             }
                         }
-                    else scope.launch {
+
+                    } else scope.launch {
                         loginRegisterViewModel.postRegister(
                             userName = userName,
                             email = email,
@@ -1124,6 +1167,7 @@ private fun LoginScaffold(
                 isSaveId = it
             }
             AutoLogin(isAutoLogin) {
+                isSaveId = it
                 isAutoLogin = it
             }
         }
@@ -1334,8 +1378,8 @@ fun SocialLoginList(
                 val gsa = task?.getResult(ApiException::class.java)
 
                 if (gsa != null) loginRegisterViewModel.fetchSignInUser(
-                    gsa.email!!,
-                    gsa.displayName!!,
+                    gsa.email ?: "",
+                    gsa.displayName ?: "",
                     gsa.id!!
                 )
 
@@ -1429,9 +1473,9 @@ fun SocialLoginList(
                                             loginRegisterViewModel.socialType = "kakao"
                                             loginRegisterViewModel.socialSSOID = user.id.toString()
                                             loginRegisterViewModel.socialName =
-                                                user.kakaoAccount!!.name.toString()
+                                                user.kakaoAccount!!.name ?: ""
                                             loginRegisterViewModel.socialPhone =
-                                                user.kakaoAccount!!.phoneNumber.toString()
+                                                user.kakaoAccount!!.phoneNumber ?: ""
                                             socialSignUp()
                                         } else if (it.data?.code == 200) {
                                             accessTokenUtil = it.data!!.data.accessToken
@@ -1470,26 +1514,26 @@ fun SocialLoginList(
 
                         Log.d("NaverLogin", "onSuccess: $token")
                         scope.launch {
-                            loginRegisterViewModel.getNaverUserInfo(token ?: "").let {
-                                if (it.data?.response?.id != null) {
-                                    loginRegisterViewModel.socialSSOID = it.data?.response?.id!!
-                                    loginRegisterViewModel.socialName = it.data?.response?.name!!
-                                    loginRegisterViewModel.socialEmail = it.data?.response?.email!!
-                                    loginRegisterViewModel.socialPhone =
-                                        it.data?.response?.mobile.toString()
-                                    loginRegisterViewModel.socialType = "naver"
-                                    loginRegisterViewModel.socialPhone =
-                                        it.data?.response?.mobile.toString()
-
+                            loginRegisterViewModel.getNaverUserInfo(token ?: "").let { naver ->
+                                if (naver.data?.response?.id != null) {
                                     loginRegisterViewModel.getSocialLogin(
-                                        loginRegisterViewModel.socialEmail,
-                                        loginRegisterViewModel.socialSSOID,
+                                        naver.data?.response?.email!!,
+                                        naver.data?.response?.id!!,
                                         "naver",
                                         currentUUIDUtil
                                     ).let {
-                                        if (it.data?.code == 400)
+                                        if (it.data?.code == 400) {
+                                            loginRegisterViewModel.socialSSOID =
+                                                naver.data?.response?.id!!
+                                            loginRegisterViewModel.socialName =
+                                                naver.data?.response?.name ?: ""
+                                            loginRegisterViewModel.socialEmail =
+                                                naver.data?.response?.email ?: ""
+                                            loginRegisterViewModel.socialPhone =
+                                                naver.data?.response?.mobile ?: ""
+                                            loginRegisterViewModel.socialType = "naver"
                                             socialSignUp()
-                                        else if (it.data?.code == 200) {
+                                        } else if (it.data?.code == 200) {
                                             accessTokenUtil = it.data!!.data.accessToken
                                             refreshTokenUtil = it.data!!.data.refreshToken
                                             currentLoginedUserId =
@@ -1536,7 +1580,11 @@ fun SocialLoginList(
                                 refreshTokenUtil = it.data!!.data.refreshToken
                                 currentLoginedUserId = loginRegisterViewModel.socialEmail
                                 navController.navigate(SecomiScreens.HomeScreen.name)
-                            } else if (it.data?.code == 400) socialSignUp()
+                            } else if (it.data?.code == 400) {
+
+                                socialSignUp()
+                            }
+
                         }
                     }
                 }

@@ -123,6 +123,7 @@ fun EventScreen(
         Log.d("AUTO Login", "EventScreen: did you fail to get any data?")
         showShortToastMessage(context, "데이터를 받지 못하였습니다.")
         if (isAutoLoginUtil) {
+            isFail = false
             AutoLoginLogic(
                 isLoading = { isLoading = true },
                 navController = navController,

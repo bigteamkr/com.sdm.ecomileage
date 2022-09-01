@@ -6,8 +6,10 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -143,7 +145,12 @@ fun SecomiTopAppBar(
                                 )
                             }
                             SecomiScreens.EducationScreen.name -> {
-                                AppBarTitleText(title, Modifier.padding(start = 8.dp), contentColor, 17.sp)
+                                AppBarTitleText(
+                                    title,
+                                    Modifier.padding(start = 8.dp),
+                                    contentColor,
+                                    17.sp
+                                )
                             }
                             SecomiScreens.SelectTopicScreen.name -> {
                                 AppBarTitleText(title, Modifier, contentColor, 17.sp)
@@ -210,6 +217,24 @@ fun SecomiTopAppBar(
                                     Modifier.padding(start = 67.dp),
                                     contentColor,
                                     18.sp
+                                )
+                            }
+
+                            SecomiScreens.MyHistoryScreen.name -> {
+                                AppBarTitleText(
+                                    title,
+                                    Modifier.padding(end = 25.dp),
+                                    contentColor,
+                                    18.sp
+                                )
+                            }
+
+                            SecomiScreens.MileageChangeScreen.name -> {
+                                AppBarTitleText(
+                                    title = title,
+                                    modifier = Modifier.padding(end = 25.dp),
+                                    contentColor = contentColor,
+                                    fontSize = 18.sp
                                 )
                             }
                         }
@@ -476,6 +501,7 @@ fun MainFeedCardStructure(
     openBigImage: (Int) -> Unit = {}
 ) {
     var isReportingCard by remember { mutableStateOf(isCurrentReportingFeedsNo) }
+
     LaunchedEffect(key1 = isCurrentReportingFeedsNo) {
         isReportingCard = isCurrentReportingFeedsNo
     }
@@ -483,8 +509,13 @@ fun MainFeedCardStructure(
     when {
         reportYN -> Box { }
         isReportingCard -> {
-            ReportedFeed(feedNo) {
-                reportingCancelAction(it)
+            AnimatedVisibility(
+                visible = isReportingCard,
+                enter = fadeIn()
+            ) {
+                ReportedFeed(feedNo) {
+                    reportingCancelAction(it)
+                }
             }
         }
         else -> {
@@ -1275,7 +1306,7 @@ fun CustomLoginInputTextField(
         ),
         enabled = enabled,
         singleLine = true,
-        visualTransformation = if (label == "비밀번호 (영문 숫자 포함 9자 이상)" || label == "비밀번호 확인 (영문 숫자 포함 9자 이상)" || label == "비밀번호") PasswordVisualTransformation() else VisualTransformation.None,
+        visualTransformation = if (label == "주민등록번호 뒷자리" || label == "비밀번호 (영문 숫자 포함 9자 이상)" || label == "비밀번호 확인 (영문 숫자 포함 9자 이상)" || label == "비밀번호") PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(onDone = {
             inputEvent(text)
@@ -1314,7 +1345,7 @@ fun CustomReportDialog(
     title: String,
     reportAction: (String, String?) -> Unit,
     dismissAction: (Boolean) -> Unit,
-    reportOptions: List<String>
+    reportOptions: List<String>,
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -1399,6 +1430,7 @@ fun CustomReportDialog(
                                     selected = selectedOption == reportOption,
                                     onClick = {
                                         selectedOption = reportOption
+                                        selectedOptionToCode = index.toString() + "0"
                                     },
                                     colors = RadioButtonDefaults.colors(
                                         selectedColor = LoginButtonColor
@@ -1439,7 +1471,6 @@ fun ReportedFeed(
             .padding(start = 5.dp, end = 5.dp)
             .fillMaxWidth()
             .background(Color.White),
-        shape = RoundedCornerShape(10.dp),
         backgroundColor = Color.White
     ) {
         Column(
@@ -1468,6 +1499,8 @@ fun ReportedFeed(
 @Composable
 fun RegisterBottomSheetMain(
     isArea: Boolean = true,
+    areaInput: List<Search>,
+    schoolInput: List<com.sdm.ecomileage.model.registerPage.searchLocation.schoolResponse.Search>,
     loginRegisterViewModel: LoginRegisterViewModel = hiltViewModel(),
     hideSheet: (Int, String) -> Unit
 ) {
@@ -1478,8 +1511,14 @@ fun RegisterBottomSheetMain(
     }
 
     val areaList = SnapshotStateList<Search>()
+    areaInput.forEach {
+        areaList.add(it)
+    }
     val schoolList =
         SnapshotStateList<com.sdm.ecomileage.model.registerPage.searchLocation.schoolResponse.Search>()
+    schoolInput.forEach {
+        schoolList.add(it)
+    }
     // 위에껀 areaSearch, 밑에껀 schoolSearch
     // 같은 이름의 Search 이지만 패키지로 다르게 들어가고 있음.
 

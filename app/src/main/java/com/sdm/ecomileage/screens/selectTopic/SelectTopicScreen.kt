@@ -2,9 +2,8 @@ package com.sdm.ecomileage.screens.selectTopic
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -15,7 +14,6 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,9 +33,7 @@ import com.sdm.ecomileage.R
 import com.sdm.ecomileage.components.SecomiTopAppBar
 import com.sdm.ecomileage.data.ChallengeList
 import com.sdm.ecomileage.navigation.SecomiScreens
-import com.sdm.ecomileage.ui.theme.CardContentColor
-import com.sdm.ecomileage.ui.theme.PointColor
-import com.sdm.ecomileage.ui.theme.TopBarColorOrigin
+import com.sdm.ecomileage.ui.theme.*
 
 @Composable
 fun SelectTopicScreen(
@@ -58,19 +54,18 @@ fun SelectTopicScreen(
                 navController = navController,
                 backgroundColor = TopBarColorOrigin
             )
-        },
-        floatingActionButton = {
-            SelectTopicFloatingActionButton(
-                navController = navController,
-                isClicked = isClicked,
-                selectedCategory = selectedCategory
-            )
         }
+//        floatingActionButton = {
+//            SelectTopicFloatingActionButton(
+//                navController = navController,
+//                isClicked = isClicked,
+//                selectedCategory = selectedCategory
+//            )
+//        }
     ) {
         ChallengeLayout(
             navController = navController,
             click = { isClicked = it },
-            selectCategory = { selectedCategory = it }
         )
     }
 }
@@ -79,9 +74,10 @@ fun SelectTopicScreen(
 fun ChallengeLayout(
     navController: NavController,
     click: (Boolean) -> Unit,
-    selectCategory: (String) -> Unit
 ) {
     val configuration = LocalConfiguration.current
+
+    var selectedCategory by remember { mutableStateOf("") }
 
     val pointString = AnnotatedString(
         "5 ",
@@ -109,51 +105,49 @@ fun ChallengeLayout(
 
     val interactionSource = remember { MutableInteractionSource() }
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(20.dp),
-        userScrollEnabled = false
+    Column(
+        modifier = Modifier.fillMaxHeight(),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        itemsIndexed(ChallengeList) { index, photo ->
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(20.dp),
+            userScrollEnabled = false
+        ) {
+            itemsIndexed(ChallengeList) { index, photo ->
 
-            val text = when (photo) {
-                R.drawable.image_daily -> "일상생활"
-                R.drawable.image_empty_dish -> "빈그릇 챌린지"
-                R.drawable.image_public_transport -> "대중교통 챌린지"
-                R.drawable.image_thermos -> "개인 텀블러 챌린지"
-                R.drawable.image_label_detach -> "라벨지 떼기 챌린지"
-                R.drawable.image_basket -> "장바구니 챌린지"
-                R.drawable.image_pull_a_plug -> "코드뽑기 챌린지"
-                R.drawable.image_empty_bottle -> "용기 재활용 챌린지"
-                R.drawable.image_upcycling -> "업사이클링 챌린지"
-                R.drawable.image_back -> "돌아가기"
-                else -> "챌린지"
-            }
-            val paddingModifier = if (index % 2 == 0) Modifier.padding(
-                end = 10.dp,
-                bottom = 10.dp
-            ) else Modifier.padding(start = 10.dp, bottom = 10.dp)
+                val text = when (photo) {
+                    R.drawable.image_daily -> "일상생활"
+                    R.drawable.image_empty_dish -> "빈그릇 인증"
+                    R.drawable.image_public_transport -> "대중교통"
+                    R.drawable.image_thermos -> "개인 텀블러"
+                    R.drawable.image_label_detach -> "라벨지 떼기"
+                    R.drawable.image_basket -> "장바구니"
+                    R.drawable.image_pull_a_plug -> "코드뽑기"
+                    R.drawable.image_empty_bottle -> "개인용기 포장"
+                    R.drawable.image_upcycling -> "업사이클링"
+                    R.drawable.image_back -> "나가기"
+                    else -> "챌린지"
+                }
+                val paddingModifier = if (index % 2 == 0) Modifier.padding(
+                    end = 10.dp,
+                    bottom = 10.dp
+                ) else Modifier.padding(start = 10.dp, bottom = 10.dp)
 
-            val clickPaddingModifier = if (index % 2 == 0) Modifier.padding(
-                top = 15.dp,
-                end = 20.dp
-            ) else Modifier.padding(top = 15.dp, end = 10.dp)
-
-            Box(contentAlignment = Alignment.TopEnd) {
                 Card(
                     modifier = Modifier
                         .clickable(
                             interactionSource = interactionSource,
                             indication = null,
-                            enabled = if (text == "돌아가기") !isBackOnceClick else true
+                            enabled = if (text == "나가기") !isBackOnceClick else true
                         ) {
-                            if (text != "돌아가기" && isClick != index) {
+                            if (text != "나가기" && isClick != index) {
                                 isClick = index
-                                selectCategory(text)
+                                selectedCategory = text
                                 click(true)
-                            } else if (text != "돌아가기") {
+                            } else if (text != "나가기") {
                                 isClick = -1
-                                selectCategory("")
+                                selectedCategory = ""
                                 click(false)
                             } else {
                                 isBackOnceClick = true
@@ -163,40 +157,57 @@ fun ChallengeLayout(
                         .fillMaxSize()
                         .then(paddingModifier),
                     shape = RoundedCornerShape(11.dp),
+                    border = if (isClick == index) BorderStroke(
+                        0.5.dp,
+                        Color(0xFF009633)
+                    ) else null,
                     elevation = 12.dp
                 ) {
-                    Column(
-                        modifier = Modifier,
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Spacer(modifier = Modifier.height(15.dp))
-                        Image(
-                            painter = painterResource(id = photo), contentDescription = "",
-                            modifier = Modifier
-                                .size(60.dp)
-                        )
-                        Spacer(modifier = Modifier.height(15.dp))
-                        Text(text = text, letterSpacing = 1.4.sp)
-                        Spacer(modifier = Modifier.height(15.dp))
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Spacer(modifier = Modifier.height(13.dp))
+                            Image(
+                                painter = painterResource(id = photo), contentDescription = "",
+                                modifier = Modifier
+                                    .size(52.dp)
+                            )
+                            Spacer(modifier = Modifier.height(13.dp))
+                            Text(text = text, letterSpacing = 1.4.sp)
+                            Spacer(modifier = Modifier.height(13.dp))
+                        }
+
+                        if (isClick == index)
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(110.dp),
+                                color = Color(0x80B1FFAF)
+                            ) { }
+
                     }
                 }
-
-                AnimatedVisibility(
-                    visible = isClick == index,
-                    enter = fadeIn(tween(100))
-                    ) {
-                    Surface(modifier = clickPaddingModifier) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "$photo 관련 글 작성하기",
-                            modifier = Modifier.size(30.dp),
-                            tint = PointColor
-                        )
-                    }
-                }
-
             }
+
+//            item(
+//                span = { GridItemSpan(maxLineSpan) }
+//            ) {
+//
+//            }
+        }
+
+        Button(
+            onClick = { navController.navigate(SecomiScreens.HomeAddScreen.name + "/$selectedCategory") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp),
+            colors = ButtonDefaults.buttonColors(backgroundColor = if (selectedCategory != "") LoginButtonColor else PlaceholderColor),
+            enabled = selectedCategory != ""
+        ) {
+            Text(text = "챌린지 작성하기", color = Color.White)
         }
     }
 }

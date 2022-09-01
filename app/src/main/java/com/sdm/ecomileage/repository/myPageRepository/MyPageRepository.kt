@@ -10,9 +10,12 @@ import com.sdm.ecomileage.model.myPage.newFollow.request.NewFollowInfoRequest
 import com.sdm.ecomileage.model.myPage.newFollow.response.NewFollowInfoResponse
 import com.sdm.ecomileage.model.myPage.userFeedInfo.request.UserFeedInfoRequest
 import com.sdm.ecomileage.model.myPage.userFeedInfo.response.UserFeedInfoResponse
+import com.sdm.ecomileage.model.myPage.userHistoryInfo.request.UserHistoryInfoRequest
+import com.sdm.ecomileage.model.myPage.userHistoryInfo.response.UserHistoryResponse
 import com.sdm.ecomileage.model.report.user.request.NewUserReportRequest
 import com.sdm.ecomileage.model.report.user.response.NewUserReportResponse
 import com.sdm.ecomileage.network.MyPageAPI
+import com.sdm.ecomileage.repository.paging.UserHistoryPagingSource
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
 
@@ -101,7 +104,23 @@ class MyPageRepository @Inject constructor(private val api: MyPageAPI) {
                 throw e
 
             Log.d("MyPageRepository", "deleteMyFeed: api call in repository didn't work")
-            Log.d("MyPageRepository", "deleteMyFeed:  exception is $e")
+            Log.d("MyPageRepository", "deleteMyFeed: exception is $e")
+            return DataOrException(e = e)
+        }
+        return DataOrException(response)
+    }
+
+    suspend fun getUserHistory(
+        token: String,
+        body: UserHistoryInfoRequest
+    ) : DataOrException<UserHistoryResponse, Boolean, Exception> {
+        val response = try {
+            api.getUserHistory(token, body)
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+
+            Log.d("MyPageRepository", "getUserHistory: api call in repository didn't work")
+            Log.d("MyPageRepository", "getUserHistory: exception is $e")
             return DataOrException(e = e)
         }
         return DataOrException(response)

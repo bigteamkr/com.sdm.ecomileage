@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
@@ -104,12 +107,12 @@ private fun AppSettingsScaffold(navController: NavController, result: Result) {
     var profileImgBitmap by remember {
         mutableStateOf<Bitmap?>(null)
     }
+
     val imageCameraLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) { takenPhoto ->
             if (takenPhoto != null) profileImgBitmap = takenPhoto
             else showShortToastMessage(context, "카메라 촬영을 취소하셨습니다.")
         }
-
 
     Scaffold(
         topBar = {
@@ -340,6 +343,7 @@ private fun UserInformationRow(
     address: String,
     phoneNumber: String
 ) {
+    var isEditing by remember { mutableStateOf(false) }
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -367,12 +371,27 @@ private fun UserInformationRow(
             Column(
                 modifier = Modifier
                     .padding(start = 117.dp)
-                    .fillMaxHeight()
-                    .fillMaxWidth(0.5f),
+                    .fillMaxHeight(),
                 verticalArrangement = Arrangement.SpaceEvenly,
                 horizontalAlignment = Alignment.Start
             ) {
-                Text(text = school)
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = school)
+                    Icon(
+                        imageVector = Icons.Default.Edit, contentDescription = "",
+                        modifier = Modifier
+                            .padding(
+                                end = 5.dp
+                            )
+//                            .clickable { isEditing = true },
+                        ,
+                        tint = PlaceholderColor
+                    )
+                }
                 Text(text = address)
                 Text(text = phoneNumber)
             }
@@ -382,6 +401,16 @@ private fun UserInformationRow(
                     .height(30.dp),
                 color = Color.White
             ) {}
+        }
+    }
+
+    if (isEditing) {
+        Dialog(onDismissRequest = { isEditing = false }) {
+            Surface(shape = RoundedCornerShape(20.dp)) {
+                Column {
+                    Text("")
+                }
+            }
         }
     }
 }
@@ -502,15 +531,12 @@ private fun SettingsProfile(
     val imageCameraLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) { takenPhoto ->
             if (takenPhoto != null) {
-                appSettingsViewModel
                 profileImgBitmap = takenPhoto
                 //Todo : API 연결하기
 
-                if (profileImgBitmap != null) {
-                    val image = bitmapToString(profileImgBitmap!!)
-                    scope.launch {
-                        loginRegisterViewModel.putMemberUpdate(profileImg = image)
-                    }
+                val image = bitmapToString(profileImgBitmap!!)
+                scope.launch {
+                    loginRegisterViewModel.putMemberUpdate(profileImg = image)
                 }
 
             } else showShortToastMessage(context, "카메라 촬영을 취소하셨습니다.")
@@ -544,7 +570,7 @@ private fun SettingsProfile(
                 shape = CircleShape
             ) {
                 Image(
-                    painter = rememberImagePainter(data = profileImgBitmap ?: image),
+                    painter = rememberImagePainter(data = imageUri ?: image),
                     contentDescription = "Profile",
                     modifier = Modifier.fillMaxSize()
                 )

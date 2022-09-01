@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -58,6 +59,7 @@ import com.sdm.ecomileage.components.appBarComponents.MoreVertComponent
 import com.sdm.ecomileage.data.DataOrException
 import com.sdm.ecomileage.model.myPage.myFeedInfo.response.MyFeedInfoResponse
 import com.sdm.ecomileage.model.myPage.userFeedInfo.response.UserFeedInfoResponse
+import com.sdm.ecomileage.model.myPage.userHistoryInfo.response.UserHistoryResponse
 import com.sdm.ecomileage.navigation.SecomiScreens
 import com.sdm.ecomileage.screens.home.HomeViewModel
 import com.sdm.ecomileage.screens.homeDetail.HomeDetailViewModel
@@ -66,6 +68,7 @@ import com.sdm.ecomileage.ui.theme.*
 import com.sdm.ecomileage.utils.UserReportOptions
 import com.sdm.ecomileage.utils.currentLoginedUserId
 import com.sdm.ecomileage.utils.currentUUIDUtil
+import com.sdm.ecomileage.utils.noChangeMileageAlarm
 import kotlinx.coroutines.launch
 
 @Composable
@@ -77,6 +80,7 @@ fun MyPageScreen(
 ) {
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) }
+
     SideEffect {
         systemUiController.setStatusBarColor(StatusBarGreenColor)
     }
@@ -112,7 +116,7 @@ fun MyPageScreen(
                     screen = SecomiScreens.MyPageScreen.name
                 )
             }
-            PageScaffold(navController, userId, myFeedInfo)
+            PageScaffold(navController, systemUiController, userId, myFeedInfo)
         } else {
             isFail = true
         }
@@ -136,7 +140,7 @@ fun MyPageScreen(
                     screen = SecomiScreens.MyPageScreen.name
                 )
             }
-            PageScaffold(navController, userId!!, userFeedInfo = userFeedInfo)
+            PageScaffold(navController, systemUiController, userId!!, userFeedInfo = userFeedInfo)
         } else {
             isFail = true
         }
@@ -159,6 +163,7 @@ fun MyPageScreen(
 @Composable
 private fun PageScaffold(
     navController: NavController,
+    systemUiController: SystemUiController,
     userId: String,
     myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>? = null,
     userFeedInfo: DataOrException<UserFeedInfoResponse, Boolean, Exception>? = null,
@@ -222,7 +227,7 @@ private fun PageScaffold(
         backgroundColor = BasicBackgroundColor
     ) {
         if (userId == "myPage" || userId == currentLoginedUserId)
-            MyPageLayout(navController, myFeedInfo)
+            MyPageLayout(navController, systemUiController, myFeedInfo)
         else
             UserFeedLayout(navController, userFeedInfo!!, isReported)
     }
@@ -256,6 +261,7 @@ private fun PageScaffold(
 @Composable
 private fun MyPageLayout(
     navController: NavController,
+    systemUiController: SystemUiController,
     myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>?
 ) {
     var selectedButton by remember {
@@ -274,15 +280,65 @@ private fun MyPageLayout(
             MyFeedLayout(navController, myFeedInfo!!)
         }
         if (selectedButton == "내 활동") {
-            MyWorkLayout(navController = navController)
+            MyWorkLayout(navController, systemUiController)
         }
     }
 }
 
 @Composable
-private fun MyWorkLayout(navController: NavController) {
+private fun MyWorkLayout(
+    navController: NavController,
+    systemUiController: SystemUiController,
+    myPageViewModel: MyPageViewModel = hiltViewModel()
+) {
+    var isLoading by remember { mutableStateOf(false) }
+    var isFail by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
     val tintColor = IconTintColor
+
+    val spacing = with(LocalDensity.current) {
+        (25.sp.toDp()) / 2
+    }
+
+    val myHistoryInfo: DataOrException<UserHistoryResponse, Boolean, Exception>
+
+    myHistoryInfo = produceState<DataOrException<UserHistoryResponse, Boolean, Exception>>(
+        initialValue = DataOrException(loading = true)
+    ) {
+        value = myPageViewModel.getUserHistoryInfo()
+    }.value
+
+    if (myHistoryInfo.loading == true)
+        CircularProgressIndicator(color = LoginButtonColor)
+    else if (myHistoryInfo.data?.result != null) {
+        myHistoryInfo.data?.code?.let {
+            if (it == 200) return@let
+            else AutoLoginLogic(
+                isLoading = { isLoading = true },
+                navController = navController,
+                context = context,
+                screen = SecomiScreens.MyPageScreen.name
+            )
+        }
+        myWorkContent(myHistoryInfo, navController, systemUiController)
+    } else {
+        isFail = true
+    }
+
+}
+
+@Composable
+private fun myWorkContent(
+    myHistoryInfo: DataOrException<UserHistoryResponse, Boolean, Exception>,
+    navController: NavController,
+    systemUiController: SystemUiController
+) {
+    val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val tintColor = IconTintColor
+
+    var noCandidateDialog by remember { mutableStateOf(false) }
 
     val spacing = with(LocalDensity.current) {
         (25.sp.toDp()) / 2
@@ -299,21 +355,39 @@ private fun MyWorkLayout(navController: NavController) {
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             LazyRow() {
-                item { visitInfo(spacing = spacing) }
-                item { mileageInfo(spacing = spacing) }
-                item { writeInfo() }
-                item { eduInfo(radius = 31.dp) }
+                item {
+                    visitInfo(
+                        spacing = spacing,
+                        visitCount = myHistoryInfo.data!!.result.visits.toString()
+                    )
+                }
+                item {
+                    mileageInfo(
+                        spacing = spacing,
+                        mileageCount = myHistoryInfo.data!!.result.point.toString()
+                    )
+                }
+//                item { writeInfo() }
+//                item { eduInfo(radius = 31.dp) }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            mileageHistoryCard(context)
+            mileageHistoryCard(context, myHistoryInfo, navController, systemUiController)
         }
 
         Button(
             modifier = Modifier
                 .fillMaxWidth(),
-            onClick = { showShortToastMessage(context, "준비 중입니다.") },
+            onClick = {
+//                if (myHistoryInfo.data!!.result.point < 5000) noCandidateDialog = true
+//                else navController.navigate(SecomiScreens.MileageChangeScreen.name) {
+//                    popUpTo(SecomiScreens.MyPageScreen.name) { inclusive = true }
+//                }
+                navController.navigate(SecomiScreens.MileageChangeScreen.name) {
+                    popUpTo(SecomiScreens.MyPageScreen.name) { inclusive = true }
+                }
+            },
             colors = ButtonDefaults.buttonColors(backgroundColor = IconTintColor),
             shape = RoundedCornerShape(topStartPercent = 20, topEndPercent = 20),
             elevation = ButtonDefaults.elevation(11.dp),
@@ -340,11 +414,62 @@ private fun MyWorkLayout(navController: NavController) {
                 )
             }
         }
+
+        if (noCandidateDialog) {
+            Dialog(onDismissRequest = { noCandidateDialog = false }) {
+                Surface(
+                    modifier = Modifier
+                        .width((configuration.screenWidthDp * 0.75).dp)
+                        .height((configuration.screenHeightDp * 0.25).dp),
+                    shape = RoundedCornerShape(5)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(20.dp)
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.SpaceAround,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "전환대상이 아닙니다.",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.subtitle1,
+                            fontSize = 17.sp
+                        )
+                        Text(
+                            text = noChangeMileageAlarm,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(10.dp),
+                            style = MaterialTheme.typography.subtitle1,
+                            fontSize = 15.sp
+                        )
+
+                        Button(
+                            onClick = { noCandidateDialog = false },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(backgroundColor = NavGreyColor)
+                        ) {
+                            Text(
+                                text = "닫기",
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun mileageHistoryCard(context: Context) {
+private fun mileageHistoryCard(
+    context: Context,
+    myHistoryInfo: DataOrException<UserHistoryResponse, Boolean, Exception>,
+    navController: NavController,
+    systemUiController: SystemUiController
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -373,8 +498,11 @@ private fun mileageHistoryCard(context: Context) {
                 Text(
                     text = "전체보기",
                     modifier = Modifier
-                        .clickable {
-                            showShortToastMessage(context, "준비 중입니다.")
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null
+                        ) {
+                            navController.navigate(SecomiScreens.MyHistoryScreen.name + "/${myHistoryInfo.data!!.result.point}")
                         },
                     color = PlaceholderColor,
                     letterSpacing = 1.25.sp,
@@ -384,32 +512,33 @@ private fun mileageHistoryCard(context: Context) {
             }
 
             LazyColumn {
-                item {
-                    mileageHistoryItem(
-                        tintColor = IconTintColor,
-                        history = "출석체크",
-                        "2022.05.06",
-                        type = true,
-                        20
-                    )
+                itemsIndexed(myHistoryInfo.data!!.result.mileList) { index, item ->
+                    if (index <= 2) {
+                        mileageHistoryItem(
+                            tintColor = if (item.miletype == "U") UsedMileageColor else IconTintColor,
+                            history = item.milereason,
+                            period = item.miledate,
+                            type = item.miletype != "U",
+                            point = item.mileagepoint
+                        )
+                    }
                 }
-                item {
-                    mileageHistoryItem(
-                        tintColor = UsedMileageColor,
-                        history = "마일리지 전환",
-                        "2022.05.05",
-                        type = false,
-                        100
-                    )
-                }
-                item {
-                    mileageHistoryItem(
-                        tintColor = IconTintColor,
-                        history = "영상시청",
-                        "2022.05.04",
-                        type = true,
-                        20
-                    )
+
+                if (myHistoryInfo.data!!.result.mileList.isEmpty()) {
+                    item {
+                        Surface(
+                            modifier = Modifier.padding(vertical = 30.dp)
+                        ) {
+                            Text(
+                                text = "내역이 없습니다.",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                                fontFamily = FontFamily.SansSerif,
+                                letterSpacing = 1.0.sp,
+                                color = CardContentColor
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -580,7 +709,8 @@ private fun writeInfo(
 @Composable
 private fun mileageInfo(
     tintColor: Color = IconTintColor,
-    spacing: Dp
+    spacing: Dp,
+    mileageCount: String
 ) {
     Card(
         modifier = Modifier
@@ -616,7 +746,7 @@ private fun mileageInfo(
                 horizontalArrangement = Arrangement.Start
             ) {
                 Text(
-                    text = "115000",
+                    text = mileageCount,
                     color = CardContentColor,
                     fontFamily = FontFamily.SansSerif,
                     fontWeight = FontWeight.Medium,
@@ -648,7 +778,8 @@ private fun mileageInfo(
 @Composable
 private fun visitInfo(
     tintColor: Color = IconTintColor,
-    spacing: Dp
+    spacing: Dp,
+    visitCount: String
 ) {
 
     Card(
@@ -686,7 +817,7 @@ private fun visitInfo(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "223",
+                    text = visitCount,
                     color = CardContentColor,
                     fontFamily = FontFamily.SansSerif,
                     fontWeight = FontWeight.Medium,
@@ -695,13 +826,13 @@ private fun visitInfo(
                     maxLines = 1
                 )
                 Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = "일",
-                    color = PlaceholderColor,
-                    letterSpacing = 0.75.sp,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Normal
-                )
+//                Text(
+//                    text = "일",
+//                    color = PlaceholderColor,
+//                    letterSpacing = 0.75.sp,
+//                    fontSize = 14.sp,
+//                    fontWeight = FontWeight.Normal
+//                )
             }
 
             Spacer(modifier = Modifier.height(spacing))
@@ -713,7 +844,7 @@ private fun visitInfo(
                 horizontalArrangement = Arrangement.Start
             ) {
                 Text(
-                    text = "방문수",
+                    text = "방문일",
                     color = PlaceholderColor,
                     letterSpacing = 1.25.sp,
                     fontSize = 15.sp,
@@ -927,14 +1058,18 @@ private fun MyFeedLayout(
     navController: NavController,
     myFeedInfo: DataOrException<MyFeedInfoResponse, Boolean, Exception>
 ) {
-    Column(modifier = Modifier.padding(start = 15.dp, end = 15.dp)) {
+    Column(modifier = Modifier.padding(top = 15.dp, start = 15.dp, end = 15.dp)) {
         Text(
             text = "오늘",
             fontSize = 12.sp,
             modifier = Modifier.padding(start = 10.dp, top = 10.dp, bottom = 5.dp),
             color = IndicationColor
         )
-        Divider()
+        Divider(
+            modifier = Modifier
+                .padding(horizontal = 5.dp)
+                .padding(top = 5.dp)
+        )
         MyFeedList(navController, myFeedInfo)
     }
 }
@@ -952,7 +1087,7 @@ private fun MyPageFilterButton(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 15.dp)
-            .padding(top = 3.dp),
+            .padding(top = 15.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -1067,7 +1202,9 @@ private fun MyPageTopBar(
                                 interactionSource = interactionSource,
                                 indication = null
                             ) {
-                                navController.navigate(SecomiScreens.SettingsScreen.name)
+                                navController.navigate(SecomiScreens.SettingsScreen.name) {
+                                    popUpTo(SecomiScreens.MyPageScreen.name) { inclusive = true }
+                                }
                             },
                         tint = Color.White
                     )
@@ -1081,9 +1218,9 @@ private fun MyPageTopBar(
                                 interactionSource = interactionSource,
                                 indication = null
                             ) {
-                                navController.navigate(SecomiScreens.NoticeScreen.name) {
-                                    popUpTo(SecomiScreens.MyPageScreen.name) { inclusive = true }
-                                }
+//                                navController.navigate(SecomiScreens.NoticeScreen.name) {
+//                                    popUpTo(SecomiScreens.MyPageScreen.name) { inclusive = true }
+//                                }
                             }
                     )
                 }
@@ -1244,7 +1381,10 @@ fun MyFeedList(
                             "more" to R.drawable.ic_new_burger
                         ),
                         navController = navController,
-                        reportDialogCallAction = {},
+                        reportDialogCallAction = {
+                            deleteFeedNo = data.feedsno
+                            deleteNotice = true
+                        },
                         currentScreen = SecomiScreens.MyPageScreen.name,
                         feedNo = data.feedsno,
                         contentText = data.feedcontent,
