@@ -127,4 +127,13 @@ object AppModule {
             .build()
             .create(EventAPI::class.java)
 
+    @Provides
+    @Singleton
+    fun mileageChangeAPI(): MileageChangeAPI =
+        Retrofit
+            .Builder()
+            .baseUrl(Constants.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(MileageChangeAPI::class.java)
 }
