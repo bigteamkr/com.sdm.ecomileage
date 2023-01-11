@@ -219,8 +219,7 @@ private fun Content(navController: NavController) {
 
                         coroutineScope.launch {
                             // debugging message 마일리지 전환신청 완료 parameter
-                            showShortToastMessage(context,
-                                uuid + " " + mileagetype + " " + gifttype + " " + persno)
+                            // showShortToastMessage(context, uuid + " " + mileagetype + " " + gifttype + " " + persno)
 
                             mileageChangeViewModel.postMileageChange(uuid,
                                 mileagetype,
