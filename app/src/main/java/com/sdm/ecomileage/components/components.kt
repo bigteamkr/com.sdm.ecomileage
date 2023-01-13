@@ -639,6 +639,7 @@ fun MainCardFeed(
                     .fillMaxWidth()
                     .height(0.3.dp)
             )
+            // 카드 작성자 정보
             CardWriterInformation(
                 profileImage,
                 profileId,
@@ -969,6 +970,7 @@ private fun CardContent(
     }
 }
 
+// CARD Image
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun CardImageRow(
@@ -1006,6 +1008,7 @@ fun CardImageRow(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
+                        // 포스팅 이미지 리스트
                         Image(
                             painter = rememberImagePainter(imageList[page]),
                             contentDescription = "FeedImageList",
@@ -1540,6 +1543,7 @@ fun RegisterBottomSheetMain(
                 color = BottomSheetDividerColor
             ) {}
 
+            // 회원 가입 동네 검색 / 학교검색 구분
             Text(
                 text = if (isArea) "동네 검색" else "학교 검색",
                 fontWeight = FontWeight.Bold,
@@ -1621,29 +1625,34 @@ fun RegisterBottomSheetMain(
                         )
                     }
 
-                items(areaList) { area ->
-                    Surface(
-                        modifier = Modifier.clickable {
-                            hideSheet(
-                                (area.areaId).toInt(),
-                                "${area.sidoname} ${area.sggname} ${area.areaName}"
-                            )
-                        }
-                    ) { RegisterBottomSheetLocationItem(name = "${area.sidoname} ${area.sggname} ${area.areaName}") }
+                // 학교 검색 / 동네 검색에 따른 리스트 표출
+                if (isArea) {
+                    items(areaList) { area ->
+                        Surface(
+                            modifier = Modifier.clickable {
+                                hideSheet(
+                                    (area.areaId).toInt(),
+                                    "${area.sidoname} ${area.sggname} ${area.areaName}"
+                                )
+                            }
+                        ) { RegisterBottomSheetLocationItem(name = "${area.sidoname} ${area.sggname} ${area.areaName}") }
+                    }
                 }
-                items(schoolList) { school ->
-                    Surface(
-                        Modifier.clickable {
-                            hideSheet(
-                                school.schoolId,
-                                "${school.schoolName}"
+                else {
+                    items(schoolList) { school ->
+                        Surface(
+                            Modifier.clickable {
+                                hideSheet(
+                                    school.schoolId,
+                                    "${school.schoolName}"
+                                )
+                            }
+                        ) {
+                            RegisterBottomSheetLocationItem(
+                                name = school.schoolName,
+                                address = "${school.sidoname} ${school.sggname}"
                             )
                         }
-                    ) {
-                        RegisterBottomSheetLocationItem(
-                            name = school.schoolName,
-                            address = "${school.sidoname} ${school.sggname}"
-                        )
                     }
                 }
             }
