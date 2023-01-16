@@ -376,16 +376,22 @@ private fun myWorkContent(
             mileageHistoryCard(context, myHistoryInfo, navController, systemUiController)
         }
 
+        // 마일리지 전환하기 버튼
         Button(
             modifier = Modifier
                 .fillMaxWidth(),
             onClick = {
-//                if (myHistoryInfo.data!!.result.point < 5000) noCandidateDialog = true
-//                else navController.navigate(SecomiScreens.MileageChangeScreen.name) {
-//                    popUpTo(SecomiScreens.MyPageScreen.name) { inclusive = true }
-//                }
-                navController.navigate(SecomiScreens.MileageChangeScreen.name) {
-                    popUpTo(SecomiScreens.MyPageScreen.name) { inclusive = true }
+                    // 마일리지 5000점 이하일 경우 '마일리지 전환 기능 비활성화'
+                    if (myHistoryInfo.data!!.result.point < 5000) {
+                        noCandidateDialog = true
+                        // 추후 삭제 (테스트 기간 동안만 활성)
+                        // navController.navigate(SecomiScreens.MileageChangeScreen.name)
+                    }
+                    else
+                    // 마일리지 전환신청 사용자 정보 입력화면
+                    {   navController.navigate(SecomiScreens.MileageChangeScreen.name) {
+                        popUpTo(SecomiScreens.MyPageScreen.name) { inclusive = true }
+                    }
                 }
             },
             colors = ButtonDefaults.buttonColors(backgroundColor = IconTintColor),
@@ -431,19 +437,20 @@ private fun myWorkContent(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
+                            // alert 타이틀
                             text = "전환대상이 아닙니다.",
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.subtitle1,
                             fontSize = 17.sp
                         )
                         Text(
+                            // 마일리지 전환대상 아님 알람 표출
                             text = noChangeMileageAlarm,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(10.dp),
                             style = MaterialTheme.typography.subtitle1,
                             fontSize = 15.sp
                         )
-
                         Button(
                             onClick = { noCandidateDialog = false },
                             modifier = Modifier.fillMaxWidth(),
@@ -461,6 +468,7 @@ private fun myWorkContent(
     }
 }
 
+// 마일리지 사용내역
 @Composable
 private fun mileageHistoryCard(
     context: Context,
@@ -511,6 +519,7 @@ private fun mileageHistoryCard(
                 )
             }
 
+            // 마일리지 적립 / 사용 히스토리
             LazyColumn {
                 itemsIndexed(myHistoryInfo.data!!.result.mileList) { index, item ->
                     if (index <= 2) {
@@ -524,6 +533,7 @@ private fun mileageHistoryCard(
                     }
                 }
 
+                // data = DataOrException의 data. 마일리지 적립내역이 없을 경우가 아닌 경우
                 if (myHistoryInfo.data!!.result.mileList.isEmpty()) {
                     item {
                         Surface(
@@ -1181,8 +1191,10 @@ private fun MyPageTopBar(
                     .fillMaxWidth()
                     .padding(start = 10.dp, end = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                // 2023.01.16 '설정' 버튼 오른쪽 상단으로 이동 조치, 알림 버튼 미사용 블럭
+                horizontalArrangement = Arrangement.End
             ) {
+                /* 2023.01.16 뒤로가기 버튼 블럭처리 (원인 : logout 처리)
                 Icon(
                     painter = painterResource(id = R.drawable.ic_back_arrow),
                     contentDescription = "뒤로가기",
@@ -1191,6 +1203,7 @@ private fun MyPageTopBar(
                         .clickable { navController.popBackStack() },
                     tint = Color.White
                 )
+                */
 
                 Row() {
                     Icon(
@@ -1208,7 +1221,9 @@ private fun MyPageTopBar(
                             },
                         tint = Color.White
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
+
+                    /* 2023.01.16 notice icon 제외 (기능 없음)
+                    Spacer(modifier = Modifier.width(9.dp))
                     Image(
                         painter = painterResource(id = R.drawable.ic_push_off),
                         contentDescription = "push off",
@@ -1222,7 +1237,7 @@ private fun MyPageTopBar(
 //                                    popUpTo(SecomiScreens.MyPageScreen.name) { inclusive = true }
 //                                }
                             }
-                    )
+                    )*/
                 }
             }
             Row(
