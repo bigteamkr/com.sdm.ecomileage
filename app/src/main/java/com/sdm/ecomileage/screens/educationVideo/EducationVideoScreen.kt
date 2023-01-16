@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -50,7 +51,6 @@ fun EducationVideoScreen(
 ) {
 
     // Todo : 영상 전체화면 - 일단 밑의 코드로는 안됨.
-
     Log.d("EducationVideoScreen", "EducationVideoScreen: AHHHHHHHHHHHHHHHH")
 
     val context = LocalContext.current
@@ -150,7 +150,8 @@ fun EducationVideoScreen(
         }
     })
 
-    LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+    // 2023.01.16 comment 처리
+    // LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
     if (!isEnter)
         EducationVideoScaffold(
@@ -205,7 +206,7 @@ private fun EducationVideoScaffold(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.65f)
-                    .background(Color.Black)
+                    .background(Color.White)
                     .clickable(false) {},
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.SpaceBetween
